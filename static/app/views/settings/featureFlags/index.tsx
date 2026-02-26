@@ -1,6 +1,7 @@
 import {Fragment} from 'react';
 
 import {Button, LinkButton} from '@sentry/scraps/button';
+import {Stack} from '@sentry/scraps/layout';
 import {ExternalLink} from '@sentry/scraps/link';
 import {Text} from '@sentry/scraps/text';
 
@@ -23,53 +24,55 @@ function OrganizationFeatureFlagsIndex() {
     <Fragment>
       <SentryDocumentTitle title={t('Feature Flags')} orgSlug={organization.slug} />
       <SettingsPageHeader title={t('Feature Flags')} />
-      <Text as="div" density="comfortable">
-        {tct(
-          'Integrating Sentry with your feature flag provider enables Sentry to correlate feature flag changes with new error events and mark certain changes as suspicious. To learn more about our feature flag features, [link:read our docs].',
-          {
-            link: (
-              <ExternalLink href="https://docs.sentry.io/product/issues/issue-details/feature-flags/" />
-            ),
-          }
-        )}
-      </Text>
+      <Stack gap="2xl">
+        <Text as="div" density="comfortable">
+          {tct(
+            'Integrating Sentry with your feature flag provider enables Sentry to correlate feature flag changes with new error events and mark certain changes as suspicious. To learn more about our feature flag features, [link:read our docs].',
+            {
+              link: (
+                <ExternalLink href="https://docs.sentry.io/product/issues/issue-details/feature-flags/" />
+              ),
+            }
+          )}
+        </Text>
 
-      <Panel>
-        <PanelHeader>{t('Features')}</PanelHeader>
-        <PanelBody>
-          <FieldGroup
-            alignRight
-            flexibleControlStateSize
-            label={<Text size="lg">{t('Evaluation Tracking')}</Text>}
-            help={t(
-              'Evaluation tracking enables Sentry to capture flag values on your error events. Flag evaluations will appear in the "Feature Flags" section of the Issue Details page.'
-            )}
-          >
-            <Button
-              aria-label={t('Set Up Evaluation Tracking')}
-              onClick={mouseEvent => {
-                activateSidebar(mouseEvent);
-              }}
+        <Panel>
+          <PanelHeader>{t('Features')}</PanelHeader>
+          <PanelBody>
+            <FieldGroup
+              alignRight
+              flexibleControlStateSize
+              label={<Text size="lg">{t('Evaluation Tracking')}</Text>}
+              help={t(
+                'Evaluation tracking enables Sentry to capture flag values on your error events. Flag evaluations will appear in the "Feature Flags" section of the Issue Details page.'
+              )}
             >
-              {t('Set Up Project')}
-            </Button>
-          </FieldGroup>
-          <FieldGroup
-            alignRight
-            flexibleControlStateSize
-            label={<Text size="lg">{t('Change Tracking')}</Text>}
-            help={t(
-              'Change tracking enables Sentry to listen for additions, removals, and modifications to your feature flags.'
-            )}
-          >
-            <LinkButton
-              to={`/settings/${organization.slug}/feature-flags/change-tracking/`}
+              <Button
+                aria-label={t('Set Up Evaluation Tracking')}
+                onClick={mouseEvent => {
+                  activateSidebar(mouseEvent);
+                }}
+              >
+                {t('Set Up Project')}
+              </Button>
+            </FieldGroup>
+            <FieldGroup
+              alignRight
+              flexibleControlStateSize
+              label={<Text size="lg">{t('Change Tracking')}</Text>}
+              help={t(
+                'Change tracking enables Sentry to listen for additions, removals, and modifications to your feature flags.'
+              )}
             >
-              {t('Manage Providers')}
-            </LinkButton>
-          </FieldGroup>
-        </PanelBody>
-      </Panel>
+              <LinkButton
+                to={`/settings/${organization.slug}/feature-flags/change-tracking/`}
+              >
+                {t('Manage Providers')}
+              </LinkButton>
+            </FieldGroup>
+          </PanelBody>
+        </Panel>
+      </Stack>
     </Fragment>
   );
 }
