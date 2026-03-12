@@ -54,7 +54,7 @@ export default function PreprodSettings() {
   };
 
   return (
-    <Feature features="organizations:preprod-frontend-routes" renderDisabled>
+    <Fragment>
       <SentryDocumentTitle title={t('Mobile Builds')} />
       <SettingsPageHeader
         title={t('Mobile Builds')}
@@ -113,6 +113,6 @@ export default function PreprodSettings() {
         )}
         {tab === 'snapshots' && <SnapshotStatusChecks />}
       </Stack>
-    </Feature>
+    </Fragment>
   );
 }
