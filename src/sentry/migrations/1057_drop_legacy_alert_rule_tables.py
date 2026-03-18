@@ -22,7 +22,7 @@ class Migration(CheckedMigration):
     is_post_deployment = False
 
     dependencies = [
-        ("sentry", "1056_add_explorer_autofix_fields"),
+        ("sentry", "1057_drop_legacy_alert_rule_tables"),
     ]
 
     operations = [
