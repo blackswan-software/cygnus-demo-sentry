@@ -3,7 +3,7 @@ from __future__ import annotations
 import io
 import tempfile
 from copy import deepcopy
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from functools import cached_property, cmp_to_key
 from pathlib import Path
 from typing import Any
@@ -77,10 +77,13 @@ from sentry.models.dashboard_widget import (
     DashboardWidgetQueryOnDemand,
     DashboardWidgetTypes,
 )
+<<<<<<< HEAD
 from sentry.models.dynamicsampling import (
     CustomDynamicSamplingRule,
     CustomDynamicSamplingRuleProject,
 )
+=======
+>>>>>>> f8f3dc83b21 (ref(dynamic-sampling): Remove CustomDynamicSamplingRule model and code)
 from sentry.models.groupassignee import GroupAssignee
 from sentry.models.groupbookmark import GroupBookmark
 from sentry.models.groupsearchview import GroupSearchView, GroupSearchViewProject
@@ -523,7 +526,6 @@ class ExhaustiveFixtures(Fixtures):
             sent_initial_email_date=timezone.now(),
             sent_final_email_date=timezone.now(),
         )
-
         # Environment*
         self.create_environment(project=project)
 
