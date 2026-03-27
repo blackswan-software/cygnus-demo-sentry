@@ -180,20 +180,22 @@ export function useSetQueryParamsSearch() {
   );
 }
 
-export function useAddSearchFilter() {
+export type AddSearchFilter = (filter: SearchFilter) => void;
+
+export type SearchFilter = {
+  key: string;
+  value: SearchFilterValue;
+  negated?: boolean;
+};
+
+export type SearchFilterValue = string | number | boolean;
+
+export function useAddSearchFilter(): AddSearchFilter {
   const setSearch = useSetQueryParamsSearch();
   const search = useQueryParamsSearch();
 
   return useCallback(
-    ({
-      key,
-      value,
-      negated,
-    }: {
-      key: string;
-      value: string | number | boolean;
-      negated?: boolean;
-    }) => {
+    ({key, value, negated}) => {
       const newSearch = search.copy();
       newSearch.addFilterValue(`${negated ? '!' : ''}${key}`, String(value));
       setSearch(newSearch);
