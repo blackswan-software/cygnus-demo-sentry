@@ -69,14 +69,13 @@ describe('Onboarding Setup Docs', () => {
     renderMockRequests({project, orgSlug: organization.slug});
 
     render(
-      <OnboardingContextProvider>
-        <SetupDocs
-          onComplete={() => {}}
-          stepIndex={2}
-          genSkipOnboardingLink={() => ''}
-          recentCreatedProject={project}
-        />
-      </OnboardingContextProvider>
+      <SetupDocs
+        onComplete={() => {}}
+        stepIndex={2}
+        genSkipOnboardingLink={() => ''}
+        recentCreatedProject={project}
+      />,
+      {additionalWrapper: OnboardingContextProvider}
     );
 
     expect(
@@ -103,14 +102,13 @@ describe('Onboarding Setup Docs', () => {
     renderMockRequests({project, orgSlug: organization.slug});
 
     render(
-      <OnboardingContextProvider>
-        <SetupDocs
-          onComplete={() => {}}
-          stepIndex={2}
-          genSkipOnboardingLink={() => ''}
-          recentCreatedProject={project}
-        />
-      </OnboardingContextProvider>
+      <SetupDocs
+        onComplete={() => {}}
+        stepIndex={2}
+        genSkipOnboardingLink={() => ''}
+        recentCreatedProject={project}
+      />,
+      {additionalWrapper: OnboardingContextProvider}
     );
 
     expect(
@@ -135,14 +133,12 @@ describe('Onboarding Setup Docs', () => {
       });
 
       render(
-        <OnboardingContextProvider>
-          <SetupDocs
-            onComplete={() => {}}
-            stepIndex={2}
-            genSkipOnboardingLink={() => ''}
-            recentCreatedProject={project}
-          />
-        </OnboardingContextProvider>,
+        <SetupDocs
+          onComplete={() => {}}
+          stepIndex={2}
+          genSkipOnboardingLink={() => ''}
+          recentCreatedProject={project}
+        />,
         {
           initialRouterConfig: {
             location: {
@@ -156,6 +152,7 @@ describe('Onboarding Setup Docs', () => {
             },
             route: `/onboarding/:orgId/setup-docs/`,
           },
+          additionalWrapper: OnboardingContextProvider,
         }
       );
 
@@ -185,14 +182,12 @@ describe('Onboarding Setup Docs', () => {
       });
 
       render(
-        <OnboardingContextProvider>
-          <SetupDocs
-            onComplete={() => {}}
-            stepIndex={2}
-            genSkipOnboardingLink={() => ''}
-            recentCreatedProject={project}
-          />
-        </OnboardingContextProvider>,
+        <SetupDocs
+          onComplete={() => {}}
+          stepIndex={2}
+          genSkipOnboardingLink={() => ''}
+          recentCreatedProject={project}
+        />,
         {
           initialRouterConfig: {
             location: {
@@ -201,6 +196,7 @@ describe('Onboarding Setup Docs', () => {
             },
             route: `/onboarding/:orgId/setup-docs/`,
           },
+          additionalWrapper: OnboardingContextProvider,
         }
       );
 
@@ -226,14 +222,12 @@ describe('Onboarding Setup Docs', () => {
       });
 
       render(
-        <OnboardingContextProvider>
-          <SetupDocs
-            onComplete={() => {}}
-            stepIndex={2}
-            genSkipOnboardingLink={() => ''}
-            recentCreatedProject={project}
-          />
-        </OnboardingContextProvider>,
+        <SetupDocs
+          onComplete={() => {}}
+          stepIndex={2}
+          genSkipOnboardingLink={() => ''}
+          recentCreatedProject={project}
+        />,
         {
           initialRouterConfig: {
             location: {
@@ -242,6 +236,7 @@ describe('Onboarding Setup Docs', () => {
             },
             route: `/onboarding/:orgId/setup-docs/`,
           },
+          additionalWrapper: OnboardingContextProvider,
         }
       );
 
@@ -267,14 +262,12 @@ describe('Onboarding Setup Docs', () => {
       });
 
       render(
-        <OnboardingContextProvider>
-          <SetupDocs
-            onComplete={() => {}}
-            stepIndex={2}
-            genSkipOnboardingLink={() => ''}
-            recentCreatedProject={project}
-          />
-        </OnboardingContextProvider>,
+        <SetupDocs
+          onComplete={() => {}}
+          stepIndex={2}
+          genSkipOnboardingLink={() => ''}
+          recentCreatedProject={project}
+        />,
         {
           initialRouterConfig: {
             location: {
@@ -283,6 +276,7 @@ describe('Onboarding Setup Docs', () => {
             },
             route: `/onboarding/:orgId/setup-docs/`,
           },
+          additionalWrapper: OnboardingContextProvider,
         }
       );
 
@@ -320,14 +314,12 @@ describe('Onboarding Setup Docs', () => {
       });
 
       render(
-        <OnboardingContextProvider>
-          <SetupDocs
-            onComplete={() => {}}
-            stepIndex={2}
-            genSkipOnboardingLink={() => ''}
-            recentCreatedProject={project}
-          />
-        </OnboardingContextProvider>,
+        <SetupDocs
+          onComplete={() => {}}
+          stepIndex={2}
+          genSkipOnboardingLink={() => ''}
+          recentCreatedProject={project}
+        />,
         {
           organization,
           initialRouterConfig: {
@@ -343,6 +335,7 @@ describe('Onboarding Setup Docs', () => {
             },
             route: `/onboarding/:orgId/setup-docs/`,
           },
+          additionalWrapper: OnboardingContextProvider,
         }
       );
 
@@ -410,14 +403,13 @@ describe('Onboarding Setup Docs', () => {
       renderMockRequests({project, orgSlug: organization.slug});
 
       render(
-        <OnboardingContextProvider>
-          <SetupDocs
-            onComplete={() => {}}
-            stepIndex={2}
-            genSkipOnboardingLink={() => ''}
-            recentCreatedProject={project}
-          />
-        </OnboardingContextProvider>
+        <SetupDocs
+          onComplete={() => {}}
+          stepIndex={2}
+          genSkipOnboardingLink={() => ''}
+          recentCreatedProject={project}
+        />,
+        {additionalWrapper: OnboardingContextProvider}
       );
 
       expect(

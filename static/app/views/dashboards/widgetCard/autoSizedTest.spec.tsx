@@ -6,11 +6,7 @@ import {AutoSizedText} from './autoSizedText';
 
 describe('AutoSizedText', () => {
   it('renders the children', () => {
-    render(
-      <Container>
-        <AutoSizedText>Hello</AutoSizedText>
-      </Container>
-    );
+    render(<AutoSizedText>Hello</AutoSizedText>, {additionalWrapper: Container});
 
     expect(screen.getByText('Hello')).toBeInTheDocument();
   });

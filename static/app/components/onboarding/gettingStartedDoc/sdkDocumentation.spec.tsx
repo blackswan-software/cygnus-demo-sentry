@@ -50,21 +50,19 @@ describe('Renders SDK Documentation corretly based on platform id and language',
     renderMockRequests({project, orgSlug: organization.slug});
 
     render(
-      <OnboardingContextProvider>
-        <SdkDocumentation
-          platform={{
-            id: 'native-qt',
-            name: 'Qt',
-            type: 'framework',
-            language: 'native',
-            link: 'https://docs.sentry.io/platforms/native/guides/qt/',
-          }}
-          project={project}
-          organization={organization}
-          activeProductSelection={[]}
-        />
-      </OnboardingContextProvider>,
-      {organization}
+      <SdkDocumentation
+        platform={{
+          id: 'native-qt',
+          name: 'Qt',
+          type: 'framework',
+          language: 'native',
+          link: 'https://docs.sentry.io/platforms/native/guides/qt/',
+        }}
+        project={project}
+        organization={organization}
+        activeProductSelection={[]}
+      />,
+      {organization, additionalWrapper: OnboardingContextProvider}
     );
 
     // Renders main headings
@@ -83,20 +81,18 @@ describe('Renders SDK Documentation corretly based on platform id and language',
     renderMockRequests({project, orgSlug: organization.slug});
 
     render(
-      <OnboardingContextProvider>
-        <SdkDocumentation
-          platform={{
-            id: 'javascript',
-            name: 'Browser JavaScript',
-            type: 'language',
-            language: 'javascript',
-            link: 'https://docs.sentry.io/platforms/javascript/',
-          }}
-          project={project}
-          organization={organization}
-          activeProductSelection={[]}
-        />
-      </OnboardingContextProvider>,
+      <SdkDocumentation
+        platform={{
+          id: 'javascript',
+          name: 'Browser JavaScript',
+          type: 'language',
+          language: 'javascript',
+          link: 'https://docs.sentry.io/platforms/javascript/',
+        }}
+        project={project}
+        organization={organization}
+        activeProductSelection={[]}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -105,6 +101,7 @@ describe('Renders SDK Documentation corretly based on platform id and language',
             query: {installationMode: 'manual'},
           },
         },
+        additionalWrapper: OnboardingContextProvider,
       }
     );
 

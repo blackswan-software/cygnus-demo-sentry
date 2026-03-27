@@ -399,10 +399,8 @@ describe('AutomationsList', () => {
 
       render(
         // MonitorViewContainer provides PageFiltersContainer typically
-        <PageFiltersContainer>
-          <AutomationsList />
-        </PageFiltersContainer>,
-        {organization}
+        <AutomationsList />,
+        {organization, additionalWrapper: PageFiltersContainer}
       );
       renderGlobalModal();
 

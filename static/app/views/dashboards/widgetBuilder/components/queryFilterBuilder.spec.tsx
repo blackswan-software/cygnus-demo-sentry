@@ -42,12 +42,10 @@ describe('QueryFilterBuilder', () => {
 
   it('renders a dataset-specific query filter bar', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderQueryFilterBuilder
-          onQueryConditionChange={() => {}}
-          validatedWidgetResponse={{} as any}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderQueryFilterBuilder
+        onQueryConditionChange={() => {}}
+        validatedWidgetResponse={{} as any}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -60,6 +58,7 @@ describe('QueryFilterBuilder', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
     expect(
@@ -67,12 +66,10 @@ describe('QueryFilterBuilder', () => {
     ).toBeInTheDocument();
 
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderQueryFilterBuilder
-          onQueryConditionChange={() => {}}
-          validatedWidgetResponse={{} as any}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderQueryFilterBuilder
+        onQueryConditionChange={() => {}}
+        validatedWidgetResponse={{} as any}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -81,6 +78,7 @@ describe('QueryFilterBuilder', () => {
             query: {query: [], dataset: WidgetType.SPANS, displayType: DisplayType.TABLE},
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
     expect(
@@ -90,12 +88,10 @@ describe('QueryFilterBuilder', () => {
 
   it('renders a legend alias input for charts', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderQueryFilterBuilder
-          onQueryConditionChange={() => {}}
-          validatedWidgetResponse={{} as any}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderQueryFilterBuilder
+        onQueryConditionChange={() => {}}
+        validatedWidgetResponse={{} as any}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -108,6 +104,7 @@ describe('QueryFilterBuilder', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -116,12 +113,10 @@ describe('QueryFilterBuilder', () => {
 
   it('limits number of filter queries to 3', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderQueryFilterBuilder
-          onQueryConditionChange={() => {}}
-          validatedWidgetResponse={{} as any}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderQueryFilterBuilder
+        onQueryConditionChange={() => {}}
+        validatedWidgetResponse={{} as any}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -134,6 +129,7 @@ describe('QueryFilterBuilder', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -150,12 +146,10 @@ describe('QueryFilterBuilder', () => {
 
   it('allow adding filters for the spans dataset', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderQueryFilterBuilder
-          onQueryConditionChange={() => {}}
-          validatedWidgetResponse={{} as any}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderQueryFilterBuilder
+        onQueryConditionChange={() => {}}
+        validatedWidgetResponse={{} as any}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -164,6 +158,7 @@ describe('QueryFilterBuilder', () => {
             query: {query: [], dataset: WidgetType.SPANS, displayType: DisplayType.LINE},
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -176,12 +171,10 @@ describe('QueryFilterBuilder', () => {
     });
 
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderQueryFilterBuilder
-          onQueryConditionChange={() => {}}
-          validatedWidgetResponse={{} as any}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderQueryFilterBuilder
+        onQueryConditionChange={() => {}}
+        validatedWidgetResponse={{} as any}
+      />,
       {
         organization: organizationWithFeature,
         initialRouterConfig: {
@@ -194,6 +187,7 @@ describe('QueryFilterBuilder', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -205,12 +199,10 @@ describe('QueryFilterBuilder', () => {
 
   it('enables search bar when transaction widget type but no discover-saved-queries-deprecation feature flag', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderQueryFilterBuilder
-          onQueryConditionChange={() => {}}
-          validatedWidgetResponse={{} as any}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderQueryFilterBuilder
+        onQueryConditionChange={() => {}}
+        validatedWidgetResponse={{} as any}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -223,6 +215,7 @@ describe('QueryFilterBuilder', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 

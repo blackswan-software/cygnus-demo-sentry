@@ -17,11 +17,7 @@ describe('DatasetSelector', () => {
     const mockNavigate = jest.fn();
     mockUseNavigate.mockReturnValue(mockNavigate);
 
-    render(
-      <WidgetBuilderProvider>
-        <DatasetSelector />
-      </WidgetBuilderProvider>
-    );
+    render(<DatasetSelector />, {additionalWrapper: WidgetBuilderProvider});
 
     await userEvent.click(await screen.findByRole('button', {name: 'Errors'}));
 
@@ -40,14 +36,10 @@ describe('DatasetSelector', () => {
       features: ['discover-saved-queries-deprecation'],
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <DatasetSelector />
-      </WidgetBuilderProvider>,
-      {
-        organization: organizationWithDeprecation,
-      }
-    );
+    render(<DatasetSelector />, {
+      organization: organizationWithDeprecation,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(await screen.findByRole('button', {name: 'Errors'}));
 
@@ -68,14 +60,10 @@ describe('DatasetSelector', () => {
       features: [], // No discover-saved-queries-deprecation feature
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <DatasetSelector />
-      </WidgetBuilderProvider>,
-      {
-        organization: organizationWithoutDeprecation,
-      }
-    );
+    render(<DatasetSelector />, {
+      organization: organizationWithoutDeprecation,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(await screen.findByRole('button', {name: 'Errors'}));
 

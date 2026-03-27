@@ -4,11 +4,7 @@ import {ErrorBoundary} from './errorBoundary';
 
 describe('ErrorBoundary', () => {
   it('renders components', () => {
-    render(
-      <ErrorBoundary>
-        <HelloComponent />
-      </ErrorBoundary>
-    );
+    render(<HelloComponent />, {additionalWrapper: ErrorBoundary});
 
     expect(screen.getByText('hello')).toBeInTheDocument();
     expect(screen.queryByTestId('error-boundary')).not.toBeInTheDocument();

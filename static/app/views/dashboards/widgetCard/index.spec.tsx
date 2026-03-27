@@ -44,9 +44,7 @@ describe('Dashboards > WidgetCard', () => {
 
   const renderWithProviders = (component: React.ReactNode, features: string[] = []) =>
     render(
-      <DashboardsMEPProvider>
-        <MEPSettingProvider forceTransactions={false}>{component}</MEPSettingProvider>
-      </DashboardsMEPProvider>,
+      <MEPSettingProvider forceTransactions={false}>{component}</MEPSettingProvider>,
       {
         organization: {
           ...organization,
@@ -58,6 +56,7 @@ describe('Dashboards > WidgetCard', () => {
             pathname: '/organizations/org-slug/dashboard/42/',
           },
         },
+        additionalWrapper: DashboardsMEPProvider,
       }
     );
 

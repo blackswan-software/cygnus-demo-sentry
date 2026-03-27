@@ -40,15 +40,11 @@ describe('WidgetBuilderSortBySelector', () => {
   });
 
   it('renders for spans', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: defaultRouterConfig,
-      }
-    );
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: defaultRouterConfig,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Sort by')).toBeInTheDocument();
     expect(await screen.findByText('Limit to 5 results')).toBeInTheDocument();
@@ -57,15 +53,11 @@ describe('WidgetBuilderSortBySelector', () => {
   });
 
   it('renders for logs', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: defaultRouterConfig,
-      }
-    );
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: defaultRouterConfig,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Sort by')).toBeInTheDocument();
     expect(await screen.findByText('Limit to 5 results')).toBeInTheDocument();
@@ -74,24 +66,20 @@ describe('WidgetBuilderSortBySelector', () => {
   });
 
   it('renders correct fields for table widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          ...defaultRouterConfig,
-          location: {
-            pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
-            query: {
-              ...defaultRouterConfig.location?.query,
-              displayType: 'table',
-            },
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: {
+        ...defaultRouterConfig,
+        location: {
+          pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
+          query: {
+            ...defaultRouterConfig.location?.query,
+            displayType: 'table',
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Sort by')).toBeInTheDocument();
     expect(await screen.findByText('High to low')).toBeInTheDocument();
@@ -102,15 +90,11 @@ describe('WidgetBuilderSortBySelector', () => {
     const mockNavigate = jest.fn();
     mockUseNavigate.mockReturnValue(mockNavigate);
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: defaultRouterConfig,
-      }
-    );
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: defaultRouterConfig,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const sortDirectionSelector = await screen.findByText('High to low');
     const sortFieldSelector = await screen.findByText('(Required)');
@@ -138,37 +122,29 @@ describe('WidgetBuilderSortBySelector', () => {
   });
 
   it('renders the correct limit options', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: defaultRouterConfig,
-      }
-    );
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: defaultRouterConfig,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     // default limit is 5
     expect(await screen.findByText('Limit to 5 results')).toBeInTheDocument();
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          ...defaultRouterConfig,
-          location: {
-            pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
-            query: {
-              ...defaultRouterConfig.location?.query,
-              yAxis: ['count()', 'count_unique(transaction.duration)', 'eps()'],
-            },
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: {
+        ...defaultRouterConfig,
+        location: {
+          pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
+          query: {
+            ...defaultRouterConfig.location?.query,
+            yAxis: ['count()', 'count_unique(transaction.duration)', 'eps()'],
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     // default limit changes to 3 since its the max limit for 3 aggregates
     expect(await screen.findByText('Limit to 3 results')).toBeInTheDocument();
@@ -178,15 +154,11 @@ describe('WidgetBuilderSortBySelector', () => {
     const mockNavigate = jest.fn();
     mockUseNavigate.mockReturnValue(mockNavigate);
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: defaultRouterConfig,
-      }
-    );
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: defaultRouterConfig,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const limitSelector = await screen.findByText('Limit to 5 results');
     await userEvent.click(limitSelector);
@@ -213,26 +185,22 @@ describe('WidgetBuilderSortBySelector', () => {
       ],
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: '/organizations/org-slug/dashboard/1/',
-            query: {
-              displayType: 'line',
-              fields: ['transaction.duration', 'count()', 'id'],
-              yAxis: ['count()', 'count_unique(span.op)'],
-              sort: ['-count(span.duration)'],
-              dataset: 'spans',
-            },
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: '/organizations/org-slug/dashboard/1/',
+          query: {
+            displayType: 'line',
+            fields: ['transaction.duration', 'count()', 'id'],
+            yAxis: ['count()', 'count_unique(span.op)'],
+            sort: ['-count(span.duration)'],
+            dataset: 'spans',
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText(`count(${ELLIPSIS})`)).toBeInTheDocument();
     expect(screen.getByText('spans')).toBeInTheDocument();
@@ -256,24 +224,20 @@ describe('WidgetBuilderSortBySelector', () => {
       features: ['open-membership', 'visibility-explore-view'],
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization: organizationWithFlag,
-        initialRouterConfig: {
-          ...defaultRouterConfig,
-          location: {
-            pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
-            query: {
-              ...defaultRouterConfig.location?.query,
-              yAxis: ['count()', 'equation|count_unique(transaction.duration) + 100'],
-            },
+    render(<WidgetBuilderSortBySelector />, {
+      organization: organizationWithFlag,
+      initialRouterConfig: {
+        ...defaultRouterConfig,
+        location: {
+          pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
+          query: {
+            ...defaultRouterConfig.location?.query,
+            yAxis: ['count()', 'equation|count_unique(transaction.duration) + 100'],
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const sortDirectionSelector = await screen.findByText('High to low');
     const sortFieldSelector = await screen.findByText('(Required)');
@@ -302,49 +266,41 @@ describe('WidgetBuilderSortBySelector', () => {
     );
   });
   it('renders a limit selector for categorical bar widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          ...defaultRouterConfig,
-          location: {
-            pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
-            query: {
-              displayType: 'categorical_bar',
-              fields: ['transaction.duration', 'count()'],
-              limit: 20,
-              dataset: 'spans',
-            },
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: {
+        ...defaultRouterConfig,
+        location: {
+          pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
+          query: {
+            displayType: 'categorical_bar',
+            fields: ['transaction.duration', 'count()'],
+            limit: 20,
+            dataset: 'spans',
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Limit to 20 results')).toBeInTheDocument();
   });
 
   it('does not render a limit selector for table widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          ...defaultRouterConfig,
-          location: {
-            pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
-            query: {
-              ...defaultRouterConfig.location?.query,
-              displayType: 'table',
-            },
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: {
+        ...defaultRouterConfig,
+        location: {
+          pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
+          query: {
+            ...defaultRouterConfig.location?.query,
+            displayType: 'table',
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Sort by')).toBeInTheDocument();
     expect(screen.queryByText('Limit to 5 results')).not.toBeInTheDocument();
@@ -354,26 +310,22 @@ describe('WidgetBuilderSortBySelector', () => {
     const mockNavigate = jest.fn();
     mockUseNavigate.mockReturnValue(mockNavigate);
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          ...defaultRouterConfig,
-          location: {
-            pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
-            query: {
-              displayType: 'categorical_bar',
-              fields: ['transaction.duration', 'count()'],
-              limit: 20,
-              dataset: 'spans',
-            },
+    render(<WidgetBuilderSortBySelector />, {
+      organization,
+      initialRouterConfig: {
+        ...defaultRouterConfig,
+        location: {
+          pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
+          query: {
+            displayType: 'categorical_bar',
+            fields: ['transaction.duration', 'count()'],
+            limit: 20,
+            dataset: 'spans',
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const limitSelector = await screen.findByText('Limit to 20 results');
     await userEvent.click(limitSelector);
@@ -395,25 +347,21 @@ describe('WidgetBuilderSortBySelector', () => {
       features: ['open-membership', 'visibility-explore-view'],
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSortBySelector />
-      </WidgetBuilderProvider>,
-      {
-        organization: organizationWithFlag,
-        initialRouterConfig: {
-          ...defaultRouterConfig,
-          location: {
-            pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
-            query: {
-              ...defaultRouterConfig.location?.query,
-              displayType: 'table',
-              yAxis: ['count()', 'equation|count_unique(transaction.duration) + 100'],
-            },
+    render(<WidgetBuilderSortBySelector />, {
+      organization: organizationWithFlag,
+      initialRouterConfig: {
+        ...defaultRouterConfig,
+        location: {
+          pathname: defaultRouterConfig.location?.pathname ?? '/mock-pathname/',
+          query: {
+            ...defaultRouterConfig.location?.query,
+            displayType: 'table',
+            yAxis: ['count()', 'equation|count_unique(transaction.duration) + 100'],
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const sortDirectionSelector = await screen.findByText('High to low');
     const sortFieldSelector = await screen.findByText(`Select a column\u{2026}`);

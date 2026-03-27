@@ -70,12 +70,10 @@ describe('ReplayAccess', () => {
       replayAccessMembers: [999],
     });
 
-    const {container} = render(
-      <ReplayAccess>
-        <div>Has access</div>
-      </ReplayAccess>,
-      {organization}
-    );
+    const {container} = render(<div>Has access</div>, {
+      organization,
+      additionalWrapper: ReplayAccess,
+    });
 
     expect(screen.queryByText('Has access')).not.toBeInTheDocument();
     expect(container).toBeEmptyDOMElement();

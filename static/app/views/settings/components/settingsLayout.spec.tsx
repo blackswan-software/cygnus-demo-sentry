@@ -28,10 +28,8 @@ describe('SettingsLayout', () => {
   });
 
   it('renders', () => {
-    render(
-      <BreadcrumbProvider>
-        <SettingsLayout>content</SettingsLayout>
-      </BreadcrumbProvider>
-    );
+    render(<SettingsLayout>content</SettingsLayout>, {
+      additionalWrapper: BreadcrumbProvider,
+    });
   });
 });

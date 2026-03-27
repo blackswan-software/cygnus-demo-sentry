@@ -61,14 +61,13 @@ describe('WidgetTemplatesList', () => {
 
   it('should render the widget templates list', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetTemplatesList
-          onSave={onSave}
-          setOpenWidgetTemplates={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          setCustomizeFromLibrary={jest.fn()}
-        />
-      </WidgetBuilderProvider>
+      <WidgetTemplatesList
+        onSave={onSave}
+        setOpenWidgetTemplates={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        setCustomizeFromLibrary={jest.fn()}
+      />,
+      {additionalWrapper: WidgetBuilderProvider}
     );
 
     expect(await screen.findByText('Duration Distribution')).toBeInTheDocument();
@@ -79,14 +78,13 @@ describe('WidgetTemplatesList', () => {
     const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
 
     render(
-      <WidgetBuilderProvider>
-        <WidgetTemplatesList
-          onSave={onSave}
-          setOpenWidgetTemplates={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          setCustomizeFromLibrary={jest.fn()}
-        />
-      </WidgetBuilderProvider>
+      <WidgetTemplatesList
+        onSave={onSave}
+        setOpenWidgetTemplates={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        setCustomizeFromLibrary={jest.fn()}
+      />,
+      {additionalWrapper: WidgetBuilderProvider}
     );
 
     const widgetTemplate = await screen.findByText('Duration Distribution');
@@ -105,14 +103,13 @@ describe('WidgetTemplatesList', () => {
     mockUseNavigate.mockReturnValue(mockNavigate);
 
     render(
-      <WidgetBuilderProvider>
-        <WidgetTemplatesList
-          onSave={onSave}
-          setOpenWidgetTemplates={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          setCustomizeFromLibrary={jest.fn()}
-        />
-      </WidgetBuilderProvider>
+      <WidgetTemplatesList
+        onSave={onSave}
+        setOpenWidgetTemplates={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        setCustomizeFromLibrary={jest.fn()}
+      />,
+      {additionalWrapper: WidgetBuilderProvider}
     );
 
     const widgetTemplate = screen.getByText('Duration Distribution');
@@ -137,14 +134,13 @@ describe('WidgetTemplatesList', () => {
     const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
 
     render(
-      <WidgetBuilderProvider>
-        <WidgetTemplatesList
-          onSave={onSave}
-          setOpenWidgetTemplates={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          setCustomizeFromLibrary={jest.fn()}
-        />
-      </WidgetBuilderProvider>
+      <WidgetTemplatesList
+        onSave={onSave}
+        setOpenWidgetTemplates={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        setCustomizeFromLibrary={jest.fn()}
+      />,
+      {additionalWrapper: WidgetBuilderProvider}
     );
 
     const widgetTemplate = await screen.findByText('Duration Distribution');
@@ -185,14 +181,12 @@ describe('WidgetTemplatesList', () => {
     ] as unknown as WidgetTemplate[]);
 
     render(
-      <WidgetBuilderProvider>
-        <WidgetTemplatesList
-          onSave={onSave}
-          setOpenWidgetTemplates={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          setCustomizeFromLibrary={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetTemplatesList
+        onSave={onSave}
+        setOpenWidgetTemplates={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        setCustomizeFromLibrary={jest.fn()}
+      />,
       {
         initialRouterConfig: {
           location: {
@@ -202,6 +196,7 @@ describe('WidgetTemplatesList', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 

@@ -8,7 +8,7 @@ interface TimezoneProviderValue {
 }
 
 interface CommonProps {
-  children: NonNullable<React.ReactNode>;
+  children: React.ReactNode;
 }
 
 const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -16,7 +16,7 @@ const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const Provider = createContext<TimezoneProviderValue>({timezone: browserTimezone});
 
 interface TimezoneProviderProps {
-  children: NonNullable<React.ReactNode>;
+  children: React.ReactNode;
   timezone: string;
 }
 

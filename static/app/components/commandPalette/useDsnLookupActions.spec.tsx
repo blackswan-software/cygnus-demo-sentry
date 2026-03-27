@@ -30,12 +30,10 @@ function DsnLookupHarness({query}: {query: string}) {
 }
 
 function renderWithProvider(query: string) {
-  return render(
-    <CommandPaletteProvider>
-      <DsnLookupHarness query={query} />
-    </CommandPaletteProvider>,
-    {organization: org}
-  );
+  return render(<DsnLookupHarness query={query} />, {
+    organization: org,
+    additionalWrapper: CommandPaletteProvider,
+  });
 }
 
 describe('useDsnLookupActions', () => {

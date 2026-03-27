@@ -8,11 +8,9 @@ describe('WidgetBuilder', () => {
   it('edits name and description', async () => {
     setWindowLocation('http://localhost/organizations/org-slug/dashboard/1/?project=-1');
 
-    const {router} = render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderNameAndDescription />
-      </WidgetBuilderProvider>
-    );
+    const {router} = render(<WidgetBuilderNameAndDescription />, {
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.type(await screen.findByPlaceholderText('Name'), 'some name');
 
@@ -42,11 +40,10 @@ describe('WidgetBuilder', () => {
 
   it('displays error', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderNameAndDescription
-          error={{title: 'Title is required during creation.'}}
-        />
-      </WidgetBuilderProvider>
+      <WidgetBuilderNameAndDescription
+        error={{title: 'Title is required during creation.'}}
+      />,
+      {additionalWrapper: WidgetBuilderProvider}
     );
 
     expect(
@@ -55,19 +52,15 @@ describe('WidgetBuilder', () => {
   });
 
   it('does not show the add description button for text widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderNameAndDescription />
-      </WidgetBuilderProvider>,
-      {
-        initialRouterConfig: {
-          location: {
-            pathname: '/organizations/org-slug/dashboard/1/',
-            query: {displayType: 'text'},
-          },
+    render(<WidgetBuilderNameAndDescription />, {
+      initialRouterConfig: {
+        location: {
+          pathname: '/organizations/org-slug/dashboard/1/',
+          query: {displayType: 'text'},
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByPlaceholderText('Name')).toBeInTheDocument();
     expect(screen.queryByTestId('add-description')).not.toBeInTheDocument();

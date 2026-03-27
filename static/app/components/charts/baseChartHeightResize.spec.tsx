@@ -25,18 +25,10 @@ function TestContainer({children}: {children: React.ReactNode}) {
 
 describe('BaseChart', () => {
   it('can scale to full parent height when given autoHeightResize', () => {
-    render(
-      <TestContainer>
-        <BaseChart autoHeightResize />
-      </TestContainer>
-    );
+    render(<BaseChart autoHeightResize />, {additionalWrapper: TestContainer});
   });
 
   it('renders with default height when autoHeightResize not provided', () => {
-    render(
-      <TestContainer>
-        <BaseChart />
-      </TestContainer>
-    );
+    render(<BaseChart />, {additionalWrapper: TestContainer});
   });
 });

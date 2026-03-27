@@ -60,11 +60,7 @@ describe('OurLogs', () => {
       indexError: undefined,
     } as any);
 
-    render(
-      <Wrappers>
-        <OurLogs />
-      </Wrappers>
-    );
+    render(<OurLogs />, {additionalWrapper: Wrappers});
 
     expect(screen.getByTestId('loading-indicator')).toBeInTheDocument();
   });

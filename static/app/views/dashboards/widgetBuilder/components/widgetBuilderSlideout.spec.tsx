@@ -64,19 +64,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should show the sort by step if the widget is a chart and there are fields selected', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -90,6 +88,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -101,19 +100,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should show the sort by step if the widget is a table', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -127,6 +124,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -135,19 +133,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should not show the sort by step if the widget is a chart without fields', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -161,6 +157,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -170,21 +167,20 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should show the confirm modal if the widget is unsaved', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
     renderGlobalModal();
@@ -200,21 +196,20 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should not show the confirm modal if the widget is unsaved', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -239,19 +234,17 @@ describe('WidgetBuilderSlideout', () => {
     });
 
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -265,6 +258,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -279,19 +273,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('clears the alias when dataset changes', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -305,6 +297,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -317,19 +310,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('clears the alias when display type changes', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -343,6 +334,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -361,19 +353,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('only renders thresholds for big number widgets', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -385,6 +375,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -396,21 +387,20 @@ describe('WidgetBuilderSlideout', () => {
 
     const onSave = jest.fn();
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={onSave}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={onSave}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -426,21 +416,20 @@ describe('WidgetBuilderSlideout', () => {
 
     // This is the case where we're adding a new widget
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={onSave}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={onSave}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -455,21 +444,20 @@ describe('WidgetBuilderSlideout', () => {
   it('should render the widget template title if templates selected', () => {
     const onSave = jest.fn();
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={onSave}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={onSave}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -479,21 +467,20 @@ describe('WidgetBuilderSlideout', () => {
   it('should render appropriate breadcrumbs if library widget is customized', async () => {
     const onSave = jest.fn();
     const {rerender} = render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={onSave}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={onSave}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -531,19 +518,17 @@ describe('WidgetBuilderSlideout', () => {
     });
     jest.mocked(useParams).mockReturnValue({widgetIndex: '1'});
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization: organizationWithFeature,
         initialRouterConfig: {
@@ -555,6 +540,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
     renderGlobalModal();
@@ -571,19 +557,17 @@ describe('WidgetBuilderSlideout', () => {
   it('should not show deprecation alert when flag enabled', async () => {
     jest.mocked(useParams).mockReturnValue({widgetIndex: '1'});
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -595,6 +579,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
     renderGlobalModal();
@@ -613,19 +598,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should not show the query filter builder if the widget is an issue and a chart display type', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -637,6 +620,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -650,19 +634,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should show the markdown content field for text widgets', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -673,6 +655,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -683,19 +666,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should not show the dataset selector for text widgets', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -706,6 +687,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -717,19 +699,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should not show the sort by step for text widgets', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -740,6 +720,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -751,19 +732,17 @@ describe('WidgetBuilderSlideout', () => {
 
   it('should not show the group by selector if the widget is an issue and a chart display type', async () => {
     render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderSlideout
-          dashboard={DashboardFixture([])}
-          dashboardFilters={{release: undefined}}
-          isWidgetInvalid={false}
-          onClose={jest.fn()}
-          onQueryConditionChange={jest.fn()}
-          onSave={jest.fn()}
-          setIsPreviewDraggable={jest.fn()}
-          openWidgetTemplates={false}
-          setOpenWidgetTemplates={jest.fn()}
-        />
-      </WidgetBuilderProvider>,
+      <WidgetBuilderSlideout
+        dashboard={DashboardFixture([])}
+        dashboardFilters={{release: undefined}}
+        isWidgetInvalid={false}
+        onClose={jest.fn()}
+        onQueryConditionChange={jest.fn()}
+        onSave={jest.fn()}
+        setIsPreviewDraggable={jest.fn()}
+        openWidgetTemplates={false}
+        setOpenWidgetTemplates={jest.fn()}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -775,6 +754,7 @@ describe('WidgetBuilderSlideout', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 

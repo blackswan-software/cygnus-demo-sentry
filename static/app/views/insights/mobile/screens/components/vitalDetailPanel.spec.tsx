@@ -42,11 +42,9 @@ const mockVital: VitalItem = {
 
 describe('VitalDetailPanel', () => {
   test('renders correctly with given props', () => {
-    render(
-      <PageAlertProvider>
-        <VitalDetailPanel vital={mockVital} status={mockStatus} />
-      </PageAlertProvider>
-    );
+    render(<VitalDetailPanel vital={mockVital} status={mockStatus} />, {
+      additionalWrapper: PageAlertProvider,
+    });
 
     expect(screen.getByText('title')).toBeInTheDocument();
     expect(screen.getByText('100ms')).toBeInTheDocument();

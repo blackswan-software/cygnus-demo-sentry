@@ -711,26 +711,22 @@ describe('TraceMetricsConfig', () => {
     };
 
     it('disables recent searches and clears namespace when multiple metrics are selected', async () => {
-      render(
-        <WidgetBuilderProvider>
-          <SearchBar {...defaultSearchBarProps} />
-        </WidgetBuilderProvider>,
-        {
-          organization: OrganizationFixture({
-            features: ['tracemetrics-multi-metric-selection-in-dashboards'],
-          }),
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                yAxis: ['avg(value,metric_a,counter,-)', 'avg(value,metric_b,gauge,-)'],
-                dataset: WidgetType.TRACEMETRICS,
-                displayType: DisplayType.LINE,
-              },
+      render(<SearchBar {...defaultSearchBarProps} />, {
+        organization: OrganizationFixture({
+          features: ['tracemetrics-multi-metric-selection-in-dashboards'],
+        }),
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              yAxis: ['avg(value,metric_a,counter,-)', 'avg(value,metric_b,gauge,-)'],
+              dataset: WidgetType.TRACEMETRICS,
+              displayType: DisplayType.LINE,
             },
           },
-        }
-      );
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       const searchBar = await screen.findByTestId('trace-item-search-query-builder');
       expect(searchBar).toHaveAttribute('data-disable-recent-searches', 'true');
@@ -738,26 +734,22 @@ describe('TraceMetricsConfig', () => {
     });
 
     it('sets namespace to metric name and enables recent searches for single metric', async () => {
-      render(
-        <WidgetBuilderProvider>
-          <SearchBar {...defaultSearchBarProps} />
-        </WidgetBuilderProvider>,
-        {
-          organization: OrganizationFixture({
-            features: ['tracemetrics-multi-metric-selection-in-dashboards'],
-          }),
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                yAxis: ['avg(value,my_metric,counter,-)'],
-                dataset: WidgetType.TRACEMETRICS,
-                displayType: DisplayType.LINE,
-              },
+      render(<SearchBar {...defaultSearchBarProps} />, {
+        organization: OrganizationFixture({
+          features: ['tracemetrics-multi-metric-selection-in-dashboards'],
+        }),
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              yAxis: ['avg(value,my_metric,counter,-)'],
+              dataset: WidgetType.TRACEMETRICS,
+              displayType: DisplayType.LINE,
             },
           },
-        }
-      );
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       const searchBar = await screen.findByTestId('trace-item-search-query-builder');
       expect(searchBar).toHaveAttribute('data-disable-recent-searches', 'false');
@@ -765,29 +757,25 @@ describe('TraceMetricsConfig', () => {
     });
 
     it('does not treat duplicate metrics as multiple metrics', async () => {
-      render(
-        <WidgetBuilderProvider>
-          <SearchBar {...defaultSearchBarProps} />
-        </WidgetBuilderProvider>,
-        {
-          organization: OrganizationFixture({
-            features: ['tracemetrics-multi-metric-selection-in-dashboards'],
-          }),
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                yAxis: [
-                  'avg(value,same_metric,counter,-)',
-                  'p50(value,same_metric,counter,-)',
-                ],
-                dataset: WidgetType.TRACEMETRICS,
-                displayType: DisplayType.LINE,
-              },
+      render(<SearchBar {...defaultSearchBarProps} />, {
+        organization: OrganizationFixture({
+          features: ['tracemetrics-multi-metric-selection-in-dashboards'],
+        }),
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              yAxis: [
+                'avg(value,same_metric,counter,-)',
+                'p50(value,same_metric,counter,-)',
+              ],
+              dataset: WidgetType.TRACEMETRICS,
+              displayType: DisplayType.LINE,
             },
           },
-        }
-      );
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       const searchBar = await screen.findByTestId('trace-item-search-query-builder');
       expect(searchBar).toHaveAttribute('data-disable-recent-searches', 'false');

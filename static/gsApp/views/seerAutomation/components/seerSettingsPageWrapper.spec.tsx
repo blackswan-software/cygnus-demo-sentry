@@ -10,12 +10,10 @@ describe('SeerSettingsPageWrapper', () => {
       features: ['code-review-beta'],
     });
 
-    render(
-      <SeerSettingsPageWrapper>
-        <div>wrapped content</div>
-      </SeerSettingsPageWrapper>,
-      {organization}
-    );
+    render(<div>wrapped content</div>, {
+      organization,
+      additionalWrapper: SeerSettingsPageWrapper,
+    });
 
     expect(screen.getByText('wrapped content')).toBeInTheDocument();
   });
@@ -25,19 +23,15 @@ describe('SeerSettingsPageWrapper', () => {
       features: ['seer-user-billing-launch'],
     });
 
-    const {router} = render(
-      <SeerSettingsPageWrapper>
-        <div>wrapped content</div>
-      </SeerSettingsPageWrapper>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: `/settings/${organization.slug}/seer/repos/`,
-          },
+    const {router} = render(<div>wrapped content</div>, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: `/settings/${organization.slug}/seer/repos/`,
         },
-      }
-    );
+      },
+      additionalWrapper: SeerSettingsPageWrapper,
+    });
 
     await waitFor(() => {
       expect(router.location.pathname).toBe(`/settings/${organization.slug}/seer/trial/`);
@@ -49,12 +43,10 @@ describe('SeerSettingsPageWrapper', () => {
       features: [],
     });
 
-    render(
-      <SeerSettingsPageWrapper>
-        <div>wrapped content</div>
-      </SeerSettingsPageWrapper>,
-      {organization}
-    );
+    render(<div>wrapped content</div>, {
+      organization,
+      additionalWrapper: SeerSettingsPageWrapper,
+    });
 
     expect(screen.getByText("You don't have access to this feature")).toBeInTheDocument();
   });

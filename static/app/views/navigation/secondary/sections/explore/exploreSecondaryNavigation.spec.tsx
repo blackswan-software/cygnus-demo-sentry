@@ -39,12 +39,10 @@ describe('ExploreSecondaryNavigation', () => {
 
   it('renders', () => {
     render(
-      <PrimaryNavigationContextProvider>
-        <SecondaryNavigationContextProvider>
-          <Navigation />
-          <div id="main" />
-        </SecondaryNavigationContextProvider>
-      </PrimaryNavigationContextProvider>,
+      <SecondaryNavigationContextProvider>
+        <Navigation />
+        <div id="main" />
+      </SecondaryNavigationContextProvider>,
       {
         organization,
         initialRouterConfig: {
@@ -52,6 +50,7 @@ describe('ExploreSecondaryNavigation', () => {
             pathname: '/organizations/org-slug/explore/traces/',
           },
         },
+        additionalWrapper: PrimaryNavigationContextProvider,
       }
     );
 

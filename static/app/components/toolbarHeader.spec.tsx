@@ -4,11 +4,7 @@ import {ToolbarHeader} from 'sentry/components/toolbarHeader';
 
 describe('ToolbarHeader', () => {
   it('renders', () => {
-    render(
-      <ToolbarHeader>
-        <div>Toolbar Header</div>
-      </ToolbarHeader>
-    );
+    render(<div>Toolbar Header</div>, {additionalWrapper: ToolbarHeader});
     expect(screen.getByText('Toolbar Header')).toBeInTheDocument();
   });
 });

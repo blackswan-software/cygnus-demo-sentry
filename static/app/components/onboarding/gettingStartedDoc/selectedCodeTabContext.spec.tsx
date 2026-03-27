@@ -173,20 +173,19 @@ const DOTNET_PROFILING_TABS: CodeSnippetTab[] = [
 describe('identical labels in same step', () => {
   it('maintains independent selections for tab groups with same labels but different code', async () => {
     render(
-      <TabSelectionScope>
-        <StepIndexProvider index={0}>
-          <BlockPathProvider index={0}>
-            <div data-test-id="sdk-tabs">
-              <TabbedCodeSnippet tabs={DOTNET_SDK_TABS} />
-            </div>
-          </BlockPathProvider>
-          <BlockPathProvider index={1}>
-            <div data-test-id="profiling-tabs">
-              <TabbedCodeSnippet tabs={DOTNET_PROFILING_TABS} />
-            </div>
-          </BlockPathProvider>
-        </StepIndexProvider>
-      </TabSelectionScope>
+      <StepIndexProvider index={0}>
+        <BlockPathProvider index={0}>
+          <div data-test-id="sdk-tabs">
+            <TabbedCodeSnippet tabs={DOTNET_SDK_TABS} />
+          </div>
+        </BlockPathProvider>
+        <BlockPathProvider index={1}>
+          <div data-test-id="profiling-tabs">
+            <TabbedCodeSnippet tabs={DOTNET_PROFILING_TABS} />
+          </div>
+        </BlockPathProvider>
+      </StepIndexProvider>,
+      {additionalWrapper: TabSelectionScope}
     );
 
     const sdkSection = within(screen.getByTestId('sdk-tabs'));

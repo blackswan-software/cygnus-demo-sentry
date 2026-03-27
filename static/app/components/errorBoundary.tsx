@@ -10,7 +10,7 @@ import {IconClose} from 'sentry/icons';
 import {t} from 'sentry/locale';
 
 type DefaultProps = {
-  mini: boolean;
+  mini?: boolean;
 };
 
 type CustomComponentRenderProps = {

@@ -73,13 +73,12 @@ describe('Onboarding Status', () => {
     const {mutateUserOptionsMock} = renderMockRequests(organization);
 
     render(
-      <PrimaryNavigationContextProvider>
-        <NavigationTourProvider>
-          <PrimaryNavigationOnboarding />
-        </NavigationTourProvider>
-      </PrimaryNavigationContextProvider>,
+      <NavigationTourProvider>
+        <PrimaryNavigationOnboarding />
+      </NavigationTourProvider>,
       {
         organization,
+        additionalWrapper: PrimaryNavigationContextProvider,
       }
     );
 

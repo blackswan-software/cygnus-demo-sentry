@@ -18,11 +18,7 @@ describe('TypeSelector', () => {
     const mockNavigate = jest.fn();
     mockUseNavigate.mockReturnValue(mockNavigate);
 
-    render(
-      <WidgetBuilderProvider>
-        <TypeSelector />
-      </WidgetBuilderProvider>
-    );
+    render(<TypeSelector />, {additionalWrapper: WidgetBuilderProvider});
 
     // click dropdown
     await userEvent.click(await screen.findByText('Table'));
@@ -38,11 +34,9 @@ describe('TypeSelector', () => {
   });
 
   it('displays error message when there is an error', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <TypeSelector error={{displayType: 'Please select a type'}} />
-      </WidgetBuilderProvider>
-    );
+    render(<TypeSelector error={{displayType: 'Please select a type'}} />, {
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Please select a type')).toBeInTheDocument();
   });
@@ -50,14 +44,10 @@ describe('TypeSelector', () => {
   it('shows text widget option when dashboards-text-widgets feature is enabled', async () => {
     mockUseNavigate.mockReturnValue(jest.fn());
 
-    render(
-      <WidgetBuilderProvider>
-        <TypeSelector />
-      </WidgetBuilderProvider>,
-      {
-        organization: OrganizationFixture({features: ['dashboards-text-widgets']}),
-      }
-    );
+    render(<TypeSelector />, {
+      organization: OrganizationFixture({features: ['dashboards-text-widgets']}),
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(await screen.findByText('Table'));
     expect(screen.getByText('Text (Markdown)')).toBeInTheDocument();
@@ -66,14 +56,10 @@ describe('TypeSelector', () => {
   it('does not show text widget option without dashboards-text-widgets feature', async () => {
     mockUseNavigate.mockReturnValue(jest.fn());
 
-    render(
-      <WidgetBuilderProvider>
-        <TypeSelector />
-      </WidgetBuilderProvider>,
-      {
-        organization: OrganizationFixture({features: []}),
-      }
-    );
+    render(<TypeSelector />, {
+      organization: OrganizationFixture({features: []}),
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(await screen.findByText('Table'));
     expect(screen.queryByText('Text (Markdown)')).not.toBeInTheDocument();
@@ -83,19 +69,15 @@ describe('TypeSelector', () => {
     const mockNavigate = jest.fn();
     mockUseNavigate.mockReturnValue(mockNavigate);
 
-    render(
-      <WidgetBuilderProvider>
-        <TypeSelector />
-      </WidgetBuilderProvider>,
-      {
-        initialRouterConfig: {
-          location: {
-            pathname: '/organizations/org-slug/dashboard/1/',
-            query: {displayType: 'line', dataset: WidgetType.ISSUE},
-          },
+    render(<TypeSelector />, {
+      initialRouterConfig: {
+        location: {
+          pathname: '/organizations/org-slug/dashboard/1/',
+          query: {displayType: 'line', dataset: WidgetType.ISSUE},
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(await screen.findByText('Line'));
     await userEvent.click(await screen.findByText('Table'));
@@ -130,20 +112,16 @@ describe('TypeSelector', () => {
     const mockNavigate = jest.fn();
     mockUseNavigate.mockReturnValue(mockNavigate);
 
-    render(
-      <WidgetBuilderProvider>
-        <TypeSelector />
-      </WidgetBuilderProvider>,
-      {
-        initialRouterConfig: {
-          location: {
-            pathname: '/organizations/org-slug/dashboard/1/',
-            query: {displayType: 'text'},
-          },
+    render(<TypeSelector />, {
+      initialRouterConfig: {
+        location: {
+          pathname: '/organizations/org-slug/dashboard/1/',
+          query: {displayType: 'text'},
         },
-        organization: OrganizationFixture({features: ['dashboards-text-widgets']}),
-      }
-    );
+      },
+      organization: OrganizationFixture({features: ['dashboards-text-widgets']}),
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(await screen.findByText('Text (Markdown)'));
     await userEvent.click(await screen.findByText('Table'));

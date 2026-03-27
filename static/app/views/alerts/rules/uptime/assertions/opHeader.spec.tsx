@@ -289,20 +289,19 @@ describe('AssertionOpHeader', () => {
 
   it('renders drag handle for reordering', async () => {
     render(
-      <AssertionsDndContext>
-        <AssertionOpHeader
-          value={{
-            id: 'test-id-1',
-            op,
-            key_op: {cmp: UptimeComparisonType.EQUALS},
-            key_operand: {header_op: 'literal', value: 'Content-Type'},
-            value_op: {cmp: UptimeComparisonType.EQUALS},
-            value_operand: {header_op: 'literal', value: 'application/json'},
-          }}
-          onChange={mockOnChange}
-          onRemove={mockOnRemove}
-        />
-      </AssertionsDndContext>
+      <AssertionOpHeader
+        value={{
+          id: 'test-id-1',
+          op,
+          key_op: {cmp: UptimeComparisonType.EQUALS},
+          key_operand: {header_op: 'literal', value: 'Content-Type'},
+          value_op: {cmp: UptimeComparisonType.EQUALS},
+          value_operand: {header_op: 'literal', value: 'application/json'},
+        }}
+        onChange={mockOnChange}
+        onRemove={mockOnRemove}
+      />,
+      {additionalWrapper: AssertionsDndContext}
     );
 
     await screen.findByLabelText('Header');

@@ -88,11 +88,7 @@ describe('DemoTours', () => {
 
   describe('DemoToursProvider', () => {
     it('initializes with correct state', () => {
-      render(
-        <DemoToursProvider>
-          <div data-test-id="child" />
-        </DemoToursProvider>
-      );
+      render(<div data-test-id="child" />, {additionalWrapper: DemoToursProvider});
 
       expect(mockUseLocalStorageState).toHaveBeenCalledWith(
         DEMO_TOURS_STATE_KEY,
@@ -242,19 +238,18 @@ describe('DemoTours', () => {
   describe('DemoTourElement', () => {
     it('renders children correctly', () => {
       render(
-        <DemoToursProvider>
-          <DemoTourElement
-            id={DemoTourStep.RELEASES_LIST}
-            title="Test Title"
-            description="Test Description"
-          >
-            {props => (
-              <div {...props} data-test-id="element-content">
-                Element Content
-              </div>
-            )}
-          </DemoTourElement>
-        </DemoToursProvider>
+        <DemoTourElement
+          id={DemoTourStep.RELEASES_LIST}
+          title="Test Title"
+          description="Test Description"
+        >
+          {props => (
+            <div {...props} data-test-id="element-content">
+              Element Content
+            </div>
+          )}
+        </DemoTourElement>,
+        {additionalWrapper: DemoToursProvider}
       );
 
       expect(screen.getByTestId('element-content')).toBeInTheDocument();

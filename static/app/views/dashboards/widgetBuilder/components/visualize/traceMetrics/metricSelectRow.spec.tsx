@@ -185,22 +185,20 @@ describe('MetricSelectRow', () => {
     });
 
     render(
-      <WidgetBuilderProvider>
-        <MetricSelectRow
-          field={{
-            kind: 'function',
-            function: [
-              'p50' as AggregationKeyWithAlias,
-              'value',
-              'distribution_metric',
-              'distribution',
-              '-',
-            ],
-          }}
-          index={0}
-          disabled={false}
-        />
-      </WidgetBuilderProvider>,
+      <MetricSelectRow
+        field={{
+          kind: 'function',
+          function: [
+            'p50' as AggregationKeyWithAlias,
+            'value',
+            'distribution_metric',
+            'distribution',
+            '-',
+          ],
+        }}
+        index={0}
+        disabled={false}
+      />,
       {
         initialRouterConfig: {
           location: {
@@ -212,6 +210,7 @@ describe('MetricSelectRow', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -268,22 +267,20 @@ describe('MetricSelectRow', () => {
     });
 
     render(
-      <WidgetBuilderProvider>
-        <MetricSelectRow
-          field={{
-            kind: 'function',
-            function: [
-              'sum' as AggregationKeyWithAlias,
-              'value',
-              'counter_metric',
-              'counter',
-              '-',
-            ],
-          }}
-          index={0}
-          disabled={false}
-        />
-      </WidgetBuilderProvider>,
+      <MetricSelectRow
+        field={{
+          kind: 'function',
+          function: [
+            'sum' as AggregationKeyWithAlias,
+            'value',
+            'counter_metric',
+            'counter',
+            '-',
+          ],
+        }}
+        index={0}
+        disabled={false}
+      />,
       {
         initialRouterConfig: {
           location: {
@@ -295,6 +292,7 @@ describe('MetricSelectRow', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -351,22 +349,20 @@ describe('MetricSelectRow', () => {
     });
 
     render(
-      <WidgetBuilderProvider>
-        <MetricSelectRow
-          field={{
-            kind: 'function',
-            function: [
-              'sum' as AggregationKeyWithAlias,
-              'value',
-              'distribution_metric',
-              'distribution',
-              '-',
-            ],
-          }}
-          index={0}
-          disabled={false}
-        />
-      </WidgetBuilderProvider>,
+      <MetricSelectRow
+        field={{
+          kind: 'function',
+          function: [
+            'sum' as AggregationKeyWithAlias,
+            'value',
+            'distribution_metric',
+            'distribution',
+            '-',
+          ],
+        }}
+        index={0}
+        disabled={false}
+      />,
       {
         initialRouterConfig: {
           location: {
@@ -382,6 +378,7 @@ describe('MetricSelectRow', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -458,22 +455,20 @@ describe('MetricSelectRow', () => {
     });
 
     render(
-      <WidgetBuilderProvider>
-        <MetricSelectRow
-          field={{
-            kind: 'function',
-            function: [
-              'avg' as AggregationKeyWithAlias,
-              'value',
-              'gauge_metric',
-              'gauge',
-              '-',
-            ],
-          }}
-          index={0}
-          disabled={false}
-        />
-      </WidgetBuilderProvider>,
+      <MetricSelectRow
+        field={{
+          kind: 'function',
+          function: [
+            'avg' as AggregationKeyWithAlias,
+            'value',
+            'gauge_metric',
+            'gauge',
+            '-',
+          ],
+        }}
+        index={0}
+        disabled={false}
+      />,
       {
         initialRouterConfig: {
           location: {
@@ -485,6 +480,7 @@ describe('MetricSelectRow', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -538,22 +534,20 @@ describe('MetricSelectRow', () => {
       },
     });
     render(
-      <WidgetBuilderProvider>
-        <MetricSelectRow
-          field={{
-            kind: 'function',
-            function: [
-              'p50' as AggregationKeyWithAlias,
-              'value',
-              'distribution_metric',
-              'distribution',
-              '-',
-            ],
-          }}
-          index={0}
-          disabled={false}
-        />
-      </WidgetBuilderProvider>,
+      <MetricSelectRow
+        field={{
+          kind: 'function',
+          function: [
+            'p50' as AggregationKeyWithAlias,
+            'value',
+            'distribution_metric',
+            'distribution',
+            '-',
+          ],
+        }}
+        index={0}
+        disabled={false}
+      />,
       {
         initialRouterConfig: {
           location: {
@@ -565,6 +559,7 @@ describe('MetricSelectRow', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 

@@ -24,20 +24,16 @@ describe('SaveReplayQueryButton', () => {
   });
 
   function renderWithProvider(query = '') {
-    return render(
-      <ReplayQueryParamsProvider>
-        <SaveReplayQueryButton />
-      </ReplayQueryParamsProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: '/replays/',
-            query: query ? {query} : {},
-          },
+    return render(<SaveReplayQueryButton />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: '/replays/',
+          query: query ? {query} : {},
         },
-      }
-    );
+      },
+      additionalWrapper: ReplayQueryParamsProvider,
+    });
   }
 
   it('renders the Save as button', () => {

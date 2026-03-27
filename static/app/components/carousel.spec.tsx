@@ -23,11 +23,7 @@ describe('Carousel', () => {
   };
 
   it('hides arrows if content does not overflow in x', () => {
-    render(
-      <Carousel>
-        <div data-test-id="child-1" />
-      </Carousel>
-    );
+    render(<div data-test-id="child-1" />, {additionalWrapper: Carousel});
 
     // Child is visible
     act(() =>

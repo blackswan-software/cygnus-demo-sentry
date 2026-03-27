@@ -36,12 +36,10 @@ describe('DashboardsSecondaryNavigation', () => {
   });
 
   it('should render dashboards in order of response', async () => {
-    render(
-      <SecondaryNavigationContextProvider>
-        <DashboardsSecondaryNavigation />
-      </SecondaryNavigationContextProvider>,
-      {organization}
-    );
+    render(<DashboardsSecondaryNavigation />, {
+      organization,
+      additionalWrapper: SecondaryNavigationContextProvider,
+    });
 
     expect(await screen.findByText('Dashboard 9999')).toBeInTheDocument();
 

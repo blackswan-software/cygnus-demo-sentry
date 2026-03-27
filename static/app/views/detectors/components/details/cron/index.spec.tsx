@@ -202,11 +202,9 @@ describe('CronDetectorDetails - check-ins', () => {
       user.options.timezone = 'America/New_York';
       ConfigStore.set('user', user);
 
-      render(
-        <UserTimezoneProvider>
-          <CronDetectorDetails detector={detectorWithCheckIn} project={project} />
-        </UserTimezoneProvider>
-      );
+      render(<CronDetectorDetails detector={detectorWithCheckIn} project={project} />, {
+        additionalWrapper: UserTimezoneProvider,
+      });
 
       // Wait for check-ins to load and find the table after the heading
       const recentCheckInsHeading = await screen.findByText('Recent Check-Ins');

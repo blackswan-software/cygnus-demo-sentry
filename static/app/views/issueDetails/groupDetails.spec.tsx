@@ -69,15 +69,11 @@ describe('groupDetails', () => {
   ) => {
     // Add project id to the url to skip over the _allp redirect
     setWindowLocation(`http://localhost/?project=${group.project.id}`);
-    return render(
-      <GroupDetails>
-        <MockComponent />
-      </GroupDetails>,
-      {
-        organization,
-        initialRouterConfig: routerConfig,
-      }
-    );
+    return render(<MockComponent />, {
+      organization,
+      initialRouterConfig: routerConfig,
+      additionalWrapper: GroupDetails,
+    });
   };
 
   beforeEach(() => {

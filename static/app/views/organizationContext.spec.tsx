@@ -82,12 +82,10 @@ describe('OrganizationContext', () => {
   }
 
   it('fetches org, projects, teams, and provides organization context', async () => {
-    render(
-      <OrganizationContextProvider>
-        <OrganizationName />
-      </OrganizationContextProvider>,
-      {initialRouterConfig}
-    );
+    render(<OrganizationName />, {
+      initialRouterConfig,
+      additionalWrapper: OrganizationContextProvider,
+    });
 
     expect(await screen.findByText(organization.slug)).toBeInTheDocument();
     expect(getOrgMock).toHaveBeenCalled();
@@ -97,12 +95,10 @@ describe('OrganizationContext', () => {
 
   it('fetches new org when router params change', async () => {
     // First render with org-slug
-    const {router: testRouter} = render(
-      <OrganizationContextProvider>
-        <OrganizationName />
-      </OrganizationContextProvider>,
-      {initialRouterConfig}
-    );
+    const {router: testRouter} = render(<OrganizationName />, {
+      initialRouterConfig,
+      additionalWrapper: OrganizationContextProvider,
+    });
 
     expect(await screen.findByText(organization.slug)).toBeInTheDocument();
     expect(JSON.stringify(OrganizationStore.getState().organization)).toEqual(
@@ -137,12 +133,10 @@ describe('OrganizationContext', () => {
       body: organization,
     });
 
-    render(
-      <OrganizationContextProvider>
-        <OrganizationName />
-      </OrganizationContextProvider>,
-      {initialRouterConfig}
-    );
+    render(<OrganizationName />, {
+      initialRouterConfig,
+      additionalWrapper: OrganizationContextProvider,
+    });
 
     await waitFor(() => !OrganizationStore.getState().loading);
 
@@ -157,12 +151,10 @@ describe('OrganizationContext', () => {
       statusCode: 403,
     });
 
-    render(
-      <OrganizationContextProvider>
-        <OrganizationName />
-      </OrganizationContextProvider>,
-      {initialRouterConfig}
-    );
+    render(<OrganizationName />, {
+      initialRouterConfig,
+      additionalWrapper: OrganizationContextProvider,
+    });
 
     await waitFor(() => !OrganizationStore.getState().loading);
 
@@ -182,19 +174,15 @@ describe('OrganizationContext', () => {
     const {orgMock, projectMock, teamMock} = setupOrgMocks(configStoreOrg);
 
     // orgId is not present in the router.
-    render(
-      <OrganizationContextProvider>
-        <OrganizationName />
-      </OrganizationContextProvider>,
-      {
-        initialRouterConfig: {
-          route: '/organizations/',
-          location: {
-            pathname: `/organizations/`,
-          },
+    render(<OrganizationName />, {
+      initialRouterConfig: {
+        route: '/organizations/',
+        location: {
+          pathname: `/organizations/`,
         },
-      }
-    );
+      },
+      additionalWrapper: OrganizationContextProvider,
+    });
 
     expect(await screen.findByText(configStoreOrg.slug)).toBeInTheDocument();
     expect(orgMock).toHaveBeenCalled();

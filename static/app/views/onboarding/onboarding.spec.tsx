@@ -43,19 +43,15 @@ describe('Onboarding', () => {
   });
 
   it('renders the welcome page', () => {
-    render(
-      <OnboardingContextProvider>
-        <OnboardingWithoutContext />
-      </OnboardingContextProvider>,
-      {
-        initialRouterConfig: {
-          location: {
-            pathname: '/onboarding/org-slug/welcome/',
-          },
-          route: '/onboarding/:orgId/:step/',
+    render(<OnboardingWithoutContext />, {
+      initialRouterConfig: {
+        location: {
+          pathname: '/onboarding/org-slug/welcome/',
         },
-      }
-    );
+        route: '/onboarding/:orgId/:step/',
+      },
+      additionalWrapper: OnboardingContextProvider,
+    });
 
     expect(screen.getByTestId('onboarding-welcome-start')).toBeInTheDocument();
   });
@@ -65,20 +61,16 @@ describe('Onboarding', () => {
       features: ['onboarding-new-welcome-ui'],
     });
 
-    render(
-      <OnboardingContextProvider>
-        <OnboardingWithoutContext />
-      </OnboardingContextProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: `/onboarding/${organization.slug}/welcome/`,
-          },
-          route: '/onboarding/:orgId/:step/',
+    render(<OnboardingWithoutContext />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: `/onboarding/${organization.slug}/welcome/`,
         },
-      }
-    );
+        route: '/onboarding/:orgId/:step/',
+      },
+      additionalWrapper: OnboardingContextProvider,
+    });
 
     expect(screen.getByText('Welcome to Sentry')).toBeInTheDocument();
     expect(screen.getByText('Error monitoring')).toBeInTheDocument();
@@ -89,19 +81,15 @@ describe('Onboarding', () => {
 
   describe('legacy welcome screen analytics', () => {
     it('calls trackAnalytics on mount', () => {
-      render(
-        <OnboardingContextProvider>
-          <OnboardingWithoutContext />
-        </OnboardingContextProvider>,
-        {
-          initialRouterConfig: {
-            location: {
-              pathname: '/onboarding/org-slug/welcome/',
-            },
-            route: '/onboarding/:orgId/:step/',
+      render(<OnboardingWithoutContext />, {
+        initialRouterConfig: {
+          location: {
+            pathname: '/onboarding/org-slug/welcome/',
           },
-        }
-      );
+          route: '/onboarding/:orgId/:step/',
+        },
+        additionalWrapper: OnboardingContextProvider,
+      });
 
       expect(trackAnalytics).toHaveBeenCalledWith(
         'growth.onboarding_start_onboarding',
@@ -112,19 +100,15 @@ describe('Onboarding', () => {
     });
 
     it('calls trackAnalytics and onComplete on start button click', async () => {
-      const {router} = render(
-        <OnboardingContextProvider>
-          <OnboardingWithoutContext />
-        </OnboardingContextProvider>,
-        {
-          initialRouterConfig: {
-            location: {
-              pathname: '/onboarding/org-slug/welcome/',
-            },
-            route: '/onboarding/:orgId/:step/',
+      const {router} = render(<OnboardingWithoutContext />, {
+        initialRouterConfig: {
+          location: {
+            pathname: '/onboarding/org-slug/welcome/',
           },
-        }
-      );
+          route: '/onboarding/:orgId/:step/',
+        },
+        additionalWrapper: OnboardingContextProvider,
+      });
 
       await userEvent.click(screen.getByTestId('onboarding-welcome-start'));
 
@@ -145,19 +129,15 @@ describe('Onboarding', () => {
       const openSpy = jest.spyOn(OnboardingDrawerStore, 'open');
 
       try {
-        render(
-          <OnboardingContextProvider>
-            <OnboardingWithoutContext />
-          </OnboardingContextProvider>,
-          {
-            initialRouterConfig: {
-              location: {
-                pathname: '/onboarding/org-slug/welcome/',
-              },
-              route: '/onboarding/:orgId/:step/',
+        render(<OnboardingWithoutContext />, {
+          initialRouterConfig: {
+            location: {
+              pathname: '/onboarding/org-slug/welcome/',
             },
-          }
-        );
+            route: '/onboarding/:orgId/:step/',
+          },
+          additionalWrapper: OnboardingContextProvider,
+        });
 
         await userEvent.click(screen.getByRole('link', {name: 'Skip onboarding.'}), {
           delay: null,
@@ -186,20 +166,16 @@ describe('Onboarding', () => {
         features: ['onboarding-new-welcome-ui'],
       });
 
-      render(
-        <OnboardingContextProvider>
-          <OnboardingWithoutContext />
-        </OnboardingContextProvider>,
-        {
-          organization,
-          initialRouterConfig: {
-            location: {
-              pathname: `/onboarding/${organization.slug}/welcome/`,
-            },
-            route: '/onboarding/:orgId/:step/',
+      render(<OnboardingWithoutContext />, {
+        organization,
+        initialRouterConfig: {
+          location: {
+            pathname: `/onboarding/${organization.slug}/welcome/`,
           },
-        }
-      );
+          route: '/onboarding/:orgId/:step/',
+        },
+        additionalWrapper: OnboardingContextProvider,
+      });
 
       expect(trackAnalytics).toHaveBeenCalledWith(
         'growth.onboarding_start_onboarding',
@@ -214,20 +190,16 @@ describe('Onboarding', () => {
         features: ['onboarding-new-welcome-ui'],
       });
 
-      const {router} = render(
-        <OnboardingContextProvider>
-          <OnboardingWithoutContext />
-        </OnboardingContextProvider>,
-        {
-          organization,
-          initialRouterConfig: {
-            location: {
-              pathname: `/onboarding/${organization.slug}/welcome/`,
-            },
-            route: '/onboarding/:orgId/:step/',
+      const {router} = render(<OnboardingWithoutContext />, {
+        organization,
+        initialRouterConfig: {
+          location: {
+            pathname: `/onboarding/${organization.slug}/welcome/`,
           },
-        }
-      );
+          route: '/onboarding/:orgId/:step/',
+        },
+        additionalWrapper: OnboardingContextProvider,
+      });
 
       await userEvent.click(screen.getByTestId('onboarding-welcome-start'));
 
@@ -254,20 +226,16 @@ describe('Onboarding', () => {
       });
 
       try {
-        render(
-          <OnboardingContextProvider>
-            <OnboardingWithoutContext />
-          </OnboardingContextProvider>,
-          {
-            organization,
-            initialRouterConfig: {
-              location: {
-                pathname: `/onboarding/${organization.slug}/welcome/`,
-              },
-              route: '/onboarding/:orgId/:step/',
+        render(<OnboardingWithoutContext />, {
+          organization,
+          initialRouterConfig: {
+            location: {
+              pathname: `/onboarding/${organization.slug}/welcome/`,
             },
-          }
-        );
+            route: '/onboarding/:orgId/:step/',
+          },
+          additionalWrapper: OnboardingContextProvider,
+        });
 
         await userEvent.click(screen.getByRole('button', {name: 'Skip onboarding'}), {
           delay: null,
@@ -291,19 +259,15 @@ describe('Onboarding', () => {
   });
 
   it('renders the select platform step', async () => {
-    render(
-      <OnboardingContextProvider>
-        <OnboardingWithoutContext />
-      </OnboardingContextProvider>,
-      {
-        initialRouterConfig: {
-          location: {
-            pathname: '/onboarding/org-slug/select-platform/',
-          },
-          route: '/onboarding/:orgId/:step/',
+    render(<OnboardingWithoutContext />, {
+      initialRouterConfig: {
+        location: {
+          pathname: '/onboarding/org-slug/select-platform/',
         },
-      }
-    );
+        route: '/onboarding/:orgId/:step/',
+      },
+      additionalWrapper: OnboardingContextProvider,
+    });
 
     expect(
       await screen.findByText('Select the platform you want to monitor')
@@ -459,19 +423,15 @@ describe('Onboarding', () => {
   });
 
   it('renders framework selection modal if vanilla js is selected', async () => {
-    render(
-      <OnboardingContextProvider>
-        <OnboardingWithoutContext />
-      </OnboardingContextProvider>,
-      {
-        initialRouterConfig: {
-          location: {
-            pathname: '/onboarding/org-slug/select-platform/',
-          },
-          route: '/onboarding/:orgId/:step/',
+    render(<OnboardingWithoutContext />, {
+      initialRouterConfig: {
+        location: {
+          pathname: '/onboarding/org-slug/select-platform/',
         },
-      }
-    );
+        route: '/onboarding/:orgId/:step/',
+      },
+      additionalWrapper: OnboardingContextProvider,
+    });
 
     renderGlobalModal();
 
@@ -933,20 +893,16 @@ describe('Onboarding', () => {
     });
 
     it('redirects invalid step to welcome', () => {
-      const {router} = render(
-        <OnboardingContextProvider>
-          <OnboardingWithoutContext />
-        </OnboardingContextProvider>,
-        {
-          organization: scmOrganization,
-          initialRouterConfig: {
-            location: {
-              pathname: `/onboarding/${scmOrganization.slug}/select-platform/`,
-            },
-            route: '/onboarding/:orgId/:step/',
+      const {router} = render(<OnboardingWithoutContext />, {
+        organization: scmOrganization,
+        initialRouterConfig: {
+          location: {
+            pathname: `/onboarding/${scmOrganization.slug}/select-platform/`,
           },
-        }
-      );
+          route: '/onboarding/:orgId/:step/',
+        },
+        additionalWrapper: OnboardingContextProvider,
+      });
 
       // select-platform doesn't exist in SCM flow, should redirect to welcome
       expect(router.location.pathname).toBe(
@@ -1000,19 +956,15 @@ describe('Onboarding', () => {
       body: [ProjectKeysFixture()[0]],
     });
 
-    const {router} = render(
-      <OnboardingContextProvider>
-        <OnboardingWithoutContext />
-      </OnboardingContextProvider>,
-      {
-        initialRouterConfig: {
-          location: {
-            pathname: `/onboarding/${organization.slug}/select-platform/`,
-          },
-          route: '/onboarding/:orgId/:step/',
+    const {router} = render(<OnboardingWithoutContext />, {
+      initialRouterConfig: {
+        location: {
+          pathname: `/onboarding/${organization.slug}/select-platform/`,
         },
-      }
-    );
+        route: '/onboarding/:orgId/:step/',
+      },
+      additionalWrapper: OnboardingContextProvider,
+    });
 
     // Select the Next.JS platform
     await userEvent.click(screen.getByTestId('platform-javascript-nextjs'));

@@ -150,15 +150,11 @@ describe('desktop navigation', () => {
   beforeEach(setupMocks);
 
   it('renders user-only navigation when there is no organization', () => {
-    render(
-      <PrimaryNavigationContextProvider>
-        <Navigation />
-      </PrimaryNavigationContextProvider>,
-      {
-        organization: null,
-        initialRouterConfig: {location: {pathname: '/'}},
-      }
-    );
+    render(<Navigation />, {
+      organization: null,
+      initialRouterConfig: {location: {pathname: '/'}},
+      additionalWrapper: PrimaryNavigationContextProvider,
+    });
 
     // Primary nav sidebar renders but contains no nav links
     const primaryNav = screen.getByRole('navigation', {name: 'Primary Navigation'});

@@ -8,20 +8,19 @@ import {SecondaryNavigationContextProvider} from 'sentry/views/navigation/second
 describe('DashboardsNavigationItems', () => {
   it('should render', () => {
     render(
-      <SecondaryNavigationContextProvider>
-        <DashboardsNavigationItems
-          initialDashboards={[
-            DashboardListItemFixture({
-              id: '1',
-              title: 'Dashboard 1',
-            }),
-            DashboardListItemFixture({
-              id: '2',
-              title: 'Dashboard 2',
-            }),
-          ]}
-        />
-      </SecondaryNavigationContextProvider>
+      <DashboardsNavigationItems
+        initialDashboards={[
+          DashboardListItemFixture({
+            id: '1',
+            title: 'Dashboard 1',
+          }),
+          DashboardListItemFixture({
+            id: '2',
+            title: 'Dashboard 2',
+          }),
+        ]}
+      />,
+      {additionalWrapper: SecondaryNavigationContextProvider}
     );
 
     expect(screen.getByText('Dashboard 1')).toBeInTheDocument();

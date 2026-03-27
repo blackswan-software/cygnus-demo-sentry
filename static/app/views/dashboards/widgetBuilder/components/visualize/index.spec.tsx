@@ -97,25 +97,21 @@ describe('Visualize', () => {
   });
 
   it('renders basic aggregates correctly from the URL params', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              yAxis: ['p90(transaction.duration)', 'max(spans.db)'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            yAxis: ['p90(transaction.duration)', 'max(spans.db)'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('+ Add Series')).toBeInTheDocument();
     const p90FieldRow = (await screen.findByText('p90')).closest(
@@ -132,25 +128,21 @@ describe('Visualize', () => {
   });
 
   it('allows adding and deleting series', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              yAxis: ['max(spans.db)'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            yAxis: ['max(spans.db)'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByRole('button', {name: 'Remove field'})).toBeDisabled();
 
@@ -163,25 +155,21 @@ describe('Visualize', () => {
   });
 
   it('removes the column selection when the aggregate has no parameters', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              yAxis: ['max(spans.db)'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            yAxis: ['max(spans.db)'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(screen.getByRole('button', {name: 'Column Selection'})).toBeEnabled();
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
@@ -194,25 +182,21 @@ describe('Visualize', () => {
   });
 
   it('adds the default value for the column selection when the aggregate has parameters', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              yAxis: ['count()'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            yAxis: ['count()'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'p95'}));
@@ -227,25 +211,21 @@ describe('Visualize', () => {
   });
 
   it('adds the correct default new series when a default is provided for series display type', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              yAxis: ['count(resolved_issues)'],
-              dataset: WidgetType.ISSUE,
-              displayType: DisplayType.BAR,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            yAxis: ['count(resolved_issues)'],
+            dataset: WidgetType.ISSUE,
+            displayType: DisplayType.BAR,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(screen.queryByText('new_issues')).not.toBeInTheDocument();
     await userEvent.click(await screen.findByText('+ Add Series'));
@@ -253,25 +233,21 @@ describe('Visualize', () => {
   });
 
   it('maintains the selected aggregate when the column selection is changed and there are parameters', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              yAxis: ['max(spans.db)'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            yAxis: ['max(spans.db)'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'p95'}));
@@ -285,25 +261,21 @@ describe('Visualize', () => {
   });
 
   it('allows adding equations', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              yAxis: ['count()'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            yAxis: ['count()'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Add Equation'}));
 
@@ -325,25 +297,21 @@ describe('Visualize', () => {
   });
 
   it('renders a field without an aggregate in tables', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              field: ['transaction.duration'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            field: ['transaction.duration'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Column Selection'})
@@ -354,25 +322,21 @@ describe('Visualize', () => {
   });
 
   it('allows setting a field without an aggregate in tables', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              field: ['count()'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            field: ['count()'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'field'}));
@@ -389,25 +353,21 @@ describe('Visualize', () => {
   });
 
   it('automatically opens the column selection for aggregates', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              field: ['count()'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            field: ['count()'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'p50'}));
@@ -419,25 +379,21 @@ describe('Visualize', () => {
   });
 
   it('allows setting an equation in tables', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              field: ['count()'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            field: ['count()'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Add Equation'}));
     await userEvent.click(screen.getByLabelText('Equation'));
@@ -448,25 +404,21 @@ describe('Visualize', () => {
   });
 
   it('maintains the selected column when switching from field to aggregate', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              yAxis: ['transaction.duration'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            yAxis: ['transaction.duration'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'p95'}));
@@ -477,25 +429,21 @@ describe('Visualize', () => {
   });
 
   it('maintains the selected column when switching from aggregate to aggregate', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              field: ['max(spans.db)'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            field: ['max(spans.db)'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'p95'}));
@@ -506,25 +454,21 @@ describe('Visualize', () => {
   });
 
   it('properly transitions between aggregates of higher to no parameter count', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              field: ['count_if(transaction.duration,equals,testValue)'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            field: ['count_if(transaction.duration,equals,testValue)'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'count'}));
@@ -542,25 +486,21 @@ describe('Visualize', () => {
   });
 
   it('properly transitions between aggregates of higher to lower parameter count', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              field: ['count_if(transaction.duration,equals,testValue)'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            field: ['count_if(transaction.duration,equals,testValue)'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'count_miserable'}));
@@ -581,25 +521,21 @@ describe('Visualize', () => {
   });
 
   it('adds the default value for an aggregate with 2 parameters', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              field: ['transaction.duration'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            field: ['transaction.duration'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'count_miserable'}));
@@ -610,25 +546,21 @@ describe('Visualize', () => {
   });
 
   it('adds the default values for an aggregate with 3 parameters', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              field: ['transaction'],
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            field: ['transaction'],
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'count_if'}));
@@ -644,25 +576,21 @@ describe('Visualize', () => {
   });
 
   it('disables the aggregate selection for issue widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.ISSUE,
-              field: ['issue.id'],
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.ISSUE,
+            field: ['issue.id'],
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
@@ -670,25 +598,21 @@ describe('Visualize', () => {
   });
 
   it('does not show the legend alias input for chart widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-              yAxis: ['p90(transaction.duration)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
+            yAxis: ['p90(transaction.duration)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Column Selection'})
@@ -700,25 +624,21 @@ describe('Visualize', () => {
   });
 
   it('does not show the legend alias input for big number widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.BIG_NUMBER,
-              field: ['count()'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.BIG_NUMBER,
+            field: ['count()'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
@@ -727,25 +647,21 @@ describe('Visualize', () => {
   });
 
   it('does not allow for selecting individual fields in big number widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.BIG_NUMBER,
-              field: ['count()'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.BIG_NUMBER,
+            field: ['count()'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
 
@@ -755,25 +671,21 @@ describe('Visualize', () => {
   });
 
   it('updates only the selected field', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.TABLE,
-              field: ['p50(transaction.duration)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.TABLE,
+            field: ['p50(transaction.duration)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByLabelText('Aggregate Selection')).toHaveTextContent('p50');
     expect(screen.getByLabelText('Column Selection')).toHaveTextContent(
@@ -800,18 +712,16 @@ describe('Visualize', () => {
 
   it('shows appropriate error messages for non-chart widget queries', async () => {
     render(
-      <WidgetBuilderProvider>
-        <Visualize
-          error={{
-            queries: [
-              {
-                fields: ['this field has an error'],
-                aggregates: ['this aggregate has an error'],
-              },
-            ],
-          }}
-        />
-      </WidgetBuilderProvider>,
+      <Visualize
+        error={{
+          queries: [
+            {
+              fields: ['this field has an error'],
+              aggregates: ['this aggregate has an error'],
+            },
+          ],
+        }}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -824,6 +734,7 @@ describe('Visualize', () => {
           },
           route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -833,18 +744,16 @@ describe('Visualize', () => {
 
   it('shows appropriate error messages for chart type widget queries', async () => {
     render(
-      <WidgetBuilderProvider>
-        <Visualize
-          error={{
-            queries: [
-              {
-                fields: ['this field has an error'],
-                aggregates: ['this aggregate has an error'],
-              },
-            ],
-          }}
-        />
-      </WidgetBuilderProvider>,
+      <Visualize
+        error={{
+          queries: [
+            {
+              fields: ['this field has an error'],
+              aggregates: ['this aggregate has an error'],
+            },
+          ],
+        }}
+      />,
       {
         organization,
         initialRouterConfig: {
@@ -854,6 +763,7 @@ describe('Visualize', () => {
           },
           route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -862,25 +772,21 @@ describe('Visualize', () => {
   });
 
   it('shows radio buttons for big number widgets when there are multiple aggregates', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.BIG_NUMBER,
-              field: ['count_unique(user)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.BIG_NUMBER,
+            field: ['count_unique(user)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByLabelText('Aggregate Selection')).toHaveTextContent(
       'count_unique'
@@ -894,26 +800,22 @@ describe('Visualize', () => {
   });
 
   it('shifts the selected aggregate up when it is the last one and removed', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.BIG_NUMBER,
-              field: ['count_unique(1)', 'count_unique(2)', 'count_unique(3)'],
-              selectedAggregate: '2',
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.BIG_NUMBER,
+            field: ['count_unique(1)', 'count_unique(2)', 'count_unique(3)'],
+            selectedAggregate: '2',
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByRole('radio', {name: 'field2'})).toBeChecked();
     await userEvent.click(screen.getAllByRole('button', {name: 'Remove field'})[2]!);
@@ -930,21 +832,17 @@ describe('Visualize', () => {
   });
 
   it('only shows the relevant options for the release dataset', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {dataset: WidgetType.RELEASE, field: ['crash_free_rate(session)']},
-          },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {dataset: WidgetType.RELEASE, field: ['crash_free_rate(session)']},
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Column Selection'})
@@ -957,21 +855,17 @@ describe('Visualize', () => {
   });
 
   it('clears out the field when the selected aggregate has no parameters', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {dataset: WidgetType.TRANSACTIONS, field: ['transaction.duration']},
-          },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {dataset: WidgetType.TRANSACTIONS, field: ['transaction.duration']},
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'count'}));
@@ -982,24 +876,20 @@ describe('Visualize', () => {
   });
 
   it('uses the provided value for a value parameter field', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              field: ['count_if(transaction.duration,equals,300)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            field: ['count_if(transaction.duration,equals,300)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     // Simulate clearing and typing a new value from the user
     await userEvent.type(
@@ -1014,24 +904,20 @@ describe('Visualize', () => {
   });
 
   it('restricts deleting the last aggregate in release health widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.RELEASE,
-              field: ['crash_free_rate(session)', 'environment'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.RELEASE,
+            field: ['crash_free_rate(session)', 'environment'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const removeButtons = await screen.findAllByRole('button', {name: 'Remove field'});
     expect(removeButtons).toHaveLength(2);
@@ -1040,21 +926,17 @@ describe('Visualize', () => {
   });
 
   it('shows a text box and removes the column selection for apdex', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {dataset: WidgetType.TRANSACTIONS, field: ['apdex(3000)']},
-          },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {dataset: WidgetType.TRANSACTIONS, field: ['apdex(3000)']},
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
@@ -1066,21 +948,17 @@ describe('Visualize', () => {
   });
 
   it('resets the text box value when swapping between apdex and user_misery', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {dataset: WidgetType.TRANSACTIONS, field: ['apdex(9999)']},
-          },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {dataset: WidgetType.TRANSACTIONS, field: ['apdex(9999)']},
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'user_misery'}));
@@ -1089,24 +967,20 @@ describe('Visualize', () => {
   });
 
   it('does not allow for deleting the only field or aggregate when there is an equation', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              field: ['equation|count()+1', 'count()'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            field: ['equation|count()+1', 'count()'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const removeButtons = await screen.findAllByRole('button', {name: 'Remove field'});
     expect(removeButtons[0]).toBeEnabled();
@@ -1114,25 +988,21 @@ describe('Visualize', () => {
   });
 
   it('shows draggable button when there is more than one field on non big number widgets', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              field: ['transaction.duration', 'transaction.id'],
-              displayType: DisplayType.TABLE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            field: ['transaction.duration', 'transaction.id'],
+            displayType: DisplayType.TABLE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findAllByRole('button', {name: 'Drag to reorder'})).toHaveLength(
       2
@@ -1140,21 +1010,17 @@ describe('Visualize', () => {
   });
 
   it('allows for selecting a column from the aggregate dropdown', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {dataset: WidgetType.TRANSACTIONS, field: ['count()']},
-          },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {dataset: WidgetType.TRANSACTIONS, field: ['count()']},
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'message'}));
@@ -1169,21 +1035,17 @@ describe('Visualize', () => {
   });
 
   it('shows the correct aggregate options for release dataset', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {dataset: WidgetType.RELEASE, field: ['crash_free_rate(session)']},
-          },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {dataset: WidgetType.RELEASE, field: ['crash_free_rate(session)']},
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     expect(screen.getByRole('option', {name: 'release'})).toBeInTheDocument();
@@ -1195,21 +1057,17 @@ describe('Visualize', () => {
   });
 
   it('adds a separate field when only one function field is present on release tables', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {dataset: WidgetType.RELEASE, field: ['crash_free_rate(session)']},
-          },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {dataset: WidgetType.RELEASE, field: ['crash_free_rate(session)']},
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getByRole('button', {name: 'Aggregate Selection'}));
     await userEvent.click(screen.getByRole('option', {name: 'release'}));
@@ -1228,24 +1086,20 @@ describe('Visualize', () => {
   });
 
   it('shows all of the fields as columns but disables the ones that are not valid for the aggregate', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              field: ['p50(transaction.duration)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            field: ['p50(transaction.duration)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(await screen.findByRole('button', {name: 'Column Selection'}));
     // Assert options that are strings, not typically valid for p50, are rendered but disabled
@@ -1304,25 +1158,21 @@ describe('Visualize', () => {
     });
 
     it('shows numeric tags as primary options for chart widgets', async () => {
-      render(
-        <WidgetBuilderProvider>
-          <Visualize />
-        </WidgetBuilderProvider>,
-        {
-          organization,
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                dataset: WidgetType.SPANS,
-                displayType: DisplayType.LINE,
-                yAxis: ['p90(span.duration)'],
-              },
+      render(<Visualize />, {
+        organization,
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              dataset: WidgetType.SPANS,
+              displayType: DisplayType.LINE,
+              yAxis: ['p90(span.duration)'],
             },
-            route: DASHBOARD_WIDGET_BUILDER_ROUTE,
           },
-        }
-      );
+          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       await userEvent.click(
         await screen.findByRole('button', {name: 'Column Selection'})
@@ -1336,25 +1186,21 @@ describe('Visualize', () => {
     });
 
     it('shows the correct aggregate options', async () => {
-      render(
-        <WidgetBuilderProvider>
-          <Visualize />
-        </WidgetBuilderProvider>,
-        {
-          organization,
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                dataset: WidgetType.SPANS,
-                displayType: DisplayType.LINE,
-                yAxis: ['count(span.duration)'],
-              },
+      render(<Visualize />, {
+        organization,
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              dataset: WidgetType.SPANS,
+              displayType: DisplayType.LINE,
+              yAxis: ['count(span.duration)'],
             },
-            route: DASHBOARD_WIDGET_BUILDER_ROUTE,
           },
-        }
-      );
+          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       await userEvent.click(
         await screen.findByRole('button', {name: 'Aggregate Selection'})
@@ -1376,25 +1222,21 @@ describe('Visualize', () => {
     });
 
     it('shows the correct column options for the aggregate field type', async () => {
-      render(
-        <WidgetBuilderProvider>
-          <Visualize />
-        </WidgetBuilderProvider>,
-        {
-          organization,
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                dataset: WidgetType.SPANS,
-                displayType: DisplayType.TABLE,
-                field: ['p90(span.duration)'],
-              },
+      render(<Visualize />, {
+        organization,
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              dataset: WidgetType.SPANS,
+              displayType: DisplayType.TABLE,
+              field: ['p90(span.duration)'],
             },
-            route: DASHBOARD_WIDGET_BUILDER_ROUTE,
           },
-        }
-      );
+          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       await userEvent.click(
         await screen.findByRole('button', {name: 'Column Selection'})
@@ -1406,25 +1248,21 @@ describe('Visualize', () => {
     });
 
     it('shows the correct column options for the non-aggregate field type', async () => {
-      render(
-        <WidgetBuilderProvider>
-          <Visualize />
-        </WidgetBuilderProvider>,
-        {
-          organization,
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                dataset: WidgetType.SPANS,
-                displayType: DisplayType.TABLE,
-                field: ['span.duration'],
-              },
+      render(<Visualize />, {
+        organization,
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              dataset: WidgetType.SPANS,
+              displayType: DisplayType.TABLE,
+              field: ['span.duration'],
             },
-            route: DASHBOARD_WIDGET_BUILDER_ROUTE,
           },
-        }
-      );
+          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       await userEvent.click(
         await screen.findByRole('button', {name: 'Column Selection'})
@@ -1461,25 +1299,21 @@ describe('Visualize', () => {
             isLoading: false,
           };
         });
-      render(
-        <WidgetBuilderProvider>
-          <Visualize />
-        </WidgetBuilderProvider>,
-        {
-          organization,
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                dataset: WidgetType.SPANS,
-                displayType: DisplayType.TABLE,
-                field: ['count(span.duration)'],
-              },
+      render(<Visualize />, {
+        organization,
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              dataset: WidgetType.SPANS,
+              displayType: DisplayType.TABLE,
+              field: ['count(span.duration)'],
             },
-            route: DASHBOARD_WIDGET_BUILDER_ROUTE,
           },
-        }
-      );
+          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       // Only one count option should be shown as selected
       expect(
@@ -1488,24 +1322,20 @@ describe('Visualize', () => {
     });
 
     it('adds equations', async () => {
-      render(
-        <WidgetBuilderProvider>
-          <Visualize />
-        </WidgetBuilderProvider>,
-        {
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                dataset: WidgetType.SPANS,
-                displayType: DisplayType.TABLE,
-                yAxis: ['count(span.duration)'],
-              },
+      render(<Visualize />, {
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              dataset: WidgetType.SPANS,
+              displayType: DisplayType.TABLE,
+              yAxis: ['count(span.duration)'],
             },
-            route: DASHBOARD_WIDGET_BUILDER_ROUTE,
           },
-        }
-      );
+          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       await userEvent.click(screen.getByRole('button', {name: 'Add Equation'}));
 
@@ -1539,24 +1369,20 @@ describe('Visualize', () => {
     });
 
     it('adds equations line chart', async () => {
-      render(
-        <WidgetBuilderProvider>
-          <Visualize />
-        </WidgetBuilderProvider>,
-        {
-          initialRouterConfig: {
-            location: {
-              pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-              query: {
-                dataset: WidgetType.SPANS,
-                displayType: DisplayType.TABLE,
-                yAxis: ['count(span.duration)'],
-              },
+      render(<Visualize />, {
+        initialRouterConfig: {
+          location: {
+            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+            query: {
+              dataset: WidgetType.SPANS,
+              displayType: DisplayType.TABLE,
+              yAxis: ['count(span.duration)'],
             },
-            route: DASHBOARD_WIDGET_BUILDER_ROUTE,
           },
-        }
-      );
+          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+        },
+        additionalWrapper: WidgetBuilderProvider,
+      });
 
       await userEvent.click(screen.getByRole('button', {name: 'Add Equation'}));
 
@@ -1591,25 +1417,21 @@ describe('Visualize', () => {
   });
 
   it('disables changing visualize fields for count', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.SPANS,
-              displayType: DisplayType.LINE,
-              yAxis: ['count(span.duration)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.SPANS,
+            displayType: DisplayType.LINE,
+            yAxis: ['count(span.duration)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
     ).toBeEnabled();
@@ -1617,25 +1439,21 @@ describe('Visualize', () => {
   });
 
   it('changes to count(span.duration) when using count', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.SPANS,
-              displayType: DisplayType.LINE,
-              yAxis: ['avg(span.self_time)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.SPANS,
+            displayType: DisplayType.LINE,
+            yAxis: ['avg(span.self_time)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
@@ -1659,25 +1477,21 @@ describe('Visualize', () => {
   });
 
   it('disables changing visualize fields for epm', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.SPANS,
-              displayType: DisplayType.LINE,
-              yAxis: ['epm()'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.SPANS,
+            displayType: DisplayType.LINE,
+            yAxis: ['epm()'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
     ).toBeEnabled();
@@ -1687,25 +1501,21 @@ describe('Visualize', () => {
   });
 
   it('disables changing visualize fields for failure_rate', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.SPANS,
-              displayType: DisplayType.LINE,
-              yAxis: ['failure_rate()'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.SPANS,
+            displayType: DisplayType.LINE,
+            yAxis: ['failure_rate()'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
     ).toBeEnabled();
@@ -1715,25 +1525,21 @@ describe('Visualize', () => {
   });
 
   it('changes to epm() when using epm', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.SPANS,
-              displayType: DisplayType.LINE,
-              yAxis: ['avg(span.self_time)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.SPANS,
+            displayType: DisplayType.LINE,
+            yAxis: ['avg(span.self_time)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
@@ -1755,25 +1561,21 @@ describe('Visualize', () => {
     ).not.toBeInTheDocument();
   });
   it('changes to failure_rate() when using failure_rate', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.SPANS,
-              displayType: DisplayType.LINE,
-              yAxis: ['avg(span.self_time)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.SPANS,
+            displayType: DisplayType.LINE,
+            yAxis: ['avg(span.self_time)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
@@ -1796,25 +1598,21 @@ describe('Visualize', () => {
   });
 
   it('defaults count_unique argument to span.op', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.SPANS,
-              displayType: DisplayType.LINE,
-              yAxis: ['count(span.duration)'],
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.SPANS,
+            displayType: DisplayType.LINE,
+            yAxis: ['count(span.duration)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(
       await screen.findByRole('button', {name: 'Aggregate Selection'})
@@ -1868,25 +1666,21 @@ describe('Visualize', () => {
       features: ['discover-saved-queries-deprecation'],
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization: organizationWithDeprecation,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-              yAxis: ['p95(transaction.duration)'],
-            },
+    render(<Visualize />, {
+      organization: organizationWithDeprecation,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
+            yAxis: ['p95(transaction.duration)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     // The dropdowns should be disabled
     const aggregateSelect = await screen.findByRole('button', {
@@ -1912,25 +1706,21 @@ describe('Visualize', () => {
       },
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              yAxis: ['sum(value,alpha_metric,counter,-)'],
-              dataset: WidgetType.TRACEMETRICS,
-              displayType: DisplayType.LINE,
-            },
+    render(<Visualize />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            yAxis: ['sum(value,alpha_metric,counter,-)'],
+            dataset: WidgetType.TRACEMETRICS,
+            displayType: DisplayType.LINE,
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     // Wait for the initial aggregate selector to render
     const initialAggregateSelectors = await screen.findAllByRole('button', {
@@ -1963,25 +1753,21 @@ describe('Visualize', () => {
       features: [], // No discover-saved-queries-deprecation feature
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <Visualize />
-      </WidgetBuilderProvider>,
-      {
-        organization: organizationWithoutDeprecation,
-        initialRouterConfig: {
-          location: {
-            pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-              yAxis: ['p95(transaction.duration)'],
-            },
+    render(<Visualize />, {
+      organization: organizationWithoutDeprecation,
+      initialRouterConfig: {
+        location: {
+          pathname: DASHBOARD_WIDGET_BUILDER_PATHNAME,
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
+            yAxis: ['p95(transaction.duration)'],
           },
-          route: DASHBOARD_WIDGET_BUILDER_ROUTE,
         },
-      }
-    );
+        route: DASHBOARD_WIDGET_BUILDER_ROUTE,
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     // The dropdowns should be enabled
     const aggregateSelect = await screen.findByRole('button', {

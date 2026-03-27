@@ -19,14 +19,10 @@ describe('WidgetBuilderGroupBySelector', () => {
   });
 
   it('renders', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-      }
-    );
+    render(<WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />, {
+      organization,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Group by')).toBeInTheDocument();
     expect(await screen.findByText('Select group')).toBeInTheDocument();
@@ -34,14 +30,10 @@ describe('WidgetBuilderGroupBySelector', () => {
   });
 
   it('renders the group by field and works for spans', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-      }
-    );
+    render(<WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />, {
+      organization,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Group by')).toBeInTheDocument();
     expect(await screen.findByText('Select group')).toBeInTheDocument();
@@ -65,14 +57,10 @@ describe('WidgetBuilderGroupBySelector', () => {
   });
 
   it('renders the group by field and works for logs', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-      }
-    );
+    render(<WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />, {
+      organization,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Group by')).toBeInTheDocument();
     expect(await screen.findByText('Select group')).toBeInTheDocument();
@@ -100,24 +88,20 @@ describe('WidgetBuilderGroupBySelector', () => {
       features: ['discover-saved-queries-deprecation'],
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />
-      </WidgetBuilderProvider>,
-      {
-        initialRouterConfig: {
-          route: '/organizations/:orgId/dashboard/:dashboardId/',
-          location: {
-            pathname: '/organizations/org-slug/dashboard/1/',
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-            },
+    render(<WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />, {
+      initialRouterConfig: {
+        route: '/organizations/:orgId/dashboard/:dashboardId/',
+        location: {
+          pathname: '/organizations/org-slug/dashboard/1/',
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
           },
         },
-        organization: organizationWithFeature,
-      }
-    );
+      },
+      organization: organizationWithFeature,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const addGroupButton = await screen.findByRole('button', {name: 'Add Group'});
     expect(addGroupButton).toBeDisabled();
@@ -132,24 +116,20 @@ describe('WidgetBuilderGroupBySelector', () => {
       features: [],
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />
-      </WidgetBuilderProvider>,
-      {
-        initialRouterConfig: {
-          route: '/organizations/:orgId/dashboard/:dashboardId/',
-          location: {
-            pathname: '/organizations/org-slug/dashboard/1/',
-            query: {
-              dataset: WidgetType.TRANSACTIONS,
-              displayType: DisplayType.LINE,
-            },
+    render(<WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />, {
+      initialRouterConfig: {
+        route: '/organizations/:orgId/dashboard/:dashboardId/',
+        location: {
+          pathname: '/organizations/org-slug/dashboard/1/',
+          query: {
+            dataset: WidgetType.TRANSACTIONS,
+            displayType: DisplayType.LINE,
           },
         },
-        organization: organizationWithoutFeature,
-      }
-    );
+      },
+      organization: organizationWithoutFeature,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const addGroupButton = await screen.findByRole('button', {name: 'Add Group'});
     expect(addGroupButton).toBeEnabled();
@@ -163,24 +143,20 @@ describe('WidgetBuilderGroupBySelector', () => {
       features: ['discover-saved-queries-deprecation'],
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />
-      </WidgetBuilderProvider>,
-      {
-        initialRouterConfig: {
-          route: '/organizations/:orgId/dashboard/:dashboardId/',
-          location: {
-            pathname: '/organizations/org-slug/dashboard/1/',
-            query: {
-              dataset: WidgetType.ERRORS,
-              displayType: DisplayType.LINE,
-            },
+    render(<WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />, {
+      initialRouterConfig: {
+        route: '/organizations/:orgId/dashboard/:dashboardId/',
+        location: {
+          pathname: '/organizations/org-slug/dashboard/1/',
+          query: {
+            dataset: WidgetType.ERRORS,
+            displayType: DisplayType.LINE,
           },
         },
-        organization: organizationWithFeature,
-      }
-    );
+      },
+      organization: organizationWithFeature,
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     const addGroupButton = await screen.findByRole('button', {name: 'Add Group'});
     expect(addGroupButton).toBeEnabled();
@@ -200,23 +176,19 @@ describe('WidgetBuilderGroupBySelector', () => {
       ],
     });
 
-    render(
-      <WidgetBuilderProvider>
-        <WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />
-      </WidgetBuilderProvider>,
-      {
-        organization,
-        initialRouterConfig: {
-          location: {
-            pathname: '/organizations/org-slug/dashboard/1/',
-            query: {
-              dataset: WidgetType.TRACEMETRICS,
-              displayType: DisplayType.LINE,
-            },
+    render(<WidgetBuilderGroupBySelector validatedWidgetResponse={{} as any} />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: '/organizations/org-slug/dashboard/1/',
+          query: {
+            dataset: WidgetType.TRACEMETRICS,
+            displayType: DisplayType.LINE,
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     expect(await screen.findByText('Group by')).toBeInTheDocument();
     expect(await screen.findByText('Select group')).toBeInTheDocument();

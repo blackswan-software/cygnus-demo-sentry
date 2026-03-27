@@ -18,26 +18,25 @@ describe('ExploreCharts', () => {
     } as any;
 
     render(
-      <SpansQueryParamsProvider>
-        <ChartSelectionProvider>
-          <ExploreCharts
-            extrapolate
-            setTab={() => {}}
-            confidences={[]}
-            query=""
-            timeseriesResult={mockTimeseriesResult}
-            visualizes={defaultVisualizes()}
-            setVisualizes={() => {}}
-            samplingMode={SAMPLING_MODE.HIGH_ACCURACY}
-            rawSpanCounts={{
-              total: {count: 0, isLoading: true},
-              normal: {count: 0, isLoading: true},
-            }}
-          />
-        </ChartSelectionProvider>
-      </SpansQueryParamsProvider>,
+      <ChartSelectionProvider>
+        <ExploreCharts
+          extrapolate
+          setTab={() => {}}
+          confidences={[]}
+          query=""
+          timeseriesResult={mockTimeseriesResult}
+          visualizes={defaultVisualizes()}
+          setVisualizes={() => {}}
+          samplingMode={SAMPLING_MODE.HIGH_ACCURACY}
+          rawSpanCounts={{
+            total: {count: 0, isLoading: true},
+            normal: {count: 0, isLoading: true},
+          }}
+        />
+      </ChartSelectionProvider>,
       {
         organization: OrganizationFixture(),
+        additionalWrapper: SpansQueryParamsProvider,
       }
     );
 

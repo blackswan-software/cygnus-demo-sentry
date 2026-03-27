@@ -38,11 +38,9 @@ describe('timezoneProvider', () => {
 
   describe('UserTimezoneProvider', () => {
     it('provides timezone for the user', () => {
-      render(
-        <UserTimezoneProvider>
-          <ShowTimezone data-test-id="tz" />
-        </UserTimezoneProvider>
-      );
+      render(<ShowTimezone data-test-id="tz" />, {
+        additionalWrapper: UserTimezoneProvider,
+      });
 
       expect(screen.getByTestId('tz')).toHaveTextContent('America/New_York');
     });

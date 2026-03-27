@@ -17,21 +17,17 @@ describe('Thresholds', () => {
   });
 
   it('sets thresholds to undefined if the thresholds are fully wiped', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Thresholds dataType="duration" dataUnit="millisecond" />
-      </WidgetBuilderProvider>,
-      {
-        initialRouterConfig: {
-          location: {
-            pathname: '/mock-pathname/',
-            query: {
-              thresholds: '{"max_values":{"max1":100},"unit":"millisecond"}',
-            },
+    render(<Thresholds dataType="duration" dataUnit="millisecond" />, {
+      initialRouterConfig: {
+        location: {
+          pathname: '/mock-pathname/',
+          query: {
+            thresholds: '{"max_values":{"max1":100},"unit":"millisecond"}',
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.clear(screen.getByLabelText('First Maximum'));
 
@@ -46,11 +42,9 @@ describe('Thresholds', () => {
   });
 
   it('sets a threshold when applied', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Thresholds dataType="duration" dataUnit="millisecond" />
-      </WidgetBuilderProvider>
-    );
+    render(<Thresholds dataType="duration" dataUnit="millisecond" />, {
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.type(screen.getByLabelText('First Maximum'), '100');
     await userEvent.type(screen.getByLabelText('Second Maximum'), '200');
@@ -67,21 +61,17 @@ describe('Thresholds', () => {
   });
 
   it('updates the unit when applied', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Thresholds dataType="duration" dataUnit="millisecond" />
-      </WidgetBuilderProvider>,
-      {
-        initialRouterConfig: {
-          location: {
-            pathname: '/mock-pathname/',
-            query: {
-              thresholds: '{"max_values":{"max1":100,"max2":200},"unit":"millisecond"}',
-            },
+    render(<Thresholds dataType="duration" dataUnit="millisecond" />, {
+      initialRouterConfig: {
+        location: {
+          pathname: '/mock-pathname/',
+          query: {
+            thresholds: '{"max_values":{"max1":100,"max2":200},"unit":"millisecond"}',
           },
         },
-      }
-    );
+      },
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.click(screen.getAllByText('millisecond')[0]!);
     await userEvent.click(screen.getByText('second'));
@@ -98,13 +88,11 @@ describe('Thresholds', () => {
 
   it('displays error', async () => {
     render(
-      <WidgetBuilderProvider>
-        <Thresholds
-          dataType="duration"
-          dataUnit="millisecond"
-          error={{thresholds: {max1: 'error on max 1', max2: 'error on max 2'}}}
-        />
-      </WidgetBuilderProvider>,
+      <Thresholds
+        dataType="duration"
+        dataUnit="millisecond"
+        error={{thresholds: {max1: 'error on max 1', max2: 'error on max 2'}}}
+      />,
       {
         initialRouterConfig: {
           location: {
@@ -114,6 +102,7 @@ describe('Thresholds', () => {
             },
           },
         },
+        additionalWrapper: WidgetBuilderProvider,
       }
     );
 
@@ -122,11 +111,9 @@ describe('Thresholds', () => {
   });
 
   it('accepts decimal values', async () => {
-    render(
-      <WidgetBuilderProvider>
-        <Thresholds dataType="duration" dataUnit="millisecond" />
-      </WidgetBuilderProvider>
-    );
+    render(<Thresholds dataType="duration" dataUnit="millisecond" />, {
+      additionalWrapper: WidgetBuilderProvider,
+    });
 
     await userEvent.type(screen.getByLabelText('First Maximum'), '0.5');
     await userEvent.type(screen.getByLabelText('Second Maximum'), '100.5456');

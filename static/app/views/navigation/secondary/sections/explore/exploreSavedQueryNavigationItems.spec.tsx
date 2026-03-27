@@ -39,11 +39,9 @@ describe('ExploreSavedQueryNavigationItems', () => {
   ] as unknown as SavedQuery[];
 
   it('should render a list of starred queries', () => {
-    render(
-      <SecondaryNavigationContextProvider>
-        <ExploreSavedQueryNavigationItems queries={queries} />
-      </SecondaryNavigationContextProvider>
-    );
+    render(<ExploreSavedQueryNavigationItems queries={queries} />, {
+      additionalWrapper: SecondaryNavigationContextProvider,
+    });
 
     expect(screen.getByText('My Saved Query')).toBeInTheDocument();
     expect(screen.getByText('Another Saved Query')).toBeInTheDocument();

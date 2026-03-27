@@ -27,11 +27,10 @@ describe('IndexedEventsSelectionAlert', () => {
 
   it('Does not show warning if using metrics successfully', () => {
     render(
-      <MEPSettingProvider>
-        <DashboardsMEPContext value={{isMetricsData: true, setIsMetricsData: () => {}}}>
-          <IndexedEventsSelectionAlert widget={widget} />
-        </DashboardsMEPContext>
-      </MEPSettingProvider>
+      <DashboardsMEPContext value={{isMetricsData: true, setIsMetricsData: () => {}}}>
+        <IndexedEventsSelectionAlert widget={widget} />
+      </DashboardsMEPContext>,
+      {additionalWrapper: MEPSettingProvider}
     );
 
     expect(

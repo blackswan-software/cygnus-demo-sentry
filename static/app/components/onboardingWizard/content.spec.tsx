@@ -56,12 +56,10 @@ describe('OnboardingSidebarContent', () => {
 
   it('should render the sidebar with the correct groups and tasks', async () => {
     render(
-      <PrimaryNavigationContextProvider>
-        <NavigationTourProvider>
-          <OnboardingSidebarContent onClose={jest.fn()} />
-        </NavigationTourProvider>
-      </PrimaryNavigationContextProvider>,
-      {organization}
+      <NavigationTourProvider>
+        <OnboardingSidebarContent onClose={jest.fn()} />
+      </NavigationTourProvider>,
+      {organization, additionalWrapper: PrimaryNavigationContextProvider}
     );
     expect(await screen.findByText('Getting Started')).toBeInTheDocument();
     expect(screen.getByText('0 out of 6 tasks completed')).toBeInTheDocument();
@@ -111,12 +109,10 @@ describe('OnboardingSidebarContent', () => {
     });
 
     render(
-      <PrimaryNavigationContextProvider>
-        <NavigationTourProvider>
-          <OnboardingSidebarContent onClose={jest.fn()} />
-        </NavigationTourProvider>
-      </PrimaryNavigationContextProvider>,
-      {organization}
+      <NavigationTourProvider>
+        <OnboardingSidebarContent onClose={jest.fn()} />
+      </NavigationTourProvider>,
+      {organization, additionalWrapper: PrimaryNavigationContextProvider}
     );
 
     expect(await screen.findByText('1 out of 6 tasks completed')).toBeInTheDocument();
@@ -125,11 +121,9 @@ describe('OnboardingSidebarContent', () => {
 
   it('if first group completed, second group should be expanded by default', async () => {
     render(
-      <PrimaryNavigationContextProvider>
-        <NavigationTourProvider>
-          <OnboardingSidebarContent onClose={jest.fn()} />
-        </NavigationTourProvider>
-      </PrimaryNavigationContextProvider>,
+      <NavigationTourProvider>
+        <OnboardingSidebarContent onClose={jest.fn()} />
+      </NavigationTourProvider>,
       {
         organization: OrganizationFixture({
           onboardingTasks: DEFAULT_GETTING_STARTED_TASKS.map(task => ({
@@ -137,6 +131,7 @@ describe('OnboardingSidebarContent', () => {
             status: 'complete',
           })),
         }),
+        additionalWrapper: PrimaryNavigationContextProvider,
       }
     );
 
@@ -153,12 +148,10 @@ describe('OnboardingSidebarContent', () => {
     });
 
     render(
-      <PrimaryNavigationContextProvider>
-        <NavigationTourProvider>
-          <OnboardingSidebarContent onClose={jest.fn()} />
-        </NavigationTourProvider>
-      </PrimaryNavigationContextProvider>,
-      {organization}
+      <NavigationTourProvider>
+        <OnboardingSidebarContent onClose={jest.fn()} />
+      </NavigationTourProvider>,
+      {organization, additionalWrapper: PrimaryNavigationContextProvider}
     );
 
     await userEvent.click(

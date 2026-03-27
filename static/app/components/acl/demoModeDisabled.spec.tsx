@@ -17,11 +17,7 @@ describe('DisableInDemoMode', () => {
   it('renders children when demo mode is disabled', () => {
     (isDemoModeActive as jest.Mock).mockReturnValue(false);
 
-    render(
-      <DisableInDemoMode>
-        <span>Test Child</span>
-      </DisableInDemoMode>
-    );
+    render(<span>Test Child</span>, {additionalWrapper: DisableInDemoMode});
 
     expect(screen.getByText('Test Child')).toBeInTheDocument();
     expect(screen.queryByTestId('demo-mode-disabled-wrapper')).not.toBeInTheDocument();
@@ -30,11 +26,7 @@ describe('DisableInDemoMode', () => {
   it('renders a tooltip when demo mode is enabled', () => {
     (isDemoModeActive as jest.Mock).mockReturnValue(true);
 
-    render(
-      <DisableInDemoMode>
-        <span>Test Child</span>
-      </DisableInDemoMode>
-    );
+    render(<span>Test Child</span>, {additionalWrapper: DisableInDemoMode});
 
     const childDiv = screen.getByText('Test Child');
     const innerWrapper = childDiv.parentElement;

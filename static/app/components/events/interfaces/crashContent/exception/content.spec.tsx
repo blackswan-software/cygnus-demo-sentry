@@ -580,16 +580,14 @@ describe('Exception Content', () => {
       });
 
       render(
-        <LineCoverageProvider>
-          <Content
-            type={StackType.ORIGINAL}
-            stackView={StackView.APP}
-            event={event}
-            values={event.entries[0]!.data.values}
-            projectSlug={project.slug}
-            newestFirst
-          />
-        </LineCoverageProvider>,
+        <Content
+          type={StackType.ORIGINAL}
+          stackView={StackView.APP}
+          event={event}
+          values={event.entries[0]!.data.values}
+          projectSlug={project.slug}
+          newestFirst
+        />,
         {
           organization: orgWithCodecov,
           initialRouterConfig: {
@@ -599,6 +597,7 @@ describe('Exception Content', () => {
             },
             route: '/organizations/:orgId/issues/',
           },
+          additionalWrapper: LineCoverageProvider,
         }
       );
 

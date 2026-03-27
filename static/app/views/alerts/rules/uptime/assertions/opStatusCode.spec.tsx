@@ -384,18 +384,17 @@ describe('AssertionOpStatusCode', () => {
 
   it('renders drag handle for reordering', async () => {
     render(
-      <AssertionsDndContext>
-        <AssertionOpStatusCode
-          value={{
-            id: 'test-id-1',
-            op,
-            operator: {cmp: UptimeComparisonType.EQUALS},
-            value: 200,
-          }}
-          onChange={mockOnChange}
-          onRemove={mockOnRemove}
-        />
-      </AssertionsDndContext>
+      <AssertionOpStatusCode
+        value={{
+          id: 'test-id-1',
+          op,
+          operator: {cmp: UptimeComparisonType.EQUALS},
+          value: 200,
+        }}
+        onChange={mockOnChange}
+        onRemove={mockOnRemove}
+      />,
+      {additionalWrapper: AssertionsDndContext}
     );
 
     await screen.findByLabelText('Status Code');

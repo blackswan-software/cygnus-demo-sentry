@@ -5,22 +5,16 @@ import {InputGroup} from '@sentry/scraps/input';
 
 describe('InputGroup', () => {
   it('renders input', () => {
-    render(
-      <InputGroup>
-        <InputGroup.Input value="Search" onChange={() => {}} />
-      </InputGroup>
-    );
+    render(<InputGroup.Input value="Search" onChange={() => {}} />, {
+      additionalWrapper: InputGroup,
+    });
 
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.getByRole('textbox')).toHaveDisplayValue('Search');
   });
 
   it('renders disabled input', () => {
-    render(
-      <InputGroup>
-        <InputGroup.Input disabled />
-      </InputGroup>
-    );
+    render(<InputGroup.Input disabled />, {additionalWrapper: InputGroup});
 
     expect(screen.getByRole('textbox')).toBeDisabled();
   });
