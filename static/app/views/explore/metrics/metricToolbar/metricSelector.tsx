@@ -107,7 +107,6 @@ export function MetricSelector({
   const organization = useOrganization();
   const hasMetricUnitsUI = useHasMetricUnitsUI();
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const listElementRef = useRef<HTMLUListElement>(null);
   const scrollElementRef = useRef<HTMLDivElement>(null);
@@ -248,18 +247,17 @@ export function MetricSelector({
     [displayedOptions]
   );
 
-  // Guard against re-entrant open/close calls between useOverlay and
-  // useComboBoxState, which each sync into the other's state.
-  const isSyncingOpenStateRef = useRef(false);
-  // Tracks the last key handled by onSelectionChange to deduplicate
-  // (useComboBoxState fires it twice: once on select, once on close).
-  const lastSelectionRef = useRef<string | null>(null);
+  // Guards against re-entrant open/close calls between useOverlay and
+  // useComboBoxState (which each sync into the other's state), and tracks
+  // the last key handled by onSelectionChange to deduplicate (useComboBoxState
+  // fires it twice: once on select, once on close).
+  const stateGuardRef = useRef({syncing: false, lastSelection: null as string | null});
 
   function handleOpenChange(open: boolean) {
-    if (isSyncingOpenStateRef.current) {
+    if (stateGuardRef.current.syncing) {
       return;
     }
-    isSyncingOpenStateRef.current = true;
+    stateGuardRef.current.syncing = true;
     try {
       if (open) {
         comboBoxState.open();
@@ -269,11 +267,11 @@ export function MetricSelector({
         overlayState.close();
       }
     } finally {
-      isSyncingOpenStateRef.current = false;
+      stateGuardRef.current.syncing = false;
     }
 
     if (open) {
-      lastSelectionRef.current = null;
+      stateGuardRef.current.lastSelection = null;
       nextFrameCallback(() => updateOverlay?.());
       return;
     }
@@ -284,27 +282,15 @@ export function MetricSelector({
     nextFrameCallback(() => {
       if (
         document.activeElement === document.body ||
-        wrapperRef.current?.contains(document.activeElement)
+        triggerRef.current?.contains(document.activeElement) ||
+        popoverRef.current?.contains(document.activeElement)
       ) {
         nextFrameCallback(() => {
-          const triggerElement =
-            triggerRef.current ??
-            wrapperRef.current?.querySelector<HTMLButtonElement>('button');
-          triggerElement?.focus();
+          triggerRef.current?.focus();
         });
       }
     });
   }
-
-  // Focus the search input when it mounts (the overlay is conditionally
-  // rendered, so the input is created fresh each time the dropdown opens).
-  const searchRefCallback = useMemo(
-    () => (el: HTMLInputElement | null) => {
-      searchRef.current = el;
-      el?.focus();
-    },
-    []
-  );
 
   const {
     isOpen,
@@ -340,10 +326,10 @@ export function MetricSelector({
       // useComboBoxState fires onSelectionChange twice per selection: once
       // when the key is selected, and once during close via commitSelection.
       // Deduplicate by tracking the last key we handled.
-      if (String(key) === lastSelectionRef.current) {
+      if (String(key) === stateGuardRef.current.lastSelection) {
         return;
       }
-      lastSelectionRef.current = String(key);
+      stateGuardRef.current.lastSelection = String(key);
       const selectedOption = displayedOptionsMap.get(String(key));
       if (selectedOption) {
         onChange({
@@ -416,7 +402,7 @@ export function MetricSelector({
         }));
 
   return (
-    <Container width="100%" position="relative" ref={wrapperRef}>
+    <Container width="100%" position="relative">
       <OverlayTrigger.Button
         {...mergedTriggerProps}
         style={{width: '100%', fontWeight: 'bold', textAlign: 'left'}}
@@ -475,7 +461,8 @@ export function MetricSelector({
                         {...comboBoxInputProps}
                         placeholder={t('Search metrics\u2026')}
                         size="xs"
-                        ref={searchRefCallback}
+                        autoFocus
+                        ref={searchRef}
                       />
                     </InputGroup>
                   </Container>
