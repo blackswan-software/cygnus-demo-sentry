@@ -134,7 +134,7 @@ def query(
                 limit=limit,
                 referrer=referrer,
                 config=SearchResolverConfig(),
-                occurrence_category=OccurrenceCategory.GENERIC,
+                occurrence_category=OccurrenceCategory.ISSUE_PLATFORM,
             )
             eap_data = normalize_eap_results_to_snuba_aliases(
                 [
