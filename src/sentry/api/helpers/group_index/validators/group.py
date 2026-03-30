@@ -83,12 +83,16 @@ class GroupValidator(serializers.Serializer[Group]):
     snoozeDuration = serializers.IntegerField(allow_null=True)
 
     def validate_assignedTo(self, value: Actor) -> Actor:
-        if (
-            value
-            and value.is_user
-            and not self.context["project"].member_set.filter(user_id=value.id).exists()
-        ):
-            raise serializers.ValidationError("Cannot assign to non-team member")
+        if value and value.is_user:
+            organization = self.context["organization"]
+            project = self.context["project"]
+            # With open membership, any org member can be assigned since they
+            # can join any team (and thus gain project access) at will.
+            if organization.flags.allow_joinleave:
+                if not organization.member_set.filter(user_id=value.id).exists():
+                    raise serializers.ValidationError("Cannot assign to non-organization member")
+            elif not project.member_set.filter(user_id=value.id).exists():
+                raise serializers.ValidationError("Cannot assign to non-team member")
 
         if (
             value
