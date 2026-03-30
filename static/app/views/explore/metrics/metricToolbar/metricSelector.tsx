@@ -247,31 +247,8 @@ export function MetricSelector({
     [displayedOptions]
   );
 
-  // Guards against re-entrant open/close calls between useOverlay and
-  // useComboBoxState (which each sync into the other's state), and tracks
-  // the last key handled by onSelectionChange to deduplicate (useComboBoxState
-  // fires it twice: once on select, once on close).
-  const stateGuardRef = useRef({syncing: false, lastSelection: null as string | null});
-
-  function handleOpenChange(open: boolean) {
-    if (stateGuardRef.current.syncing) {
-      return;
-    }
-    stateGuardRef.current.syncing = true;
-    try {
-      if (open) {
-        comboBoxState.open();
-        overlayState.open();
-      } else {
-        comboBoxState.close();
-        overlayState.close();
-      }
-    } finally {
-      stateGuardRef.current.syncing = false;
-    }
-
+  function handleOverlayOpenChange(open: boolean) {
     if (open) {
-      stateGuardRef.current.lastSelection = null;
       nextFrameCallback(() => updateOverlay?.());
       return;
     }
@@ -292,6 +269,31 @@ export function MetricSelector({
     });
   }
 
+  const comboBoxState = useComboBoxState<MetricSelectOption>({
+    children: (item: MetricSelectOption) => <Item key={item.value}>{item.label}</Item>,
+    items: displayedOptions,
+    allowsEmptyCollection: true,
+    shouldCloseOnBlur: false,
+    menuTrigger: 'manual',
+    inputValue: searchInputValue,
+    onInputChange: setSearchInputValue,
+    selectedKey: traceMetric.name ? traceMetricSelectValue : null,
+    onSelectionChange: key => {
+      if (!key || !comboBoxState.isOpen) {
+        return;
+      }
+      const selectedOption = displayedOptionsMap.get(String(key));
+      if (selectedOption) {
+        onChange({
+          name: selectedOption.metricName,
+          type: selectedOption.metricType,
+          unit: hasMetricUnitsUI ? selectedOption.metricUnit : undefined,
+        });
+      }
+    },
+    onOpenChange: handleOverlayOpenChange,
+  });
+
   const {
     isOpen,
     state: overlayState,
@@ -303,43 +305,22 @@ export function MetricSelector({
     type: 'listbox',
     position: 'bottom-start',
     offset: 6,
+    isOpen: comboBoxState.isOpen,
     isDismissable: true,
     isKeyboardDismissDisabled: true,
     shouldApplyMinWidth: true,
     disableTrigger: isFetching && !traceMetric.name,
-    onOpenChange: handleOpenChange,
-  });
+    onOpenChange: open => {
+      if (open === comboBoxState.isOpen) {
+        return;
+      }
 
-  const comboBoxState = useComboBoxState<MetricSelectOption>({
-    children: (item: MetricSelectOption) => <Item key={item.value}>{item.label}</Item>,
-    items: displayedOptions,
-    allowsEmptyCollection: true,
-    shouldCloseOnBlur: false,
-    menuTrigger: 'manual',
-    inputValue: searchInputValue,
-    onInputChange: setSearchInputValue,
-    selectedKey: traceMetric.name ? traceMetricSelectValue : null,
-    onSelectionChange: key => {
-      if (!key) {
-        return;
-      }
-      // useComboBoxState fires onSelectionChange twice per selection: once
-      // when the key is selected, and once during close via commitSelection.
-      // Deduplicate by tracking the last key we handled.
-      if (String(key) === stateGuardRef.current.lastSelection) {
-        return;
-      }
-      stateGuardRef.current.lastSelection = String(key);
-      const selectedOption = displayedOptionsMap.get(String(key));
-      if (selectedOption) {
-        onChange({
-          name: selectedOption.metricName,
-          type: selectedOption.metricType,
-          unit: hasMetricUnitsUI ? selectedOption.metricUnit : undefined,
-        });
+      if (open) {
+        comboBoxState.open();
+      } else {
+        comboBoxState.close();
       }
     },
-    onOpenChange: handleOpenChange,
   });
 
   const {inputProps: comboBoxInputProps, listBoxProps} = useComboBox<MetricSelectOption>(
