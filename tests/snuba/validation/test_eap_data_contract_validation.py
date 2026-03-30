@@ -76,7 +76,7 @@ def _build_trace_item(
     return TraceItem(**kwargs)
 
 
-def _query_by_label(
+def _query_trace_items(
     organization_id: int,
     project_ids: list[int],
     label: str,
@@ -85,7 +85,7 @@ def _query_by_label(
     item_type: TraceItemType.ValueType = _DEMO_ITEM_TYPE,
 ) -> list[dict]:
     """
-    Query EAP for items matching the given demo_label attribute.
+    Query EAP for items matching the given attributes.
 
     Returns a list of dicts (one per row) with the queried column values,
     or an empty list if no results are found.
@@ -138,8 +138,7 @@ class EAPDataContractValidationGapTest(TestCase, SnubaTestCase):
     def test_baseline_complete_item(self):
         """
         A correctly-formed TraceItem round-trips through the pipeline and is
-        queryable by the real organization_id. Proves the test infrastructure
-        works before we demonstrate the gaps.
+        queryable by the real organization_id.
         """
         now = datetime.now(dt_timezone.utc)
         ts = Timestamp(seconds=int(now.timestamp()))
@@ -159,7 +158,7 @@ class EAPDataContractValidationGapTest(TestCase, SnubaTestCase):
 
         self.store_eap_items([trace_item])
 
-        rows = _query_by_label(self.organization.id, [self.project.id], label, now)
+        rows = _query_trace_items(self.organization.id, [self.project.id], label, now)
         assert len(rows) == 1, "Baseline item not found"
         assert rows[0]["demo_label"].val_str == label
 
@@ -230,11 +229,11 @@ class EAPDataContractValidationGapTest(TestCase, SnubaTestCase):
         self.store_eap_items([trace_item])
 
         # Query by the REAL organization_id — the data is not found
-        rows_real_org = _query_by_label(self.organization.id, [self.project.id], label, now)
+        rows_real_org = _query_trace_items(self.organization.id, [self.project.id], label, now)
         assert len(rows_real_org) == 0
 
         # Query by organization_id=0 — the data IS here, silently orphaned
-        rows_org0 = _query_by_label(
+        rows_org0 = _query_trace_items(
             0,
             [self.project.id],
             label,
@@ -295,11 +294,11 @@ class EAPDataContractValidationGapTest(TestCase, SnubaTestCase):
         self.store_eap_items([trace_item])
 
         # Query by the REAL project_id — the data is not found
-        rows_real = _query_by_label(self.organization.id, [self.project.id], label, now)
+        rows_real = _query_trace_items(self.organization.id, [self.project.id], label, now)
         assert len(rows_real) == 0
 
         # Query by project_id=0 — the data IS here, silently orphaned
-        rows_proj0 = _query_by_label(
+        rows_proj0 = _query_trace_items(
             self.organization.id,
             [0],
             label,
@@ -383,12 +382,12 @@ class EAPDataContractValidationGapTest(TestCase, SnubaTestCase):
         self.store_eap_items([trace_item])
 
         # Query by intended type (SPAN) — not found
-        rows_span = _query_by_label(self.organization.id, [self.project.id], label, now)
+        rows_span = _query_trace_items(self.organization.id, [self.project.id], label, now)
         assert len(rows_span) == 0
 
         # Query by UNSPECIFIED — Snuba RPC rejects the request entirely
         with pytest.raises(SnubaRPCError):
-            _query_by_label(
+            _query_trace_items(
                 self.organization.id,
                 [self.project.id],
                 label,
@@ -427,15 +426,15 @@ class EAPDataContractValidationGapTest(TestCase, SnubaTestCase):
         # Write succeeds — enforce_retention silently overrides 0 → 30
         self.store_eap_items([trace_item])
 
-        rows = _query_by_label(self.organization.id, [self.project.id], label, now)
+        rows = _query_trace_items(self.organization.id, [self.project.id], label, now)
         assert len(rows) == 1
         assert rows[0]["demo_label"].val_str == label
 
-    @pytest.mark.skip(reason="Should be succeeding after fix from INC-2060")
     def test_missing_received(self):
         """
         A TraceItem where the producer never sets received (a Timestamp message
-        field) defaults to None. The codec encodes it without error.
+        field) defaults to None (change made as part of response to INC-2060).
+        The codec encodes it without error.
         """
         now = datetime.now(dt_timezone.utc)
         ts = Timestamp(seconds=int(now.timestamp()))
@@ -461,6 +460,6 @@ class EAPDataContractValidationGapTest(TestCase, SnubaTestCase):
         # Write succeeds
         self.store_eap_items([trace_item])
 
-        rows = _query_by_label(self.organization.id, [self.project.id], label, now)
+        rows = _query_trace_items(self.organization.id, [self.project.id], label, now)
         assert len(rows) == 1
         assert rows[0]["demo_label"].val_str == label
