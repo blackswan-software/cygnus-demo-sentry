@@ -1,10 +1,11 @@
-import {Fragment, useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
+import {Fragment, useEffect, useId, useMemo, useRef, useState} from 'react';
+import {useComboBox} from '@react-aria/combobox';
 import {FocusScope} from '@react-aria/focus';
 import {useKeyboard} from '@react-aria/interactions';
-import {useListBox, useOption} from '@react-aria/listbox';
+import {useOption} from '@react-aria/listbox';
 import {mergeProps, mergeRefs} from '@react-aria/utils';
 import {Item} from '@react-stately/collections';
-import {useListState, type ListState} from '@react-stately/list';
+import {useComboBoxState, type ComboBoxState} from '@react-stately/combobox';
 import type {Node} from '@react-types/shared';
 import {useVirtualizer} from '@tanstack/react-virtual';
 
@@ -110,6 +111,7 @@ export function MetricSelector({
   const searchRef = useRef<HTMLInputElement>(null);
   const listElementRef = useRef<HTMLUListElement>(null);
   const scrollElementRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   const [searchInputValue, setSearchInputValue] = useState('');
   const debouncedSearch = useDebouncedValue(searchInputValue, DEFAULT_DEBOUNCE_DURATION);
@@ -117,60 +119,6 @@ export function MetricSelector({
     search: debouncedSearch,
   });
   const hasMetricsUIRefresh = canUseMetricsUIRefresh(organization);
-
-  const {
-    isOpen,
-    state: overlayState,
-    triggerProps,
-    overlayProps,
-    triggerRef,
-    overlayRef,
-    update: updateOverlay,
-  } = useOverlay({
-    type: 'listbox',
-    position: 'bottom-start',
-    offset: 6,
-    isDismissable: true,
-    shouldApplyMinWidth: true,
-    disableTrigger: isFetching && !traceMetric.name,
-    onOpenChange: open => {
-      nextFrameCallback(() => {
-        if (open) {
-          updateOverlay?.();
-          if (searchRef.current) {
-            searchRef.current.focus();
-            return;
-          }
-
-          const firstSelectedOption = overlayRef.current?.querySelector<HTMLLIElement>(
-            'li[role="option"][aria-selected="true"]'
-          );
-          if (firstSelectedOption) {
-            firstSelectedOption.focus();
-            return;
-          }
-
-          overlayRef.current?.querySelector<HTMLLIElement>('li[role="option"]')?.focus();
-          return;
-        }
-
-        setSearchInputValue('');
-        listState.selectionManager.setFocused(false);
-        listState.selectionManager.setFocusedKey(null);
-        if (
-          document.activeElement === document.body ||
-          wrapperRef.current?.contains(document.activeElement)
-        ) {
-          nextFrameCallback(() => {
-            const triggerElement =
-              triggerRef.current ??
-              wrapperRef.current?.querySelector<HTMLButtonElement>('button');
-            triggerElement?.focus();
-          });
-        }
-      });
-    },
-  });
 
   const metricSelectValue = makeMetricSelectValue(
     hasMetricUnitsUI ? traceMetric : {name: traceMetric.name, type: traceMetric.type}
@@ -295,61 +243,135 @@ export function MetricSelector({
     [displayedOptions]
   );
 
-  const handleSelect = useCallback(
-    (option: MetricSelectOption) => {
-      onChange({
-        name: option.metricName,
-        type: option.metricType,
-        unit: hasMetricUnitsUI ? option.metricUnit : undefined,
-      });
-      overlayState.close();
-    },
-    [onChange, hasMetricUnitsUI, overlayState]
-  );
-
   const displayedOptionsMap = useMemo(
     () => new Map(displayedOptions.map(option => [option.value, option])),
     [displayedOptions]
   );
 
-  const listState = useListState<MetricSelectOption>({
-    items: displayedOptions,
-    selectionMode: 'single',
-    selectedKeys: traceMetric.name ? [traceMetricSelectValue] : [],
-    allowDuplicateSelectionEvents: true,
-    disallowEmptySelection: true,
-    onSelectionChange: selection => {
-      if (selection === 'all') {
-        return;
+  // Guard against re-entrant open/close calls between useOverlay and
+  // useComboBoxState, which each sync into the other's state.
+  const isSyncingOpenStateRef = useRef(false);
+  // Tracks the last key handled by onSelectionChange to deduplicate
+  // (useComboBoxState fires it twice: once on select, once on close).
+  const lastSelectionRef = useRef<string | null>(null);
+
+  function handleOpenChange(open: boolean) {
+    if (isSyncingOpenStateRef.current) {
+      return;
+    }
+    isSyncingOpenStateRef.current = true;
+    try {
+      if (open) {
+        comboBoxState.open();
+        overlayState.open();
+      } else {
+        comboBoxState.close();
+        overlayState.close();
       }
-      const selectedKey = Array.from(selection)[0];
-      if (!selectedKey) {
-        return;
+    } finally {
+      isSyncingOpenStateRef.current = false;
+    }
+
+    if (open) {
+      lastSelectionRef.current = null;
+      nextFrameCallback(() => updateOverlay?.());
+      return;
+    }
+
+    setSearchInputValue('');
+    comboBoxState.selectionManager.setFocused(false);
+    comboBoxState.selectionManager.setFocusedKey(null);
+    nextFrameCallback(() => {
+      if (
+        document.activeElement === document.body ||
+        wrapperRef.current?.contains(document.activeElement)
+      ) {
+        nextFrameCallback(() => {
+          const triggerElement =
+            triggerRef.current ??
+            wrapperRef.current?.querySelector<HTMLButtonElement>('button');
+          triggerElement?.focus();
+        });
       }
-      const selectedOption = displayedOptionsMap.get(String(selectedKey));
-      if (selectedOption) {
-        handleSelect(selectedOption);
-      }
+    });
+  }
+
+  // Focus the search input when it mounts (the overlay is conditionally
+  // rendered, so the input is created fresh each time the dropdown opens).
+  const searchRefCallback = useMemo(
+    () => (el: HTMLInputElement | null) => {
+      searchRef.current = el;
+      el?.focus();
     },
-    children: (item: MetricSelectOption) => <Item key={item.value}>{item.label}</Item>,
+    []
+  );
+
+  const {
+    isOpen,
+    state: overlayState,
+    triggerProps,
+    overlayProps,
+    triggerRef,
+    update: updateOverlay,
+  } = useOverlay({
+    type: 'listbox',
+    position: 'bottom-start',
+    offset: 6,
+    isDismissable: true,
+    isKeyboardDismissDisabled: true,
+    shouldApplyMinWidth: true,
+    disableTrigger: isFetching && !traceMetric.name,
+    onOpenChange: handleOpenChange,
   });
 
-  const {listBoxProps} = useListBox(
-    {
-      shouldFocusWrap: true,
-      shouldSelectOnPressUp: true,
-      shouldUseVirtualFocus: true,
-      'aria-labelledby': triggerId,
+  const comboBoxState = useComboBoxState<MetricSelectOption>({
+    children: (item: MetricSelectOption) => <Item key={item.value}>{item.label}</Item>,
+    items: displayedOptions,
+    allowsEmptyCollection: true,
+    shouldCloseOnBlur: false,
+    menuTrigger: 'manual',
+    inputValue: searchInputValue,
+    onInputChange: setSearchInputValue,
+    selectedKey: traceMetric.name ? traceMetricSelectValue : null,
+    onSelectionChange: key => {
+      if (!key) {
+        return;
+      }
+      // useComboBoxState fires onSelectionChange twice per selection: once
+      // when the key is selected, and once during close via commitSelection.
+      // Deduplicate by tracking the last key we handled.
+      if (String(key) === lastSelectionRef.current) {
+        return;
+      }
+      lastSelectionRef.current = String(key);
+      const selectedOption = displayedOptionsMap.get(String(key));
+      if (selectedOption) {
+        onChange({
+          name: selectedOption.metricName,
+          type: selectedOption.metricType,
+          unit: hasMetricUnitsUI ? selectedOption.metricUnit : undefined,
+        });
+      }
     },
-    listState,
-    listElementRef
+    onOpenChange: handleOpenChange,
+  });
+
+  const {inputProps: comboBoxInputProps, listBoxProps} = useComboBox<MetricSelectOption>(
+    {
+      'aria-labelledby': triggerId,
+      listBoxRef: listElementRef,
+      inputRef: searchRef,
+      popoverRef,
+      shouldFocusWrap: true,
+    },
+    comboBoxState
   );
 
   const collectionItems = useMemo(
-    () => [...listState.collection],
-    [listState.collection]
+    () => [...comboBoxState.collection],
+    [comboBoxState.collection]
   );
-  const focusedKey = listState.selectionManager.focusedKey;
+  const focusedKey = comboBoxState.selectionManager.focusedKey;
 
   const virtualizer = useVirtualizer({
     count: collectionItems.length,
@@ -373,58 +395,9 @@ export function MetricSelector({
     },
   });
 
-  const handleSearchKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      const manager = listState.selectionManager;
-      const collection = listState.collection;
-
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        if (focusedKey) {
-          const selectedOption = displayedOptionsMap.get(String(focusedKey));
-          if (selectedOption) {
-            handleSelect(selectedOption);
-          }
-        }
-        return;
-      }
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        manager.setFocused(true);
-        const nextKey =
-          focusedKey === null
-            ? collection.getFirstKey()
-            : (collection.getKeyAfter(focusedKey) ?? collection.getFirstKey());
-        if (nextKey !== null) {
-          manager.setFocusedKey(nextKey);
-        }
-        return;
-      }
-
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        manager.setFocused(true);
-        const prevKey =
-          focusedKey === null
-            ? collection.getLastKey()
-            : (collection.getKeyBefore(focusedKey) ?? collection.getLastKey());
-        if (prevKey !== null) {
-          manager.setFocusedKey(prevKey);
-        }
-        return;
-      }
-    },
-    [focusedKey, displayedOptionsMap, handleSelect, listState]
-  );
-
   const mergedTriggerProps = mergeProps(triggerProps, triggerKeyboardProps, {
     id: triggerId,
   });
-
-  const onSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchInputValue(e.target.value);
-  }, []);
 
   const virtualItems = virtualizer.getVirtualItems();
 
@@ -461,6 +434,7 @@ export function MetricSelector({
       >
         {isOpen ? (
           <Overlay
+            ref={popoverRef}
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -498,12 +472,10 @@ export function MetricSelector({
                         </Flex>
                       </InputGroup.LeadingItems>
                       <InputGroup.Input
+                        {...comboBoxInputProps}
                         placeholder={t('Search metrics\u2026')}
-                        value={searchInputValue}
-                        onChange={onSearchChange}
                         size="xs"
-                        ref={searchRef}
-                        onKeyDown={handleSearchKeyDown}
+                        ref={searchRefCallback}
                       />
                     </InputGroup>
                   </Container>
@@ -560,11 +532,11 @@ export function MetricSelector({
                           }}
                         >
                           <ListWrap
-                            {...listBoxProps}
-                            style={{
-                              ...listBoxProps.style,
-                              padding: 0,
-                            }}
+                            id={listBoxProps.id}
+                            aria-label={listBoxProps['aria-label']}
+                            aria-labelledby={listBoxProps['aria-labelledby']}
+                            role="listbox"
+                            style={{padding: 0}}
                             ref={listElementRef}
                           >
                             {itemsToRender.map(virtualRow => {
@@ -577,7 +549,8 @@ export function MetricSelector({
                                 <MetricListBoxOption
                                   key={item.key}
                                   item={item}
-                                  listState={listState}
+                                  listState={comboBoxState}
+                                  onSelect={() => comboBoxState.close()}
                                   size="md"
                                   dataIndex={virtualRow.index}
                                   measureRef={virtualizer.measureElement}
@@ -610,7 +583,8 @@ export function MetricSelector({
 interface MetricListBoxOptionProps {
   dataIndex: number;
   item: Node<MetricSelectOption>;
-  listState: ListState<MetricSelectOption>;
+  listState: ComboBoxState<MetricSelectOption>;
+  onSelect: () => void;
   size: MenuListItemProps['size'];
   measureRef?: React.Ref<HTMLLIElement>;
 }
@@ -621,15 +595,28 @@ function MetricListBoxOption({
   size,
   dataIndex,
   measureRef,
+  onSelect,
 }: MetricListBoxOptionProps) {
   const ref = useRef<HTMLLIElement>(null);
   const option = item.value!;
   const {optionProps, isFocused, isSelected, isDisabled, isPressed} = useOption(
-    {key: item.key, 'aria-label': option.label},
+    {
+      key: item.key,
+      'aria-label': option.label,
+      shouldUseVirtualFocus: true,
+      shouldSelectOnPressUp: true,
+    },
     listState,
     ref
   );
   const optionPropsMerged = mergeProps(optionProps, {
+    onClick: () => {
+      // Close the combobox after a mouse selection. useOption fires
+      // onSelectionChange via the selection manager but doesn't close
+      // the combobox (that's normally handled by commit/revert flows).
+      // Using onClick ensures the selection is processed before close.
+      onSelect();
+    },
     onMouseEnter: () => {
       listState.selectionManager.setFocused(true);
       listState.selectionManager.setFocusedKey(item.key);
