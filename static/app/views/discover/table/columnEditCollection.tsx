@@ -10,10 +10,10 @@ import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {parseArithmetic} from 'sentry/components/arithmeticInput/parser';
 import {SectionHeading} from 'sentry/components/charts/styles';
+import {DragReorderButton} from 'sentry/components/dnd/dragReorderButton';
 import {getOffsetOfElement} from 'sentry/components/performance/waterfall/utils';
-import {IconAdd, IconDelete, IconGrabbable, IconWarning} from 'sentry/icons';
+import {IconAdd, IconDelete, IconWarning} from 'sentry/icons';
 import {t} from 'sentry/locale';
-import {space} from 'sentry/styles/space';
 import type {Organization} from 'sentry/types/organization';
 import {trackAnalytics} from 'sentry/utils/analytics';
 import type {Column} from 'sentry/utils/discover/fields';
@@ -485,13 +485,9 @@ class ColumnEditCollection extends Component<Props, State> {
           className={isGhost ? '' : DRAG_CLASS}
         >
           {canDrag ? (
-            <DragAndReorderButton
-              aria-label={t('Drag to reorder')}
+            <StyledDragReorderButton
               onMouseDown={event => this.startDrag(event, i)}
               onTouchStart={event => this.startDrag(event, i)}
-              icon={<IconGrabbable size="xs" />}
-              size="zero"
-              priority="transparent"
             />
           ) : singleColumn && showAliasField ? null : (
             <span />
@@ -713,8 +709,8 @@ const RowContainer = styled('div')<{
 
       @media (min-width: ${p.theme.breakpoints.sm}) {
         grid-template-columns: ${p.singleColumn
-          ? `1fr calc(200px + ${space(1)})`
-          : `${p.theme.space['2xl']} 1fr calc(200px + ${space(1)}) 40px 40px`};
+          ? `1fr calc(200px + ${p.theme.space.md})`
+          : `${p.theme.space['2xl']} 1fr calc(200px + ${p.theme.space.md}) 40px 40px`};
       }
     `};
 `;
@@ -790,7 +786,7 @@ const RemoveButton = styled(Button)`
   height: ${p => p.theme.form.md.height};
 `;
 
-const DragAndReorderButton = styled(Button)`
+const StyledDragReorderButton = styled(DragReorderButton)`
   height: ${p => p.theme.form.md.height};
 `;
 

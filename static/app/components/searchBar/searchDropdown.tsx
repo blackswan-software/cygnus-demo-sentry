@@ -4,17 +4,16 @@ import styled from '@emotion/styled';
 
 import {Tag} from '@sentry/scraps/badge';
 import {Button, LinkButton} from '@sentry/scraps/button';
+import {Hotkey} from '@sentry/scraps/hotkey';
 import {Flex, Grid} from '@sentry/scraps/layout';
 
-import HotkeysLabel from 'sentry/components/hotkeysLabel';
-import LoadingIndicator from 'sentry/components/loadingIndicator';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {Overlay} from 'sentry/components/overlay';
 import type {BooleanOperator, SearchConfig} from 'sentry/components/searchSyntax/parser';
 import {parseSearch} from 'sentry/components/searchSyntax/parser';
-import HighlightQuery from 'sentry/components/searchSyntax/renderer';
+import {HighlightQuery} from 'sentry/components/searchSyntax/renderer';
 import {IconOpen} from 'sentry/icons';
 import {t, tct} from 'sentry/locale';
-import {space} from 'sentry/styles/space';
 import type {TagCollection} from 'sentry/types/group';
 import {FieldKind} from 'sentry/utils/fields';
 
@@ -54,7 +53,7 @@ type Props = {
   visibleShortcuts?: Shortcut[];
 };
 
-function SearchDropdown({
+export function SearchDropdown({
   className,
   loading,
   items,
@@ -148,7 +147,7 @@ function SearchDropdown({
                 onClick={() => runShortcut(shortcut)}
               >
                 <HotkeyGlyphWrapper>
-                  <HotkeysLabel
+                  <Hotkey
                     value={shortcut.hotkeys?.display ?? shortcut.hotkeys?.actual ?? []}
                   />
                 </HotkeyGlyphWrapper>
@@ -169,8 +168,6 @@ function SearchDropdown({
     </SearchDropdownOverlay>
   );
 }
-
-export default SearchDropdown;
 
 type HeaderItemProps = {
   group: SearchGroup;
@@ -604,7 +601,7 @@ const RestOfWordsContainer = styled('span')<{
 }>`
   color: ${p =>
     p.hasSplit ? p.theme.tokens.content.accent : p.theme.tokens.content.primary};
-  margin-left: ${p => (p.isFirstWordHidden ? space(1) : '0px')};
+  margin-left: ${p => (p.isFirstWordHidden ? p.theme.space.md : '0px')};
 `;
 
 const FirstWordWrapper = styled('span')`

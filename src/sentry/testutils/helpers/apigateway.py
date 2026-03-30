@@ -12,10 +12,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 import sentry.api.urls as api_urls
-from sentry.api.base import Endpoint, control_silo_endpoint, region_silo_endpoint
+from sentry.api.base import Endpoint, cell_silo_endpoint, control_silo_endpoint
 from sentry.api.bases.organization import ControlSiloOrganizationEndpoint, OrganizationEndpoint
 from sentry.testutils.cases import APITestCase
-from sentry.types.region import Cell, RegionCategory
+from sentry.types.cell import Cell, RegionCategory
 from sentry.utils import json
 
 
@@ -27,7 +27,7 @@ class ControlEndpoint(ControlSiloOrganizationEndpoint):
         return Response({"proxy": False})
 
 
-@region_silo_endpoint
+@cell_silo_endpoint
 class RegionEndpoint(OrganizationEndpoint):
     permission_classes: tuple[type[BasePermission], ...] = (AllowAny,)
 
@@ -38,7 +38,7 @@ class RegionEndpoint(OrganizationEndpoint):
         return HttpResponseRedirect("https://zombo.com")
 
 
-@region_silo_endpoint
+@cell_silo_endpoint
 class NoOrgRegionEndpoint(Endpoint):
     permission_classes: tuple[type[BasePermission], ...] = (AllowAny,)
 
@@ -137,9 +137,9 @@ def provision_middleware():
 @override_settings(ROOT_URLCONF=__name__)
 class ApiGatewayTestCase(APITestCase):
     # Subclasses will generally need to be decorated with
-    #     @*_silo_test(regions=[ApiGatewayTestCase.REGION])
+    #     @*_silo_test(cells=[ApiGatewayTestCase.CELL])
 
-    REGION = Cell(
+    CELL = Cell(
         name="us",
         snowflake_id=1,
         address="http://us.internal.sentry.io",
@@ -150,21 +150,21 @@ class ApiGatewayTestCase(APITestCase):
         super().setUp()
         responses.add(
             responses.GET,
-            f"{self.REGION.address}/get",
+            f"{self.CELL.address}/get",
             body=json.dumps({"proxy": True}),
             content_type="application/json",
             adding_headers={"test": "header"},
         )
         responses.add(
             responses.GET,
-            f"{self.REGION.address}/error",
+            f"{self.CELL.address}/error",
             body=json.dumps({"proxy": True}),
             status=400,
             content_type="application/json",
             adding_headers={"test": "header"},
         )
 
-        self.organization = self.create_organization(region=self.REGION)
+        self.organization = self.create_organization(region=self.CELL)
 
         # Echos the request body and header back for verification
         def return_request_body(request):
@@ -175,7 +175,7 @@ class ApiGatewayTestCase(APITestCase):
             params = parse_qs(request.url.split("?")[1])
             return (200, request.headers, json.dumps(params).encode())
 
-        responses.add_callback(responses.GET, f"{self.REGION.address}/echo", return_request_params)
-        responses.add_callback(responses.POST, f"{self.REGION.address}/echo", return_request_body)
+        responses.add_callback(responses.GET, f"{self.CELL.address}/echo", return_request_params)
+        responses.add_callback(responses.POST, f"{self.CELL.address}/echo", return_request_body)
 
         self.middleware = provision_middleware()
