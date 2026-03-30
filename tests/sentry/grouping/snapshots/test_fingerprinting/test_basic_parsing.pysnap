@@ -1,0 +1,128 @@
+---
+source: tests/sentry/grouping/test_fingerprinting.py::test_basic_parsing
+---
+rules:
+- attributes: {}
+  fingerprint:
+  - DatabaseUnavailable
+  matchers:
+  - - type
+    - DatabaseUnavailable
+  text: type:"DatabaseUnavailable" -> "DatabaseUnavailable"
+- attributes: {}
+  fingerprint:
+  - AssertionFailed
+  - foo
+  matchers:
+  - - function
+    - assertion_failed
+  - - module
+    - foo
+  text: function:"assertion_failed" module:"foo" -> "AssertionFailedfoo"
+- attributes: {}
+  fingerprint:
+  - aha
+  matchers:
+  - - app
+    - 'true'
+  text: app:"true" -> "aha"
+- attributes: {}
+  fingerprint:
+  - '{{ default }}'
+  matchers:
+  - - app
+    - 'true'
+  text: app:"true" -> "{{ default }}"
+- attributes: {}
+  fingerprint:
+  - '{{ default }}'
+  matchers:
+  - - app
+    - 'true'
+  text: app:"true" -> "{{ default }}"
+- attributes: {}
+  fingerprint:
+  - '{{ default }}'
+  matchers:
+  - - app
+    - 'true'
+  text: app:"true" -> "{{ default }}"
+- attributes: {}
+  fingerprint:
+  - '{{ default }}'
+  - stuff
+  matchers:
+  - - app
+    - 'true'
+  text: app:"true" -> "{{ default }}stuff"
+- attributes: {}
+  fingerprint:
+  - '{{ default }}'
+  - stuff
+  matchers:
+  - - app
+    - 'true'
+  text: app:"true" -> "{{ default }}stuff"
+- attributes: {}
+  fingerprint:
+  - '{{ default }}'
+  - stuff
+  matchers:
+  - - app
+    - 'true'
+  text: app:"true" -> "{{ default }}stuff"
+- attributes: {}
+  fingerprint:
+  - default stuff
+  matchers:
+  - - app
+    - 'true'
+  text: app:"true" -> "default stuff"
+- attributes: {}
+  fingerprint:
+  - everything
+  matchers:
+  - - '!path'
+    - '**/foo/**'
+  text: '!path:"**/foo/**" -> "everything"'
+- attributes: {}
+  fingerprint:
+  - everything
+  matchers:
+  - - '!path'
+    - '**/foo/**'
+  text: '!path:"**/foo/**" -> "everything"'
+- attributes: {}
+  fingerprint:
+  - logger-
+  - '{{ logger }}'
+  matchers:
+  - - logger
+    - sentry.*
+  text: logger:"sentry.*" -> "logger-{{ logger }}"
+- attributes: {}
+  fingerprint:
+  - stuff
+  matchers:
+  - - message
+    - "\\x\xFF"
+  text: "message:\"\\x\xFF\" -> \"stuff\""
+- attributes:
+    title: Message from {{ logger }}
+  fingerprint:
+  - logger-
+  - '{{ logger }}'
+  matchers:
+  - - logger
+    - sentry.*
+  text: logger:"sentry.*" -> "logger-{{ logger }}" title="Message from {{ logger }}"
+- attributes:
+    title: Message from {{ logger }}
+  fingerprint:
+  - logger-
+  - '{{ logger }}'
+  matchers:
+  - - logger
+    - sentry.*
+  text: logger:"sentry.*" -> "logger-{{ logger }}" title="Message from {{ logger }}"
+version: 1

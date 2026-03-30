@@ -23,7 +23,7 @@ from tests.sentry.grouping import FingerprintInput, with_fingerprint_input
 GROUPING_CONFIG = get_default_grouping_config_dict()
 
 
-def test_basic_parsing() -> None:
+def test_basic_parsing(insta_snapshot: InstaSnapshotter) -> None:
     rules = FingerprintingConfig.from_config_string(
         """
 # This is a config
@@ -45,107 +45,7 @@ logger:sentry.*                                 -> logger-{{ logger }}, title="M
 logger:sentry.*                                 -> logger-{{ logger }} title="Message from {{ logger }}"
 """
     )
-    assert rules._to_config_structure() == {
-        "rules": [
-            {
-                "text": 'type:"DatabaseUnavailable" -> "DatabaseUnavailable"',
-                "matchers": [["type", "DatabaseUnavailable"]],
-                "fingerprint": ["DatabaseUnavailable"],
-                "attributes": {},
-            },
-            {
-                "text": 'function:"assertion_failed" module:"foo" -> "AssertionFailedfoo"',
-                "matchers": [["function", "assertion_failed"], ["module", "foo"]],
-                "fingerprint": ["AssertionFailed", "foo"],
-                "attributes": {},
-            },
-            {
-                "text": 'app:"true" -> "aha"',
-                "matchers": [["app", "true"]],
-                "fingerprint": ["aha"],
-                "attributes": {},
-            },
-            {
-                "text": 'app:"true" -> "{{ default }}"',
-                "matchers": [["app", "true"]],
-                "fingerprint": ["{{ default }}"],
-                "attributes": {},
-            },
-            {
-                "text": 'app:"true" -> "{{ default }}"',
-                "matchers": [["app", "true"]],
-                "fingerprint": ["{{ default }}"],
-                "attributes": {},
-            },
-            {
-                "text": 'app:"true" -> "{{ default }}"',
-                "matchers": [["app", "true"]],
-                "fingerprint": ["{{ default }}"],
-                "attributes": {},
-            },
-            {
-                "text": 'app:"true" -> "{{ default }}stuff"',
-                "matchers": [["app", "true"]],
-                "fingerprint": ["{{ default }}", "stuff"],
-                "attributes": {},
-            },
-            {
-                "text": 'app:"true" -> "{{ default }}stuff"',
-                "matchers": [["app", "true"]],
-                "fingerprint": ["{{ default }}", "stuff"],
-                "attributes": {},
-            },
-            {
-                "text": 'app:"true" -> "{{ default }}stuff"',
-                "matchers": [["app", "true"]],
-                "fingerprint": ["{{ default }}", "stuff"],
-                "attributes": {},
-            },
-            {
-                "text": 'app:"true" -> "default stuff"',
-                "matchers": [["app", "true"]],
-                "fingerprint": ["default stuff"],
-                "attributes": {},
-            },
-            {
-                "text": '!path:"**/foo/**" -> "everything"',
-                "matchers": [["!path", "**/foo/**"]],
-                "fingerprint": ["everything"],
-                "attributes": {},
-            },
-            {
-                "text": '!path:"**/foo/**" -> "everything"',
-                "matchers": [["!path", "**/foo/**"]],
-                "fingerprint": ["everything"],
-                "attributes": {},
-            },
-            {
-                "text": 'logger:"sentry.*" -> "logger-{{ logger }}"',
-                "matchers": [["logger", "sentry.*"]],
-                "fingerprint": ["logger-", "{{ logger }}"],
-                "attributes": {},
-            },
-            {
-                "text": 'message:"\\xÿ" -> "stuff"',
-                "matchers": [["message", "\\x\xff"]],
-                "fingerprint": ["stuff"],
-                "attributes": {},
-            },
-            {
-                "text": 'logger:"sentry.*" -> "logger-{{ logger }}" title="Message from {{ logger }}"',
-                "matchers": [["logger", "sentry.*"]],
-                "fingerprint": ["logger-", "{{ logger }}"],
-                "attributes": {"title": "Message from {{ logger }}"},
-            },
-            {
-                "text": 'logger:"sentry.*" -> "logger-{{ logger }}" title="Message from {{ logger }}"',
-                "matchers": [["logger", "sentry.*"]],
-                "fingerprint": ["logger-", "{{ logger }}"],
-                "attributes": {"title": "Message from {{ logger }}"},
-            },
-        ],
-        "version": 1,
-    }
+    insta_snapshot(rules._to_config_structure())
 
     assert (
         FingerprintingConfig._from_config_structure(
@@ -484,7 +384,7 @@ def test_event_hash_variant(insta_snapshot: InstaSnapshotter, input: Fingerprint
     )
 
 
-def test_thread_matchers_parsing() -> None:
+def test_thread_matchers_parsing(insta_snapshot: InstaSnapshotter) -> None:
     """Test that thread matchers are parsed correctly"""
     rules = FingerprintingConfig.from_config_string(
         """
@@ -496,41 +396,7 @@ thread.current:true thread.name:Worker*         -> current-worker-thread
 thread.state:RUNNABLE                           -> runnable-thread
 """
     )
-    assert rules._to_config_structure() == {
-        "rules": [
-            {
-                "text": 'thread_name:"MainThread" type:"RuntimeError" -> "main-thread-error"',
-                "matchers": [["thread_name", "MainThread"], ["type", "RuntimeError"]],
-                "fingerprint": ["main-thread-error"],
-                "attributes": {},
-            },
-            {
-                "text": 'thread_id:"123" function:"process" -> "thread-123-process"',
-                "matchers": [["thread_id", "123"], ["function", "process"]],
-                "fingerprint": ["thread-123-process"],
-                "attributes": {},
-            },
-            {
-                "text": 'thread_crashed:"true" -> "crashed-thread"',
-                "matchers": [["thread_crashed", "true"]],
-                "fingerprint": ["crashed-thread"],
-                "attributes": {},
-            },
-            {
-                "text": 'thread_current:"true" thread_name:"Worker*" -> "current-worker-thread"',
-                "matchers": [["thread_current", "true"], ["thread_name", "Worker*"]],
-                "fingerprint": ["current-worker-thread"],
-                "attributes": {},
-            },
-            {
-                "text": 'thread_state:"RUNNABLE" -> "runnable-thread"',
-                "matchers": [["thread_state", "RUNNABLE"]],
-                "fingerprint": ["runnable-thread"],
-                "attributes": {},
-            },
-        ],
-        "version": 1,
-    }
+    insta_snapshot(rules._to_config_structure())
 
 
 def test_thread_matchers_matching() -> None:
@@ -693,7 +559,7 @@ def test_thread_matchers_negation() -> None:
     assert match.fingerprint == ["not-main-thread"]
 
 
-def test_sibling_frame_parsing() -> None:
+def test_sibling_frame_parsing(insta_snapshot: InstaSnapshotter) -> None:
     """Test that sibling frame matchers (caller/callee) are parsed correctly"""
     rules = FingerprintingConfig.from_config_string(
         """
@@ -703,25 +569,7 @@ function:target_func | [ function:callee_func ] -> target-calls-callee
 [ module:foo ] | function:bar | [ module:baz ] -> foo-bar-baz
 """
     )
-    assert len(rules.rules) == 3
-
-    # First rule: caller matcher
-    assert (
-        rules.rules[0].text
-        == '[ function:"caller_func" ] | function:"target_func" -> "caller-calls-target"'
-    )
-
-    # Second rule: callee matcher
-    assert (
-        rules.rules[1].text
-        == 'function:"target_func" | [ function:"callee_func" ] -> "target-calls-callee"'
-    )
-
-    # Third rule: both caller and callee
-    assert (
-        rules.rules[2].text
-        == '[ module:"foo" ] | function:"bar" | [ module:"baz" ] -> "foo-bar-baz"'
-    )
+    insta_snapshot(rules._to_config_structure())
 
 
 def test_sibling_frame_caller_matching() -> None:

@@ -1,0 +1,46 @@
+---
+source: tests/sentry/grouping/test_fingerprinting.py::test_thread_matchers_parsing
+---
+rules:
+- attributes: {}
+  fingerprint:
+  - main-thread-error
+  matchers:
+  - - thread_name
+    - MainThread
+  - - type
+    - RuntimeError
+  text: thread_name:"MainThread" type:"RuntimeError" -> "main-thread-error"
+- attributes: {}
+  fingerprint:
+  - thread-123-process
+  matchers:
+  - - thread_id
+    - '123'
+  - - function
+    - process
+  text: thread_id:"123" function:"process" -> "thread-123-process"
+- attributes: {}
+  fingerprint:
+  - crashed-thread
+  matchers:
+  - - thread_crashed
+    - 'true'
+  text: thread_crashed:"true" -> "crashed-thread"
+- attributes: {}
+  fingerprint:
+  - current-worker-thread
+  matchers:
+  - - thread_current
+    - 'true'
+  - - thread_name
+    - Worker*
+  text: thread_current:"true" thread_name:"Worker*" -> "current-worker-thread"
+- attributes: {}
+  fingerprint:
+  - runnable-thread
+  matchers:
+  - - thread_state
+    - RUNNABLE
+  text: thread_state:"RUNNABLE" -> "runnable-thread"
+version: 1

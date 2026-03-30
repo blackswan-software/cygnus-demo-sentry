@@ -1,0 +1,34 @@
+---
+source: tests/sentry/grouping/test_fingerprinting.py::test_sibling_frame_parsing
+---
+rules:
+- attributes: {}
+  fingerprint:
+  - caller-calls-target
+  matchers:
+  - - '[function]|'
+    - caller_func
+  - - function
+    - target_func
+  text: '[ function:"caller_func" ] | function:"target_func" -> "caller-calls-target"'
+- attributes: {}
+  fingerprint:
+  - target-calls-callee
+  matchers:
+  - - function
+    - target_func
+  - - '|[function]'
+    - callee_func
+  text: function:"target_func" | [ function:"callee_func" ] -> "target-calls-callee"
+- attributes: {}
+  fingerprint:
+  - foo-bar-baz
+  matchers:
+  - - '[module]|'
+    - foo
+  - - function
+    - bar
+  - - '|[module]'
+    - baz
+  text: '[ module:"foo" ] | function:"bar" | [ module:"baz" ] -> "foo-bar-baz"'
+version: 1
