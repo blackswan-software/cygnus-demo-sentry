@@ -421,7 +421,7 @@ def _run_eap_timeseries(
         groupby=[],
         referrer=referrer,
         config=SearchResolverConfig(),
-        occurrence_category=OccurrenceCategory.GENERIC,
+        occurrence_category=OccurrenceCategory.ISSUE_PLATFORM,
     )
 
     # EAP returns time as epoch seconds; zerofill expects and outputs epoch seconds too,
@@ -448,7 +448,7 @@ def _run_eap_timeseries(
             groupby=[],
             referrer=referrer,
             config=SearchResolverConfig(),
-            occurrence_category=OccurrenceCategory.GENERIC,
+            occurrence_category=OccurrenceCategory.ISSUE_PLATFORM,
         )
         if zerofill_results:
             comp_rows = zerofill(
