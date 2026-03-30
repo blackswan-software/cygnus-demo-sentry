@@ -1,3 +1,5 @@
+import {ProjectAvatar} from '@sentry/scraps/avatar';
+
 import {addLoadingMessage, addSuccessMessage} from 'sentry/actionCreators/indicator';
 import {openInviteMembersModal} from 'sentry/actionCreators/modal';
 import {
@@ -21,7 +23,6 @@ import {
   IconGraph,
   IconIssues,
   IconOpen,
-  IconPrevent,
   IconSettings,
   IconStar,
   IconUser,
@@ -29,6 +30,7 @@ import {
 import {t} from 'sentry/locale';
 import {useMutateUserOptions} from 'sentry/utils/useMutateUserOptions';
 import {useOrganization} from 'sentry/utils/useOrganization';
+import {useProjects} from 'sentry/utils/useProjects';
 import {useGetStarredDashboards} from 'sentry/views/dashboards/hooks/useGetStarredDashboards';
 import {AGENTS_LANDING_SUB_PATH} from 'sentry/views/insights/pages/agents/settings';
 import {BACKEND_LANDING_SUB_PATH} from 'sentry/views/insights/pages/backend/settings';
@@ -43,12 +45,14 @@ import {getUserOrgNavigationConfiguration} from 'sentry/views/settings/organizat
 // This hook generates actions for all pages in the primary and secondary navigation.
 // TODO: Consider refactoring the navigation so that this can read from the same source
 // of truth and avoid divergence.
+
 function useNavigationActions(): CommandPaletteAction[] {
   const organization = useOrganization();
   const slug = organization.slug;
   const prefix = `/organizations/${slug}`;
   const {starredViews} = useStarredIssueViews();
   const {data: starredDashboards = []} = useGetStarredDashboards();
+  const {projects} = useProjects();
 
   const issuesChildren: CommandPaletteActionChild[] = [
     makeCommandPaletteLink({
@@ -149,7 +153,7 @@ function useNavigationActions(): CommandPaletteAction[] {
           label: dashboard.title,
           icon: <IconStar />,
         },
-        to: `/organizations/${organization.slug}/dashboard/${dashboard.id}/`,
+        to: `${prefix}/dashboard/${dashboard.id}/`,
       })
     ),
   ];
@@ -218,6 +222,19 @@ function useNavigationActions(): CommandPaletteAction[] {
       )
     );
 
+  const projectSettingsChildren: CommandPaletteActionChild[] =
+    organization.features.includes('cmd-k-supercharged')
+      ? projects.map(project =>
+          makeCommandPaletteLink({
+            display: {
+              label: project.name,
+              icon: <ProjectAvatar project={project} size={16} />,
+            },
+            to: `/settings/${slug}/projects/${project.slug}/`,
+          })
+        )
+      : [];
+
   return [
     makeCommandPaletteGroup({
       groupingKey: 'navigate',
@@ -255,36 +272,22 @@ function useNavigationActions(): CommandPaletteAction[] {
     makeCommandPaletteGroup({
       groupingKey: 'navigate',
       display: {
-        label: t('Prevent'),
-        icon: <IconPrevent />,
-      },
-      actions: [
-        makeCommandPaletteLink({
-          display: {
-            label: t('Tests'),
-          },
-          to: `${prefix}/prevent/tests/`,
-          hidden: !organization.features.includes('prevent-test-analytics'),
-        }),
-        makeCommandPaletteLink({
-          display: {
-            label: t('Tokens'),
-          },
-          to: `${prefix}/prevent/tokens/`,
-          hidden: !organization.features.includes('prevent-test-analytics'),
-        }),
-      ],
-      hidden: !organization.features.includes('prevent-test-analytics'),
-    }),
-    makeCommandPaletteGroup({
-      groupingKey: 'navigate',
-      display: {
         label: t('Settings'),
         icon: <IconSettings />,
       },
       actions: settingsChildren,
     }),
-  ];
+    organization.features.includes('cmd-k-supercharged')
+      ? makeCommandPaletteGroup({
+          groupingKey: 'navigate',
+          display: {
+            label: t('Project Settings'),
+            icon: <IconSettings />,
+          },
+          actions: projectSettingsChildren,
+        })
+      : null,
+  ].filter(x => x !== null);
 }
 
 function useNavigationToggleCollapsed(): CommandPaletteAction {
@@ -310,8 +313,8 @@ function useNavigationToggleCollapsed(): CommandPaletteAction {
  */
 export function useGlobalCommandPaletteActions() {
   const organization = useOrganization();
-  const {mutateAsync: mutateUserOptions} = useMutateUserOptions();
   const navigateActions = useNavigationActions();
+  const {mutateAsync: mutateUserOptions} = useMutateUserOptions();
   const navigationToggleAction = useNavigationToggleCollapsed();
 
   const navPrefix = `/organizations/${organization.slug}`;

@@ -9,14 +9,53 @@ import {
 } from 'sentry/utils/discover/fields';
 import {AggregateSelector} from 'sentry/views/dashboards/widgetBuilder/components/visualize/traceMetrics/aggregateSelector';
 import {useWidgetBuilderContext} from 'sentry/views/dashboards/widgetBuilder/contexts/widgetBuilderContext';
+import {useTraceMetricMultiMetricSelection} from 'sentry/views/dashboards/widgetBuilder/hooks/useTraceMetricMultiMetricSelection';
 import {
   buildTraceMetricAggregate,
   extractTraceMetricFromColumn,
   getTraceMetricAggregateActionType,
   getTraceMetricAggregateSource,
 } from 'sentry/views/dashboards/widgetBuilder/utils/buildTraceMetricAggregate';
-import {OPTIONS_BY_TYPE} from 'sentry/views/explore/metrics/constants';
+import {
+  DEFAULT_YAXIS_BY_TYPE,
+  OPTIONS_BY_TYPE,
+} from 'sentry/views/explore/metrics/constants';
+import type {TraceMetric} from 'sentry/views/explore/metrics/metricQuery';
 import {MetricSelector} from 'sentry/views/explore/metrics/metricToolbar/metricSelector';
+
+function getUpdatedAggregatesMultiMetric(
+  aggregateSource: Column[],
+  index: number,
+  newTraceMetric: TraceMetric
+): Column[] | undefined {
+  const validAggregateOptions = OPTIONS_BY_TYPE[newTraceMetric.type] ?? [];
+  const currentAggregateKey =
+    aggregateSource?.[index]?.kind === 'function'
+      ? aggregateSource[index].function[0]
+      : undefined;
+
+  if (!currentAggregateKey) {
+    return undefined;
+  }
+
+  const isValid = validAggregateOptions.some(opt => opt.value === currentAggregateKey);
+
+  const nextAggregateKey = isValid
+    ? currentAggregateKey
+    : ((DEFAULT_YAXIS_BY_TYPE[newTraceMetric.type] ??
+        validAggregateOptions[0]?.value) as AggregationKeyWithAlias);
+
+  if (!nextAggregateKey) {
+    return undefined;
+  }
+
+  const updatedAggregate = buildTraceMetricAggregate(nextAggregateKey, newTraceMetric);
+
+  const updatedAggregates = [...(aggregateSource ?? [])];
+  updatedAggregates[index] = updatedAggregate;
+
+  return updatedAggregates;
+}
 
 export function MetricSelectRow({
   disabled,
@@ -28,6 +67,7 @@ export function MetricSelectRow({
   index: number;
 }) {
   const {state, dispatch} = useWidgetBuilderContext();
+  const hasMultiMetricSelection = useTraceMetricMultiMetricSelection();
 
   const aggregateSource = getTraceMetricAggregateSource(
     state.displayType,
@@ -49,25 +89,39 @@ export function MetricSelectRow({
               return;
             }
 
-            const validAggregateOptions = OPTIONS_BY_TYPE[newTraceMetric.type] ?? [];
-            const updatedAggregates: Column[] = (aggregateSource ?? []).map(f => {
-              if (f.kind === 'function' && f.function?.[0]) {
-                const aggregate = f.function[0];
-                const isValid = validAggregateOptions.some(
-                  opt => opt.value === aggregate
-                );
-
-                if (!isValid && validAggregateOptions.length > 0) {
-                  return buildTraceMetricAggregate(
-                    validAggregateOptions[0]!.value as AggregationKeyWithAlias,
-                    newTraceMetric
+            let updatedAggregates: Column[] | undefined;
+            if (hasMultiMetricSelection) {
+              updatedAggregates = getUpdatedAggregatesMultiMetric(
+                aggregateSource ?? [],
+                index,
+                newTraceMetric
+              );
+            } else {
+              const validAggregateOptions = OPTIONS_BY_TYPE[newTraceMetric.type] ?? [];
+              updatedAggregates = (aggregateSource ?? []).map(f => {
+                if (f.kind === 'function' && f.function?.[0]) {
+                  const aggregate = f.function[0];
+                  const isValid = validAggregateOptions.some(
+                    opt => opt.value === aggregate
                   );
-                }
 
-                return buildTraceMetricAggregate(aggregate, newTraceMetric);
-              }
-              return f;
-            });
+                  if (!isValid && validAggregateOptions.length > 0) {
+                    return buildTraceMetricAggregate(
+                      (DEFAULT_YAXIS_BY_TYPE[newTraceMetric.type] ??
+                        validAggregateOptions[0]?.value) as AggregationKeyWithAlias,
+                      newTraceMetric
+                    );
+                  }
+
+                  return buildTraceMetricAggregate(aggregate, newTraceMetric);
+                }
+                return f;
+              });
+            }
+
+            if (!updatedAggregates) {
+              return;
+            }
 
             // Sort fixup is handled by the dispatch handlers
             // (SET_Y_AXIS, SET_FIELDS, SET_CATEGORICAL_AGGREGATE)
