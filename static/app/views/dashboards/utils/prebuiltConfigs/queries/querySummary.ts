@@ -6,14 +6,17 @@ import {
   AVERAGE_DURATION_TEXT,
   QUERIES_PER_MINUTE_TEXT,
 } from 'sentry/views/dashboards/utils/prebuiltConfigs/queries/constants';
-import {BASE_FILTER_STRING} from 'sentry/views/dashboards/utils/prebuiltConfigs/queries/settings';
+import {
+  BASE_FILTER_STRING,
+  SUMMARY_DASHBOARD_TITLE,
+} from 'sentry/views/dashboards/utils/prebuiltConfigs/queries/settings';
 import {WIDGET_COLUMN_LABELS} from 'sentry/views/dashboards/utils/prebuiltConfigs/settings';
 import {ModuleName, SpanFields} from 'sentry/views/insights/types';
 
 export const QUERIES_SUMMARY_PREBUILT_CONFIG: PrebuiltDashboard = {
   dateCreated: '',
   projects: [],
-  title: 'Query Details',
+  title: SUMMARY_DASHBOARD_TITLE,
   filters: {
     globalFilter: [
       {

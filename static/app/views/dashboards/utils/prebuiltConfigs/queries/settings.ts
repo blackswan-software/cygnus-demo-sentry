@@ -1,5 +1,9 @@
+import {t} from 'sentry/locale';
 import {MutableSearch} from 'sentry/utils/tokenizeSearch';
 import {ModuleName, SpanFields} from 'sentry/views/insights/types';
+
+export const DASHBOARD_TITLE = t('Queries');
+export const SUMMARY_DASHBOARD_TITLE = t('Query Details');
 
 const BASE_FILTERS = {
   [SpanFields.SPAN_CATEGORY]: ModuleName.DB,
