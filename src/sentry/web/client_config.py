@@ -30,7 +30,7 @@ from sentry.organizations.services.organization import (
 )
 from sentry.projects.services.project_key import ProjectKeyRole, project_key_service
 from sentry.silo.base import SiloMode
-from sentry.types.region import (
+from sentry.types.cell import (
     Locality,
     RegionCategory,
     find_all_multitenant_locality_names,
@@ -343,7 +343,7 @@ class _ClientConfig:
         if not self.user or not self.user.id:
             return frozenset()
 
-        cell_names = user_service.get_member_region_names(user_id=self.user.id)
+        cell_names = user_service.get_member_cell_names(user_id=self.user.id)
         directory = get_global_directory()
         return frozenset(
             loc.name

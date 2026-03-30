@@ -5,6 +5,7 @@ import {IconBusiness} from 'sentry/icons';
 import {HookStore} from 'sentry/stores/hookStore';
 import type {Hooks} from 'sentry/types/hooks';
 
+import {AiConfigureSeerQuotaSidebar} from 'getsentry/components/ai/aiConfigureSeerQuotaSidebar';
 import {AiSetupConfiguration} from 'getsentry/components/ai/aiSetupConfiguration';
 import {AiSetupDataConsent} from 'getsentry/components/ai/AiSetupDataConsent';
 import CronsBillingBanner from 'getsentry/components/crons/cronsBillingBanner';
@@ -39,8 +40,9 @@ import {PrimaryNavSeerConfigReminder} from 'getsentry/components/primaryNavSeerC
 import {ProductSelectionAvailability} from 'getsentry/components/productSelectionAvailability';
 import {ProductUnavailableCTA} from 'getsentry/components/productUnavailableCTA';
 import ReplayOnboardingCTA from 'getsentry/components/replayOnboardingCTA';
-import SuperuserWarning, {
+import {
   shouldExcludeOrg,
+  SuperuserWarning,
 } from 'getsentry/components/superuser/superuserWarning';
 import TryBusinessSidebarItem from 'getsentry/components/tryBusinessSidebarItem';
 import {analyticsInitUser} from 'getsentry/hooks/analyticsInitUser';
@@ -53,7 +55,7 @@ import {FirstPartyIntegrationAlertHook} from 'getsentry/hooks/firstPartyIntegrat
 import GithubInstallationSelectInstallButton from 'getsentry/hooks/githubInstallationSelectInstall';
 import {handleGuideUpdate} from 'getsentry/hooks/handleGuideUpdate';
 import {handleMonitorCreated} from 'getsentry/hooks/handleMonitorCreated';
-import hookIntegrationFeatures from 'getsentry/hooks/integrationFeatures';
+import {hookIntegrationFeatures} from 'getsentry/hooks/integrationFeatures';
 import {legacyOrganizationRedirectRoutes} from 'getsentry/hooks/legacyOrganizationRedirectRoutes';
 import MemberListHeader from 'getsentry/hooks/memberListHeader';
 import {OrganizationMembershipSettingsForm} from 'getsentry/hooks/organizationMembershipSettingsForm';
@@ -109,7 +111,7 @@ const GETSENTRY_HOOKS: Partial<Hooks> = {
    * Additional routes to be inserted into sentrys route tree
    */
   'routes:root': rootRoutes,
-  'routes:settings': seerSettingsRoutes,
+  'routes:org-settings': seerSettingsRoutes,
   'routes:legacy-organization-redirects': legacyOrganizationRedirectRoutes,
 
   /**
@@ -206,6 +208,7 @@ const GETSENTRY_HOOKS: Partial<Hooks> = {
    */
   'component:insights-date-range-query-limit-footer': () =>
     InsightsDateRangeQueryLimitFooter,
+  'component:ai-configure-seer-quota-sidebar': () => AiConfigureSeerQuotaSidebar,
   'component:ai-setup-configuration': () => AiSetupConfiguration,
   'component:ai-setup-data-consent': () => AiSetupDataConsent,
   'component:codecov-integration-settings-link': () => CodecovSettingsLink,

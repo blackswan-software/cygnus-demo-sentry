@@ -16,7 +16,7 @@ import {useRecentCreatedProject} from 'sentry/components/onboarding/useRecentCre
 import {Redirect} from 'sentry/components/redirect';
 import {SentryDocumentTitle} from 'sentry/components/sentryDocumentTitle';
 import {categoryList} from 'sentry/data/platformPickerCategories';
-import platforms from 'sentry/data/platforms';
+import {allPlatforms as platforms} from 'sentry/data/platforms';
 import {IconArrow} from 'sentry/icons';
 import {t} from 'sentry/locale';
 import type {OnboardingSelectedSDK} from 'sentry/types/onboarding';
@@ -160,7 +160,8 @@ export function OnboardingWithoutContext() {
   const {step: stepId} = useParams<{step: string}>();
   const organization = useOrganization();
   const onboardingContext = useOnboardingContext();
-  const selectedProjectSlug = onboardingContext.selectedPlatform?.key;
+  const selectedProjectSlug =
+    onboardingContext.createdProjectSlug ?? onboardingContext.selectedPlatform?.key;
 
   const hasNewWelcomeUI = useHasNewWelcomeUI();
   const hasScmOnboarding = organization.features.includes('onboarding-scm');
@@ -255,7 +256,11 @@ export function OnboardingWithoutContext() {
   });
 
   const goNextStep = useCallback(
-    (step: StepDescriptor, platform?: OnboardingSelectedSDK) => {
+    (
+      step: StepDescriptor,
+      platform?: OnboardingSelectedSDK,
+      query?: Record<string, string[]>
+    ) => {
       const currentStepIndex = onboardingSteps.findIndex(s => s.id === step.id);
       const nextStep = onboardingSteps[currentStepIndex + 1]!;
 
@@ -267,7 +272,8 @@ export function OnboardingWithoutContext() {
         return;
       }
 
-      navigate(normalizeUrl(`/onboarding/${organization.slug}/${nextStep.id}/`));
+      const pathname = `/onboarding/${organization.slug}/${nextStep.id}/`;
+      navigate(query ? normalizeUrl({pathname, query}) : normalizeUrl(pathname));
     },
     [organization.slug, navigate, onboardingSteps, onboardingContext.selectedPlatform]
   );
@@ -372,9 +378,9 @@ export function OnboardingWithoutContext() {
               <stepObj.Component
                 data-test-id={`onboarding-step-${stepObj.id}`}
                 stepIndex={stepIndex}
-                onComplete={platform => {
+                onComplete={(platform, query) => {
                   if (stepObj) {
-                    goNextStep(stepObj, platform);
+                    goNextStep(stepObj, platform, query);
                   }
                 }}
                 recentCreatedProject={recentCreatedProject}
