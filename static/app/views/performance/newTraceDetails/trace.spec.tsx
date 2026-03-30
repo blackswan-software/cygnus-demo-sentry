@@ -1451,8 +1451,7 @@ describe('trace view', () => {
       });
     });
 
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('arrowup+shift scrolls to the start of the list', async () => {
+    it.knownFlake('arrowup+shift scrolls to the start of the list', async () => {
       const {virtualizedContainer} = await keyboardNavigationTestSetup();
 
       let rows = getVirtualizedRows(virtualizedContainer);

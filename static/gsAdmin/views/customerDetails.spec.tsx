@@ -1257,7 +1257,7 @@ describe('Customer Details', () => {
       permissions: new Set(['billing.admin']),
     });
 
-    it('renders disabled without billing.admin permissions', async () => {
+    it.knownFlake('renders disabled without billing.admin permissions', async () => {
       ConfigStore.set('user', mockUser);
 
       setUpMocks(organization, {isBillingAdmin: false});

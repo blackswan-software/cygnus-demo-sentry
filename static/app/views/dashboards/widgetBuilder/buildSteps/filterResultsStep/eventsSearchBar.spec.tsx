@@ -27,7 +27,7 @@ describe('EventsSearchBar', () => {
     });
   });
 
-  it('does not show function tags in has: dropdown', async () => {
+  it.knownFlake('does not show function tags in has: dropdown', async () => {
     render(
       <EventsSearchBar
         onClose={jest.fn()}

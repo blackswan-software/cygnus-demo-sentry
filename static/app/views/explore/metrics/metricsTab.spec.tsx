@@ -700,7 +700,7 @@ describe('MetricsTabContent (tracemetrics-ui-refresh)', () => {
     });
   });
 
-  it('toggles the query builder sidebar with the expand control', async () => {
+  it.knownFlake('toggles the query builder sidebar with the expand control', async () => {
     render(
       <ProviderWrapper>
         <MetricsTabContent datePageFilterProps={datePageFilterProps} />

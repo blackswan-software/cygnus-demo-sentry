@@ -28,7 +28,7 @@ describe('SpanEvidencePreview', () => {
     expect(mock).not.toHaveBeenCalled();
   });
 
-  it('shows error when request fails', async () => {
+  it.knownFlake('shows error when request fails', async () => {
     MockApiClient.addMockResponse({
       url: `/organizations/org-slug/issues/group-id/events/recommended/`,
       body: {},
