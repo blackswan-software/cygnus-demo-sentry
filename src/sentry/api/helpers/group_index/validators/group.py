@@ -94,14 +94,16 @@ class GroupValidator(serializers.Serializer[Group]):
             elif not project.member_set.filter(user_id=value.id).exists():
                 raise serializers.ValidationError("Cannot assign to non-team member")
 
-        if (
-            value
-            and value.is_team
-            and not self.context["project"].teams.filter(id=value.id).exists()
-        ):
-            raise serializers.ValidationError(
-                "Cannot assign to a team without access to the project"
-            )
+        if value and value.is_team:
+            organization = self.context["organization"]
+            project = self.context["project"]
+            # With open membership, allow assigning any org team. The team's
+            # org membership is already validated by ActorField.to_internal_value.
+            if not organization.flags.allow_joinleave:
+                if not project.teams.filter(id=value.id).exists():
+                    raise serializers.ValidationError(
+                        "Cannot assign to a team without access to the project"
+                    )
 
         return value
 
