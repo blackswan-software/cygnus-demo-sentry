@@ -211,4 +211,101 @@ describe('FilterSelector', () => {
     expect(screen.queryByRole('row', {name: '21'})).not.toBeInTheDocument();
     expect(screen.queryByRole('row', {name: '154'})).not.toBeInTheDocument();
   });
+
+  it('renders a (no value) option in the dropdown', async () => {
+    render(
+      <FilterSelector
+        globalFilter={mockGlobalFilter}
+        searchBarData={mockSearchBarData}
+        onUpdateFilter={mockOnUpdateFilter}
+        onRemoveFilter={mockOnRemoveFilter}
+      />
+    );
+
+    const button = screen.getByRole('button', {name: mockGlobalFilter.tag.key + ' :'});
+    await userEvent.click(button);
+
+    expect(screen.getByText('(no value)')).toBeInTheDocument();
+  });
+
+  it('produces !has:tagKey when only (no value) is selected', async () => {
+    render(
+      <FilterSelector
+        globalFilter={mockGlobalFilter}
+        searchBarData={mockSearchBarData}
+        onUpdateFilter={mockOnUpdateFilter}
+        onRemoveFilter={mockOnRemoveFilter}
+      />
+    );
+
+    const button = screen.getByRole('button', {name: mockGlobalFilter.tag.key + ' :'});
+    await userEvent.click(button);
+
+    await userEvent.click(screen.getByRole('checkbox', {name: 'Select (no value)'}));
+    await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
+
+    expect(mockOnUpdateFilter).toHaveBeenCalledWith({
+      ...mockGlobalFilter,
+      value: '!has:browser',
+    });
+  });
+
+  it('produces compound OR query when (no value) is selected with other values', async () => {
+    render(
+      <FilterSelector
+        globalFilter={mockGlobalFilter}
+        searchBarData={mockSearchBarData}
+        onUpdateFilter={mockOnUpdateFilter}
+        onRemoveFilter={mockOnRemoveFilter}
+      />
+    );
+
+    const button = screen.getByRole('button', {name: mockGlobalFilter.tag.key + ' :'});
+    await userEvent.click(button);
+
+    await userEvent.click(screen.getByRole('checkbox', {name: 'Select firefox'}));
+    await userEvent.click(screen.getByRole('checkbox', {name: 'Select (no value)'}));
+    await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
+
+    expect(mockOnUpdateFilter).toHaveBeenCalledWith({
+      ...mockGlobalFilter,
+      value: '(browser:firefox OR !has:browser)',
+    });
+  });
+
+  it('parses !has:browser and shows (no value) as selected', async () => {
+    render(
+      <FilterSelector
+        globalFilter={{...mockGlobalFilter, value: '!has:browser'}}
+        searchBarData={mockSearchBarData}
+        onUpdateFilter={mockOnUpdateFilter}
+        onRemoveFilter={mockOnRemoveFilter}
+      />
+    );
+
+    const button = screen.getByRole('button', {name: /browser/});
+    await userEvent.click(button);
+
+    expect(screen.getByRole('checkbox', {name: 'Select (no value)'})).toBeChecked();
+  });
+
+  it('parses compound OR query and shows both (no value) and regular values as selected', async () => {
+    render(
+      <FilterSelector
+        globalFilter={{
+          ...mockGlobalFilter,
+          value: '(browser:firefox OR !has:browser)',
+        }}
+        searchBarData={mockSearchBarData}
+        onUpdateFilter={mockOnUpdateFilter}
+        onRemoveFilter={mockOnRemoveFilter}
+      />
+    );
+
+    const button = screen.getByRole('button', {name: /browser/});
+    await userEvent.click(button);
+
+    expect(screen.getByRole('checkbox', {name: 'Select (no value)'})).toBeChecked();
+    expect(screen.getByRole('checkbox', {name: 'Select firefox'})).toBeChecked();
+  });
 });

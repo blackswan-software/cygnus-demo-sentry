@@ -7,6 +7,7 @@ import {cleanFilterValue} from 'sentry/components/searchQueryBuilder/tokens/filt
 import {getInitialFilterText} from 'sentry/components/searchQueryBuilder/tokens/utils';
 import {parseQueryBuilderValue} from 'sentry/components/searchQueryBuilder/utils';
 import {
+  FilterType,
   TermOperator,
   Token,
   type TokenResult,
@@ -14,6 +15,22 @@ import {
 import type {Tag} from 'sentry/types/group';
 import {getFieldDefinition, type FieldDefinition} from 'sentry/utils/fields';
 import {WidgetType, type GlobalFilter} from 'sentry/views/dashboards/types';
+
+/**
+ * Sentinel value used internally to represent the "(no value)" option
+ * in the filter selector. This is never sent to the backend.
+ */
+export const NO_VALUE_SENTINEL = '__no_value__';
+
+/**
+ * Operators that support the "(no value)" option.
+ */
+export const NO_VALUE_SUPPORTED_OPERATORS = new Set<TermOperator>([
+  TermOperator.DEFAULT,
+  TermOperator.NOT_EQUAL,
+  TermOperator.CONTAINS,
+  TermOperator.DOES_NOT_CONTAIN,
+]);
 
 export function globalFilterKeysAreEqual(a: GlobalFilter, b: GlobalFilter): boolean {
   return a.tag.key === b.tag.key && a.dataset === b.dataset;
@@ -122,4 +139,43 @@ export function newNumericFilterQuery(
     newOperator
   );
   return newFilterQuery;
+}
+
+/**
+ * Returns true if any of the parsed filter tokens is a negated HAS filter
+ * (i.e. `!has:tagKey`).
+ */
+export function hasNoValueFilter(
+  filterTokens: Array<TokenResult<Token.FILTER>>
+): boolean {
+  return filterTokens.some(token => token.filter === FilterType.HAS && token.negated);
+}
+
+/**
+ * Returns the first value-based filter token (i.e. not a `has:` / `!has:` existence
+ * check) from the list, or null. Used to extract the `browser:firefox` part from
+ * compound queries like `(browser:firefox OR !has:browser)`.
+ */
+export function getValueFilterToken(
+  filterTokens: Array<TokenResult<Token.FILTER>>
+): TokenResult<Token.FILTER> | null {
+  return filterTokens.find(token => token.filter !== FilterType.HAS) ?? null;
+}
+
+/**
+ * Builds the query string when "(no value)" is involved.
+ * Returns null if noValue is false (caller should use default path).
+ */
+export function buildNoValueFilterQuery(
+  tagKey: string,
+  valueQuery: string,
+  includeNoValue: boolean
+): string | null {
+  if (!includeNoValue) {
+    return null;
+  }
+  if (!valueQuery) {
+    return `!has:${tagKey}`;
+  }
+  return `(${valueQuery} OR !has:${tagKey})`;
 }

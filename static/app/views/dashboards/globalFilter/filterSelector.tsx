@@ -47,8 +47,13 @@ import {
   FilterValueTruncated,
 } from 'sentry/views/dashboards/globalFilter/filterSelectorTrigger';
 import {
+  buildNoValueFilterQuery,
   getFieldDefinitionForDataset,
   getFilterToken,
+  getValueFilterToken,
+  hasNoValueFilter,
+  NO_VALUE_SENTINEL,
+  NO_VALUE_SUPPORTED_OPERATORS,
   parseFilterValue,
 } from 'sentry/views/dashboards/globalFilter/utils';
 import {WidgetType, type GlobalFilter} from 'sentry/views/dashboards/types';
@@ -78,12 +83,29 @@ export function FilterSelector({
   // Ref to break the circular dependency: options need toggleOption, but toggleOption
   // comes from useStagedCompactSelect which depends on options.
   const toggleOptionRef = useRef<((val: string) => void) | undefined>(undefined);
+  // Ref to access staged select value from operator onClick without circular deps
+  const stagedValueRef = useRef<string[]>([]);
 
   const {fieldDefinition, filterToken} = useMemo(() => {
     const fieldDef = getFieldDefinitionForDataset(globalFilter.tag, globalFilter.dataset);
+
+    // For filters containing !has: (either standalone or compound with OR),
+    // we need a value-based filter token for the UI controls. Parse all tokens
+    // and prefer the value filter (non-HAS) one; fall back to a default token.
+    const allTokens = globalFilter.value
+      ? parseFilterValue(globalFilter.value, globalFilter)
+      : [];
+    const containsNoValue = hasNoValueFilter(allTokens);
+    const valueToken = containsNoValue ? getValueFilterToken(allTokens) : null;
+
     return {
       fieldDefinition: fieldDef,
-      filterToken: getFilterToken(globalFilter, fieldDef),
+      filterToken:
+        valueToken ??
+        getFilterToken(
+          containsNoValue ? {...globalFilter, value: ''} : globalFilter,
+          fieldDef
+        ),
     };
   }, [globalFilter]);
 
@@ -92,12 +114,33 @@ export function FilterSelector({
     if (!filterToken) {
       return [];
     }
-    const initialValue = globalFilter.value
-      ? getInitialInputValue(filterToken, true)
-      : '';
+
+    // Check if the filter value contains !has: (no value filter)
+    const allTokens = globalFilter.value
+      ? parseFilterValue(globalFilter.value, globalFilter)
+      : [];
+    const includesNoValue = hasNoValueFilter(allTokens);
+
+    // Extract values from the non-HAS token
+    const valueToken = includesNoValue ? getValueFilterToken(allTokens) : null;
+    const tokenForParsing = valueToken ?? filterToken;
+
+    const initialValue =
+      globalFilter.value && !includesNoValue
+        ? getInitialInputValue(tokenForParsing, true)
+        : valueToken
+          ? getInitialInputValue(valueToken, true)
+          : '';
+
     const selectedValues = getSelectedValuesFromText(initialValue, {escaped: false});
-    return selectedValues.map(item => item.value);
-  }, [filterToken, globalFilter.value]);
+    const values = selectedValues.map(item => item.value);
+
+    if (includesNoValue) {
+      values.push(NO_VALUE_SENTINEL);
+    }
+
+    return values;
+  }, [filterToken, globalFilter]);
 
   // Get operator info from the filter token
   const {initialOperator, operatorDropdownItems} = useMemo(() => {
@@ -119,6 +162,14 @@ export function FilterSelector({
         textValue: option.textValue,
         onClick: () => {
           setStagedOperator(option.value);
+          // Deselect "(no value)" when switching to an unsupported operator,
+          // but only if it's currently selected (toggle would re-select it otherwise)
+          if (
+            !NO_VALUE_SUPPORTED_OPERATORS.has(option.value) &&
+            stagedValueRef.current.includes(NO_VALUE_SENTINEL)
+          ) {
+            toggleOptionRef.current?.(NO_VALUE_SENTINEL);
+          }
         },
       })),
     };
@@ -229,8 +280,10 @@ export function FilterSelector({
       return map.set(value, option);
     };
 
-    // Filter values in the global filter
-    activeFilterValues.forEach(value => addOption(value, optionMap));
+    // Filter values in the global filter (skip the no-value sentinel, it's added separately)
+    activeFilterValues
+      .filter(value => value !== NO_VALUE_SENTINEL)
+      .forEach(value => addOption(value, optionMap));
 
     // Predefined values
     predefinedValues?.forEach(suggestionSection => {
@@ -247,11 +300,36 @@ export function FilterSelector({
     }
     // Staged filter values inside the filter selector
     stagedFilterValues.forEach(value => {
-      if (!optionMap.has(value)) {
+      if (value !== NO_VALUE_SENTINEL && !optionMap.has(value)) {
         addOption(value, fixedOptionMap);
       }
     });
-    return [...Array.from(fixedOptionMap.values()), ...Array.from(optionMap.values())];
+    const allOptions = [
+      ...Array.from(fixedOptionMap.values()),
+      ...Array.from(optionMap.values()),
+    ];
+
+    // Add "(no value)" option at the top for supported operators
+    if (NO_VALUE_SUPPORTED_OPERATORS.has(stagedOperator)) {
+      const noValueOption: SelectOption<string> = {
+        label: <NoValueLabel>{t('(no value)')}</NoValueLabel>,
+        textValue: t('(no value)'),
+        value: NO_VALUE_SENTINEL,
+      };
+      if (canSelectMultipleValues) {
+        noValueOption.leadingItems = ({isSelected}: {isSelected: boolean}) => (
+          <Checkbox
+            checked={isSelected}
+            onChange={() => toggleOptionRef.current?.(NO_VALUE_SENTINEL)}
+            aria-label={t('Select %s', t('(no value)'))}
+            tabIndex={-1}
+          />
+        );
+      }
+      allOptions.unshift(noValueOption);
+    }
+
+    return allOptions;
   }, [
     fetchedFilterValues,
     predefinedValues,
@@ -259,11 +337,17 @@ export function FilterSelector({
     stagedFilterValues,
     searchQuery,
     canSelectMultipleValues,
+    stagedOperator,
   ]);
 
   const translatedOptions = translateKnownFilterOptions(options, globalFilter);
 
-  const handleChange = (opts: string[]) => {
+  const handleChange = (rawOpts: string[]) => {
+    // Strip the sentinel if the current operator doesn't support it
+    const opts = NO_VALUE_SUPPORTED_OPERATORS.has(stagedOperator)
+      ? rawOpts
+      : rawOpts.filter(opt => opt !== NO_VALUE_SENTINEL);
+
     if (isEqual(opts, activeFilterValues) && stagedOperator === initialOperator) {
       return;
     }
@@ -281,19 +365,32 @@ export function FilterSelector({
       return;
     }
 
-    let newValue = '';
-    if (opts.length !== 0) {
+    // Separate regular values from the "(no value)" sentinel
+    const includeNoValue = opts.includes(NO_VALUE_SENTINEL);
+    const valueOpts = opts.filter(opt => opt !== NO_VALUE_SENTINEL);
+
+    // Build the regular value query string (if any regular values exist)
+    let valueQuery = '';
+    if (valueOpts.length > 0) {
       const cleanedValue = prepareInputValueForSaving(
         getFilterValueType(filterToken, fieldDefinition),
-        opts.map(opt => escapeTagValue(opt, {allowArrayValue: false})).join(',')
+        valueOpts.map(opt => escapeTagValue(opt, {allowArrayValue: false})).join(',')
       );
-      newValue = modifyFilterValue(filterToken.text, filterToken, cleanedValue);
+      valueQuery = modifyFilterValue(filterToken.text, filterToken, cleanedValue);
+
+      if (stagedOperator !== initialOperator) {
+        const newToken = parseFilterValue(valueQuery, globalFilter)[0] ?? filterToken;
+        valueQuery = modifyFilterOperatorQuery(newToken.text, newToken, stagedOperator);
+      }
     }
 
-    if (stagedOperator !== initialOperator) {
-      const newToken = parseFilterValue(newValue, globalFilter)[0] ?? filterToken;
-      newValue = modifyFilterOperatorQuery(newToken.text, newToken, stagedOperator);
-    }
+    // Build the final value, wrapping with OR !has: if "(no value)" is selected
+    const noValueQuery = buildNoValueFilterQuery(
+      globalFilter.tag.key,
+      valueQuery,
+      includeNoValue
+    );
+    const newValue = noValueQuery ?? valueQuery;
 
     onUpdateFilter({
       ...globalFilter,
@@ -313,24 +410,32 @@ export function FilterSelector({
     hasExternalChanges: hasOperatorChanges,
   });
 
-  // Wire up toggleOptionRef after stagedSelect is created to break the circular
+  // Wire up refs after stagedSelect is created to break the circular
   // dependency between options (which need toggleOption) and useStagedCompactSelect
   // (which needs options).
   toggleOptionRef.current = stagedSelect.toggleOption;
+  stagedValueRef.current = stagedSelect.value;
 
   const {dispatch} = stagedSelect;
   const hasStagedChanges =
     xor(stagedSelect.value, activeFilterValues).length > 0 || hasOperatorChanges;
 
-  const renderFilterSelectorTrigger = (filterValues: string[]) => (
-    <FilterSelectorTrigger
-      globalFilter={globalFilter}
-      activeFilterValues={filterValues}
-      operator={stagedOperator}
-      options={translatedOptions}
-      queryResult={queryResult}
-    />
-  );
+  const renderFilterSelectorTrigger = (filterValues: string[]) => {
+    // Strip the sentinel from display when the operator doesn't support it
+    const displayValues = NO_VALUE_SUPPORTED_OPERATORS.has(stagedOperator)
+      ? filterValues
+      : filterValues.filter(v => v !== NO_VALUE_SENTINEL);
+
+    return (
+      <FilterSelectorTrigger
+        globalFilter={globalFilter}
+        activeFilterValues={displayValues}
+        operator={stagedOperator}
+        options={translatedOptions}
+        queryResult={queryResult}
+      />
+    );
+  };
 
   if (!canSelectMultipleValues) {
     return (
@@ -514,4 +619,8 @@ const WildcardButton = styled(Flex)`
 const SubText = styled('span')`
   color: ${p => p.theme.tokens.content.secondary};
   font-size: ${p => p.theme.font.size.sm};
+`;
+
+const NoValueLabel = styled('span')`
+  color: ${p => p.theme.tokens.content.secondary};
 `;
