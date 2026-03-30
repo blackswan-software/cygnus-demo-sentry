@@ -163,17 +163,10 @@ export function getValueFilterToken(
 }
 
 /**
- * Builds the query string when "(no value)" is involved.
- * Returns null if noValue is false (caller should use default path).
+ * Builds the query string for a "(no value)" filter, optionally combined
+ * with a value-based query using OR.
  */
-export function buildNoValueFilterQuery(
-  tagKey: string,
-  valueQuery: string,
-  includeNoValue: boolean
-): string | null {
-  if (!includeNoValue) {
-    return null;
-  }
+export function buildNoValueFilterQuery(tagKey: string, valueQuery?: string): string {
   if (!valueQuery) {
     return `!has:${tagKey}`;
   }

@@ -12,6 +12,7 @@ import {
 } from '@sentry/scraps/compactSelect';
 import {Container, Flex} from '@sentry/scraps/layout';
 import {OverlayTrigger} from '@sentry/scraps/overlayTrigger';
+import {Text} from '@sentry/scraps/text';
 
 import {DropdownMenu} from 'sentry/components/dropdownMenu';
 import {usePageFilters} from 'sentry/components/pageFilters/usePageFilters';
@@ -312,7 +313,7 @@ export function FilterSelector({
     // Add "(no value)" option at the top for supported operators
     if (NO_VALUE_SUPPORTED_OPERATORS.has(stagedOperator)) {
       const noValueOption: SelectOption<string> = {
-        label: <NoValueLabel>{t('(no value)')}</NoValueLabel>,
+        label: <Text variant="muted">{t('(no value)')}</Text>,
         textValue: t('(no value)'),
         value: NO_VALUE_SENTINEL,
       };
@@ -365,11 +366,11 @@ export function FilterSelector({
       return;
     }
 
-    // Separate regular values from the "(no value)" sentinel
+    // Separate values from the "(no value)" sentinel
     const includeNoValue = opts.includes(NO_VALUE_SENTINEL);
     const valueOpts = opts.filter(opt => opt !== NO_VALUE_SENTINEL);
 
-    // Build the regular value query string (if any regular values exist)
+    // Build the value query string (if any tag values are selected)
     let valueQuery = '';
     if (valueOpts.length > 0) {
       const cleanedValue = prepareInputValueForSaving(
@@ -384,13 +385,9 @@ export function FilterSelector({
       }
     }
 
-    // Build the final value, wrapping with OR !has: if "(no value)" is selected
-    const noValueQuery = buildNoValueFilterQuery(
-      globalFilter.tag.key,
-      valueQuery,
-      includeNoValue
-    );
-    const newValue = noValueQuery ?? valueQuery;
+    const newValue = includeNoValue
+      ? buildNoValueFilterQuery(globalFilter.tag.key, valueQuery || undefined)
+      : valueQuery;
 
     onUpdateFilter({
       ...globalFilter,
@@ -619,8 +616,4 @@ const WildcardButton = styled(Flex)`
 const SubText = styled('span')`
   color: ${p => p.theme.tokens.content.secondary};
   font-size: ${p => p.theme.font.size.sm};
-`;
-
-const NoValueLabel = styled('span')`
-  color: ${p => p.theme.tokens.content.secondary};
 `;
