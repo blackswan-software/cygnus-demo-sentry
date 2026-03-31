@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TooltipComponentFormatterCallbackParams} from 'echarts';
 
 import type {TooltipOption} from 'sentry/components/charts/baseChart';
@@ -83,24 +83,20 @@ export function useAttributeBreakdownsTooltip({
   chartWidth,
   actions,
 }: Params): TooltipOption {
-  const [frozenPosition, setFrozenPosition] = useState<[number, number] | null>(null);
-  const tooltipParamsRef = useRef<TooltipComponentFormatterCallbackParams | null>(null);
+  // Using a ref instead of state so that freezing/unfreezing never triggers a React re-render.
+  // A state change would cause BaseChart to receive a new tooltip prop, which calls
+  // setOption({ notMerge: true }) — resetting the entire chart, hiding the tooltip, and making
+  // the chart layout stale. dispatchAction({ type: 'showTip' }) then fails to re-show content
+  // reliably because axis-to-pixel conversions are unreliable mid-reset.
+  // With a ref, the tooltip config is stable; dispatchAction is called synchronously in the
+  // click handler while the chart layout is still valid.
+  const frozenPositionRef = useRef<[number, number] | null>(null);
 
-  // This effect runs on load and when the frozen position changes.
-  // - If frozen position is set, trigger a re-render of the tooltip with frozen position to show the
-  //   tooltip actions (if passed in).
-  // - Sets up the listener for clicks anywhere on the chart to toggle the frozen tooltip state.
+  // Sets up all event listeners for freeze/unfreeze, mouseleave, and tooltip action clicks.
+  // Depends only on chartRef and actions — does NOT re-run on every freeze/unfreeze.
   useEffect(() => {
     const chartInstance = chartRef.current?.getEchartsInstance();
     if (!chartInstance) return;
-
-    if (frozenPosition) {
-      chartInstance.dispatchAction({
-        type: 'showTip',
-        x: frozenPosition[0],
-        y: frozenPosition[1],
-      });
-    }
 
     const dom = chartInstance.getDom();
 
@@ -108,20 +104,24 @@ export function useAttributeBreakdownsTooltip({
       event.preventDefault();
       const pixelPoint: [number, number] = [event.offsetX, event.offsetY];
 
-      // If the tooltip is frozen, toggle the frozen state and reset the tooltip params.
-      if (frozenPosition) {
-        setFrozenPosition(null);
-        tooltipParamsRef.current = null;
-      } else {
-        // If the tooltip is not frozen, set the frozen position to the current pixel point.
-        setFrozenPosition(pixelPoint);
-      }
+      // Toggle frozen state. The ref is updated synchronously before dispatchAction
+      // so the formatter closure reads the correct value when echarts calls it.
+      frozenPositionRef.current = frozenPositionRef.current ? null : pixelPoint;
+
+      // Dispatch showTip synchronously while the chart layout is intact (no setOption
+      // has been called), so echarts can reliably map x/y to axis data and re-invoke
+      // the formatter with correct params.
+      chartInstance.dispatchAction({
+        type: 'showTip',
+        x: pixelPoint[0],
+        y: pixelPoint[1],
+      });
     };
 
     const handleMouseLeave = (event: MouseEvent) => {
       let el = event.relatedTarget as HTMLElement | null;
 
-      // Don't hide actions if the mouse is moving into the tooltip content.
+      // Don't clear if the mouse is moving into the tooltip content.
       while (el) {
         if (el.dataset?.attributeBreakdownsChartRegion !== undefined) {
           return;
@@ -129,26 +129,13 @@ export function useAttributeBreakdownsTooltip({
         el = el.parentElement;
       }
 
-      tooltipParamsRef.current = null;
-      setFrozenPosition(null);
+      frozenPositionRef.current = null;
     };
 
-    dom.addEventListener('click', handleClickAnywhere);
-    dom.addEventListener('mouseleave', handleMouseLeave);
-
-    // eslint-disable-next-line consistent-return
-    return () => {
-      dom.removeEventListener('click', handleClickAnywhere);
-      dom.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, [chartRef, frozenPosition]);
-
-  // This effect sets up the on click listeners for the tooltip actions.
-  // e-charts tooltips do not support actions out of the box, so we need to handle them manually.
-  useEffect(() => {
-    if (!frozenPosition) return;
-
+    // Handle tooltip action button clicks via event delegation.
+    // The guard on frozenPositionRef ensures clicks only fire when frozen.
     const handleClickActions = (event: MouseEvent) => {
+      if (!frozenPositionRef.current) return;
       event.preventDefault();
 
       const target = event.target as HTMLElement;
@@ -179,38 +166,40 @@ export function useAttributeBreakdownsTooltip({
       }
     };
 
-    // TODO Abdullah Khan: For now, attaching the listener to document.body
-    // Tried using a more specific selector causes weird race conditions, will need to investigate.
+    dom.addEventListener('click', handleClickAnywhere);
+    dom.addEventListener('mouseleave', handleMouseLeave);
     document.addEventListener('click', handleClickActions);
     document.addEventListener('mouseover', handleMouseOver);
     document.addEventListener('mouseout', handleMouseOut);
 
     // eslint-disable-next-line consistent-return
     return () => {
+      dom.removeEventListener('click', handleClickAnywhere);
+      dom.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('click', handleClickActions);
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
     };
-  }, [frozenPosition, actions]);
+  }, [chartRef, actions]);
 
+  // tooltipConfig is stable — frozenPositionRef is not in the deps array, so BaseChart
+  // never receives a new tooltip prop on freeze/unfreeze and setOption is never called.
   const tooltipConfig: TooltipOption = useMemo(
     () => ({
       trigger: 'axis',
       appendToBody: true,
       renderMode: 'html',
-      enterable: frozenPosition ? true : false,
+      // Always enterable so the mouse can move into the tooltip to click actions without
+      // triggering a mouseleave on the chart canvas.
+      enterable: true,
       formatter: (params: TooltipComponentFormatterCallbackParams) => {
         // Wrap the content in a div with the data-attribute-breakdowns-chart-region attribute
-        // to preventthe tooltip from being closed when the mouse is moved to the tooltip content
+        // to prevent the tooltip from being closed when the mouse is moved to the tooltip content
         // and clicking actions shouldn't clear the chart selection.
         const wrapContent = (content: string) =>
           `<div data-attribute-breakdowns-chart-region>${content}</div>`;
 
-        // If the tooltip is NOT frozen, set the tooltip params and return the formatted content,
-        // including the tooltip actions placeholder.
-        if (!frozenPosition) {
-          tooltipParamsRef.current = params;
-
+        if (!frozenPositionRef.current) {
           const actionsPlaceholder = actions?.htmlRenderer
             ? `
           <div
@@ -230,15 +219,10 @@ export function useAttributeBreakdownsTooltip({
           return wrapContent(formatter(params) + actionsPlaceholder);
         }
 
-        if (!tooltipParamsRef.current) {
-          return wrapContent('\u2014');
-        }
-
-        // If the tooltip is frozen, use the cached tooltip params and
-        // return the formatted content, including the tooltip actions.
-        const p = tooltipParamsRef.current;
-        const value = (Array.isArray(p) ? p[0]?.name : p.name) ?? '';
-        return wrapContent(formatter(p) + (actions?.htmlRenderer(value) ?? ''));
+        // Frozen: the ref was set synchronously before dispatchAction fired, so echarts
+        // calls this formatter with fresh params for the frozen position.
+        const value = (Array.isArray(params) ? params[0]?.name : params.name) ?? '';
+        return wrapContent(formatter(params) + (actions?.htmlRenderer(value) ?? ''));
       },
       position(
         point: [number, number],
@@ -247,7 +231,7 @@ export function useAttributeBreakdownsTooltip({
       ) {
         const dom = el as HTMLDivElement;
         const tooltipWidth = dom?.offsetWidth ?? 0;
-        const [rawX = 0, rawY = 0] = frozenPosition ?? point;
+        const [rawX = 0, rawY = 0] = frozenPositionRef.current ?? point;
 
         let x = rawX + TOOLTIP_POSITION_X_OFFSET;
         const y = rawY + TOOLTIP_POSITION_Y_OFFSET;
@@ -260,7 +244,7 @@ export function useAttributeBreakdownsTooltip({
         return [x, y];
       },
     }),
-    [frozenPosition, chartWidth, formatter, actions, tooltipParamsRef]
+    [chartWidth, formatter, actions]
   );
 
   return tooltipConfig;
