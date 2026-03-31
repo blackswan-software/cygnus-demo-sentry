@@ -1,21 +1,29 @@
 import {useState} from 'react';
+import {css} from '@emotion/react';
 import {mutationOptions} from '@tanstack/react-query';
 import {z} from 'zod';
 
 import {Alert} from '@sentry/scraps/alert';
 import {Button} from '@sentry/scraps/button';
-import {AutoSaveForm, FieldGroup} from '@sentry/scraps/form';
+import {
+  AutoSaveForm,
+  defaultFormOptions,
+  FieldGroup,
+  useScrapsForm,
+} from '@sentry/scraps/form';
 import {Container, Flex, Stack} from '@sentry/scraps/layout';
 import {ExternalLink, Link} from '@sentry/scraps/link';
 import {Text} from '@sentry/scraps/text';
 
 import {addErrorMessage} from 'sentry/actionCreators/indicator';
+import {openModal} from 'sentry/actionCreators/modal';
 import {updateOrganization} from 'sentry/actionCreators/organizations';
 import {
   bulkAutofixAutomationSettingsInfiniteOptions,
   type AutofixAutomationSettings,
 } from 'sentry/components/events/autofix/preferences/hooks/useBulkAutofixAutomationSettings';
 import {organizationIntegrationsCodingAgents} from 'sentry/components/events/autofix/useAutofix';
+import {ConfigAutofixProjectRepoMappingModal} from 'sentry/components/seer/autofixConfig/configAutofixProjectRepoMappingModal';
 import {IconSettings} from 'sentry/icons';
 import {t, tct, tn} from 'sentry/locale';
 import type {Organization} from 'sentry/types/organization';
@@ -80,7 +88,11 @@ type Props = ReturnType<typeof useAutofixOverviewData> & {
 export function AutofixOverviewSection({canWrite, data, isPending, organization}: Props) {
   const {projects} = useProjects();
 
-  const {projectsWithPreferredAgent = [], projectsWithCreatePr = []} = data ?? {};
+  const {
+    projectsWithRepos = [],
+    projectsWithPreferredAgent = [],
+    projectsWithCreatePr = [],
+  } = data ?? {};
 
   const [isBulkMutatingAgent, setIsBulkMutatingAgent] = useState(false);
   const [isBulkMutatingCreatePr, setIsBulkMutatingCreatePr] = useState(false);
@@ -100,6 +112,11 @@ export function AutofixOverviewSection({canWrite, data, isPending, organization}
         </Flex>
       }
     >
+      <ConnectedReposForm
+        projects={projects}
+        projectsWithReposCount={projectsWithRepos.length}
+      />
+
       <AgentNameForm
         canWrite={canWrite}
         isPending={isPending}
@@ -122,6 +139,77 @@ export function AutofixOverviewSection({canWrite, data, isPending, organization}
         projectsWithCreatePr={projectsWithCreatePr}
       />
     </FieldGroup>
+  );
+}
+
+function ConnectedReposForm({
+  projects,
+  projectsWithReposCount,
+}: {
+  projects: Project[];
+  projectsWithReposCount: number;
+}) {
+  const form = useScrapsForm(defaultFormOptions);
+
+  return (
+    <form.AppForm form={form}>
+      <form.AppField name="placeholder">
+        {field => (
+          <Stack gap="md">
+            <field.Layout.Row
+              label={t('Projects with connected repos')}
+              hintText={t(
+                'Projects must be connected to a repo in order for Autofix to collect context and debug issues.'
+              )}
+            >
+              <Container flexGrow={1}>
+                <Button
+                  priority="primary"
+                  size="sm"
+                  onClick={() => {
+                    openModal(
+                      deps => (
+                        <ConfigAutofixProjectRepoMappingModal
+                          title={t('Connect Projects and Repos')}
+                          Header={Header}
+                          Body={Body}
+                        />
+                      ),
+                      {
+                        modalCss: css`
+                          width: 700px;
+                        `,
+                        // onClose: refetchIntegrations,
+                      }
+                    );
+                  }}
+                >
+                  {t('Connect Projects and Repos')}
+                </Button>
+              </Container>
+            </field.Layout.Row>
+
+            <Flex align="center" alignSelf="end" gap="md" width="50%" paddingLeft="xl">
+              <Text variant="secondary" size="sm">
+                {projects.length === 0
+                  ? t('No projects found')
+                  : projects.length === 1
+                    ? projectsWithReposCount === 1
+                      ? t('Your existing project has repos connected')
+                      : t('Your existing project does not have any repos connected')
+                    : projects.length === projectsWithReposCount
+                      ? t('All existing projects have repos connected')
+                      : t(
+                          '%s of %s existing projects have repos connected',
+                          projectsWithReposCount,
+                          projects.length
+                        )}
+              </Text>
+            </Flex>
+          </Stack>
+        )}
+      </form.AppField>
+    </form.AppForm>
   );
 }
 
