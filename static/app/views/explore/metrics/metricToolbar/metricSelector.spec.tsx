@@ -138,6 +138,25 @@ describe('MetricSelector', () => {
       });
     });
 
+    it('dismisses outside click without committing the current keyboard focus', async () => {
+      const onChange = jest.fn();
+      render(<MetricSelector traceMetric={DEFAULT_TRACE_METRIC} onChange={onChange} />, {
+        organization,
+      });
+
+      await userEvent.click(screen.getByRole('button', {name: 'bar'}));
+      await screen.findByRole('option', {name: SORTED_METRIC_NAMES[0]!});
+      await userEvent.keyboard('{ArrowDown}');
+      await userEvent.keyboard('{ArrowDown}');
+      await userEvent.click(document.body);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
     it('closes after selecting an option and calls onChange', async () => {
       const onChange = jest.fn();
       render(<MetricSelector traceMetric={DEFAULT_TRACE_METRIC} onChange={onChange} />, {

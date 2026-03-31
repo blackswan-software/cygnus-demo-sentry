@@ -328,7 +328,9 @@ export function MetricSelector({
       if (open) {
         comboBoxState.open();
       } else {
-        comboBoxState.close();
+        // close() commits the current selected key before dismissing, which
+        // spuriously re-fires onSelectionChange during outside dismissals.
+        comboBoxState.toggle();
       }
     },
   });
