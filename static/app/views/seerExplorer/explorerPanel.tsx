@@ -827,7 +827,14 @@ function SeerFloatingActionButton(props: SeerFloatingActionButtonProps) {
           onMouseEnter={() => setButtonAreaHovered(true)}
           onMouseLeave={() => setButtonAreaHovered(false)}
         >
-          <ButtonHoverCatch />
+          <Container
+            position="absolute"
+            left={`-${theme.space.md}`}
+            right={`-${theme.space.xl}`}
+            top={`-${theme.space.xl}`}
+            bottom="0"
+            pointerEvents="auto"
+          />
           <SeerButton
             initial={{opacity: 0, scale: 0.9, y: 20}}
             animate={{opacity: 1, scale: 1, y: 0}}
@@ -847,20 +854,6 @@ function SeerFloatingActionButton(props: SeerFloatingActionButtonProps) {
     </AnimatePresence>
   );
 }
-
-/**
- * Invisible area above the button that blocks footer hover events when the
- * mouse approaches from above. Only extends upward so it doesn't overlap
- * the footer below and block clicks on footer links.
- */
-const ButtonHoverCatch = styled('div')`
-  position: absolute;
-  left: -${p => p.theme.space.md};
-  right: -${p => p.theme.space.xl};
-  top: -${p => p.theme.space.xl};
-  bottom: 0;
-  pointer-events: auto;
-`;
 
 const SeerButton = styled(MotionButton)`
   position: relative;
