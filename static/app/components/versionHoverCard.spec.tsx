@@ -37,6 +37,7 @@ describe('VersionHoverCard', () => {
         organization={organization}
         projectSlug={project.slug}
         releaseVersion={release.version}
+        delay={0}
       >
         <div>{release.version}</div>
       </VersionHoverCard>
