@@ -24,6 +24,8 @@ import {
 import {TraceItemDataset} from 'sentry/views/explore/types';
 import {useOnboardingProject} from 'sentry/views/insights/common/queries/useOnboardingProject';
 
+const METRICS_TITLE = t('Application Metrics');
+
 export default function MetricsContent() {
   const organization = useOrganization();
   const onboardingProject = useOnboardingProject({property: 'hasTraceMetrics'});
@@ -32,7 +34,7 @@ export default function MetricsContent() {
   });
   const datePageFilterProps = useDatePageFilterProps(maxPickableDays);
   return (
-    <SentryDocumentTitle title={t('Metrics')} orgSlug={organization?.slug}>
+    <SentryDocumentTitle title={METRICS_TITLE} orgSlug={organization?.slug}>
       <PageFiltersContainer
         maxPickableDays={datePageFilterProps.maxPickableDays}
         defaultSelection={
@@ -80,7 +82,7 @@ function MetricsHeader() {
       <Layout.HeaderContent unified>
         {hasSavedQueryTitle ? (
           <SentryDocumentTitle
-            title={`${savedQuery.name} — ${t('Metrics')}`}
+            title={`${savedQuery.name} — ${METRICS_TITLE}`}
             orgSlug={organization?.slug}
           />
         ) : null}
@@ -88,7 +90,7 @@ function MetricsHeader() {
           <ExploreBreadcrumb traceItemDataset={TraceItemDataset.TRACEMETRICS} />
         ) : null}
         <Layout.Title>
-          {title ? title : t('Metrics')}
+          {title ? title : METRICS_TITLE}
           <FeatureBadge type="beta" />
         </Layout.Title>
       </Layout.HeaderContent>
