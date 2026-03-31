@@ -251,7 +251,9 @@ export function MetricSelector({
     if (open) {
       nextFrameCallback(() => {
         updateOverlay?.();
-        scrollElementRef.current?.scrollTo({top: 0});
+        if (scrollElementRef.current) {
+          scrollElementRef.current.scrollTop = 0;
+        }
       });
       return;
     }
@@ -278,6 +280,7 @@ export function MetricSelector({
     allowsEmptyCollection: true,
     shouldCloseOnBlur: false,
     menuTrigger: 'manual',
+    defaultFilter: () => true,
     inputValue: searchInputValue,
     onInputChange: setSearchInputValue,
     selectedKey: traceMetric.name ? traceMetricSelectValue : null,
