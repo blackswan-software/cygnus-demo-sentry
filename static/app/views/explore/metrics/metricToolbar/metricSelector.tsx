@@ -249,7 +249,10 @@ export function MetricSelector({
 
   function handleOverlayOpenChange(open: boolean) {
     if (open) {
-      nextFrameCallback(() => updateOverlay?.());
+      nextFrameCallback(() => {
+        updateOverlay?.();
+        scrollElementRef.current?.scrollTo({top: 0});
+      });
       return;
     }
 
