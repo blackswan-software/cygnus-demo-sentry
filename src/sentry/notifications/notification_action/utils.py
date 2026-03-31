@@ -1,5 +1,6 @@
 import logging
 
+from sentry.eventstore.models import GroupEvent
 from sentry.incidents.grouptype import MetricIssue
 from sentry.models.activity import Activity
 from sentry.models.organization import Organization
@@ -9,11 +10,25 @@ from sentry.notifications.notification_action.registry import (
     metric_alert_handler_registry,
 )
 from sentry.notifications.notification_action.types import BaseMetricAlertHandler
+from sentry.notifications.platform.service import NotificationService
+from sentry.notifications.platform.target import IntegrationNotificationTarget
 from sentry.notifications.platform.templates.issue import (
     IssueNotificationData,
     SerializableRuleProxy,
 )
+from sentry.notifications.platform.templates.metric_alert import (
+    ActivityMetricAlertNotificationData,
+    MetricAlertNotificationData,
+    SerializableAlertContext,
+)
+from sentry.notifications.platform.threading import ThreadingOptions, ThreadKey
+from sentry.notifications.platform.types import (
+    NotificationProviderKey,
+    NotificationSource,
+    NotificationTargetResourceType,
+)
 from sentry.utils.registry import NoRegistrationExistsError
+from sentry.workflow_engine.models import Action
 from sentry.workflow_engine.types import ActionInvocation
 
 logger = logging.getLogger(__name__)
@@ -90,10 +105,99 @@ def execute_via_issue_alert_handler(invocation: ActionInvocation) -> None:
         raise
 
 
+def send_metric_alert_via_notification_platform(invocation: ActionInvocation) -> None:
+    notification_context = BaseMetricAlertHandler.build_notification_context(invocation.action)
+
+    if (
+        notification_context.integration_id is None
+        or notification_context.target_identifier is None
+    ):
+        logger.warning(
+            "notification_action.metric_alert.notification_platform.missing_integration_or_target",
+            extra={"action_id": invocation.action.id, "detector_id": invocation.detector.id},
+        )
+        return
+
+    event = invocation.event_data.event
+    organization = invocation.detector.project.organization
+
+    if isinstance(event, GroupEvent):
+        evidence_data, priority = BaseMetricAlertHandler._extract_from_group_event(event)
+    elif isinstance(event, Activity):
+        evidence_data, priority = BaseMetricAlertHandler._extract_from_activity(event)
+    else:
+        raise ValueError(
+            "WorkflowEventData.event must be a GroupEvent or Activity to invoke metric alert notification platform"
+        )
+
+    alert_context = BaseMetricAlertHandler.build_alert_context(
+        invocation.detector, evidence_data, invocation.event_data.group.status, priority
+    )
+    open_period_context = BaseMetricAlertHandler.build_open_period_context(
+        invocation.event_data.group
+    )
+    serializable_alert_context = SerializableAlertContext.from_alert_context(alert_context)
+
+    data: ActivityMetricAlertNotificationData | MetricAlertNotificationData
+    if isinstance(event, Activity):
+        data = ActivityMetricAlertNotificationData(
+            activity_id=event.id,
+            group_id=invocation.event_data.group.id,
+            organization_id=organization.id,
+            detector_id=invocation.detector.id,
+            alert_context=serializable_alert_context,
+            open_period_context=open_period_context,
+            notification_uuid=invocation.notification_uuid,
+        )
+    else:
+        data = MetricAlertNotificationData(
+            event_id=event.event_id,
+            project_id=invocation.detector.project.id,
+            group_id=invocation.event_data.group.id,
+            organization_id=organization.id,
+            detector_id=invocation.detector.id,
+            alert_context=serializable_alert_context,
+            open_period_context=open_period_context,
+            notification_uuid=invocation.notification_uuid,
+        )
+
+    target = IntegrationNotificationTarget(
+        provider_key=NotificationProviderKey.SLACK,
+        resource_type=NotificationTargetResourceType.CHANNEL,
+        resource_id=notification_context.target_identifier,
+        integration_id=notification_context.integration_id,
+        organization_id=organization.id,
+    )
+
+    thread_key = ThreadKey(
+        key_type=NotificationSource.METRIC_ALERT,
+        key_data={
+            "action_id": invocation.action.id,
+            "group_id": invocation.event_data.group.id,
+            "open_period_id": open_period_context.id,
+        },
+    )
+    # Resolutions reply into the original alert thread and broadcast to the channel.
+    threading_options = ThreadingOptions(
+        thread_key=thread_key,
+        reply_broadcast=isinstance(event, Activity),
+    )
+
+    NotificationService(data=data).notify_sync(
+        targets=[target], threading_options=threading_options
+    )
+
+
 def execute_via_metric_alert_handler(invocation: ActionInvocation) -> None:
     """
     This exists so that all metric alert resolution actions can use the same handler as metric alerts
     """
+    if invocation.action.type == Action.Type.SLACK:
+        organization = invocation.detector.project.organization
+        if NotificationService.has_access(organization, NotificationSource.METRIC_ALERT):
+            send_metric_alert_via_notification_platform(invocation)
+            return
+
     try:
         handler = metric_alert_handler_registry.get(invocation.action.type)
         handler.invoke_legacy_registry(invocation)
