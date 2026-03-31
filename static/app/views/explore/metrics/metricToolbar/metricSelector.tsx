@@ -279,7 +279,7 @@ export function MetricSelector({
     onInputChange: setSearchInputValue,
     selectedKey: traceMetric.name ? traceMetricSelectValue : null,
     onSelectionChange: key => {
-      if (!key || !comboBoxState.isOpen) {
+      if (!key) {
         return;
       }
       const selectedOption = displayedOptionsMap.get(String(key));
@@ -289,6 +289,10 @@ export function MetricSelector({
           type: selectedOption.metricType,
           unit: hasMetricUnitsUI ? selectedOption.metricUnit : undefined,
         });
+        // Close via toggle() instead of close() because the combobox
+        // overrides close with commitValue which re-fires onSelectionChange
+        // with the stale previous key, reverting the selection.
+        comboBoxState.toggle();
       }
     },
     onOpenChange: handleOverlayOpenChange,
@@ -518,7 +522,6 @@ export function MetricSelector({
                                   key={item.key}
                                   item={item}
                                   listState={comboBoxState}
-                                  onSelect={() => comboBoxState.close()}
                                   size="md"
                                   dataIndex={virtualRow.index}
                                   measureRef={virtualizer.measureElement}
@@ -552,7 +555,6 @@ interface MetricListBoxOptionProps {
   dataIndex: number;
   item: Node<MetricSelectOption>;
   listState: ComboBoxState<MetricSelectOption>;
-  onSelect: () => void;
   size: MenuListItemProps['size'];
   measureRef?: React.Ref<HTMLLIElement>;
 }
@@ -563,7 +565,6 @@ function MetricListBoxOption({
   size,
   dataIndex,
   measureRef,
-  onSelect,
 }: MetricListBoxOptionProps) {
   const ref = useRef<HTMLLIElement>(null);
   const option = item.value!;
@@ -578,13 +579,6 @@ function MetricListBoxOption({
     ref
   );
   const optionPropsMerged = mergeProps(optionProps, {
-    onClick: () => {
-      // Close the combobox after a mouse selection. useOption fires
-      // onSelectionChange via the selection manager but doesn't close
-      // the combobox (that's normally handled by commit/revert flows).
-      // Using onClick ensures the selection is processed before close.
-      onSelect();
-    },
     onMouseEnter: () => {
       listState.selectionManager.setFocused(true);
       listState.selectionManager.setFocusedKey(item.key);
