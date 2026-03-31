@@ -1,6 +1,6 @@
 import {useState} from 'react';
 
-import {Stack} from '@sentry/scraps/layout';
+import {Container, Stack} from '@sentry/scraps/layout';
 
 import {Panel} from 'sentry/components/panels/panel';
 import {PanelBody} from 'sentry/components/panels/panelBody';
@@ -14,13 +14,12 @@ import {useMetricAggregatesTable} from 'sentry/views/explore/metrics/hooks/useMe
 import {useMetricSamplesTable} from 'sentry/views/explore/metrics/hooks/useMetricSamplesTable';
 import {useMetricTimeseries} from 'sentry/views/explore/metrics/hooks/useMetricTimeseries';
 import {useTableOrientationControl} from 'sentry/views/explore/metrics/hooks/useOrientationControl';
-import {MetricsGraph} from 'sentry/views/explore/metrics/metricGraph';
-import {MetricInfoTabs} from 'sentry/views/explore/metrics/metricInfoTabs';
 import {SideBySideOrientation} from 'sentry/views/explore/metrics/metricPanel/sideBySideOrientation';
 import {StackedOrientation} from 'sentry/views/explore/metrics/metricPanel/stackedOrientation';
 import {type TraceMetric} from 'sentry/views/explore/metrics/metricQuery';
 import {canUseMetricsUIRefresh} from 'sentry/views/explore/metrics/metricsFlags';
 import {useMetricVisualize} from 'sentry/views/explore/metrics/metricsQueryParams';
+import {MetricToolbar} from 'sentry/views/explore/metrics/metricToolbar';
 import {getMetricTableColumnType} from 'sentry/views/explore/metrics/utils';
 import {
   useQueryParamsAggregateSortBys,
@@ -53,8 +52,6 @@ export function MetricPanel({traceMetric, queryIndex}: MetricPanelProps) {
   const columns = TraceSamplesTableColumns;
   const fields = columns.filter(c => getMetricTableColumnType(c) !== 'stat');
 
-  const hasMetricsUIRefresh = canUseMetricsUIRefresh(organization);
-
   const metricSamplesTableResult = useMetricSamplesTable({
     disabled: !traceMetric?.name || isMetricOptionsEmpty,
     limit: RESULT_LIMIT,
@@ -74,6 +71,7 @@ export function MetricPanel({traceMetric, queryIndex}: MetricPanelProps) {
   const aggregateSortBys = useQueryParamsAggregateSortBys();
   const [interval] = useChartInterval();
   const topEvents = useTopEvents();
+  const visualize = useMetricVisualize();
 
   useMetricsPanelAnalytics({
     interval,
@@ -88,28 +86,25 @@ export function MetricPanel({traceMetric, queryIndex}: MetricPanelProps) {
     panelIndex: queryIndex,
   });
 
-  const visualize = useMetricVisualize();
-
-  if (hasMetricsUIRefresh) {
+  if (canUseMetricsUIRefresh(organization)) {
     return (
       <Panel data-test-id="metric-panel">
         <PanelBody>
           <Stack gap="sm">
-            <MetricsGraph
-              timeseriesResult={timeseriesResult}
-              orientation={orientation}
-              isMetricOptionsEmpty={isMetricOptionsEmpty}
-              queryIndex={queryIndex}
-            />
-            {visualize.visible && (
-              <MetricInfoTabs
+            <Container paddingBottom={visualize.visible ? undefined : 'sm'}>
+              <MetricToolbar traceMetric={traceMetric} queryIndex={queryIndex} />
+            </Container>
+            {visualize.visible ? (
+              <SideBySideOrientation
+                timeseriesResult={timeseriesResult}
                 traceMetric={traceMetric}
-                additionalActions={undefined}
-                contentsHidden={infoContentHidden}
+                setOrientation={setUserPreferenceOrientation}
                 orientation={orientation}
+                infoContentHidden={infoContentHidden}
+                setInfoContentHidden={setInfoContentHidden}
                 isMetricOptionsEmpty={isMetricOptionsEmpty}
               />
-            )}
+            ) : null}
           </Stack>
         </PanelBody>
       </Panel>
