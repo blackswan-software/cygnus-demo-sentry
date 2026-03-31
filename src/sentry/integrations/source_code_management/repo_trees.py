@@ -7,7 +7,12 @@ from typing import Any, NamedTuple
 
 from sentry.integrations.services.integration import RpcOrganizationIntegration
 from sentry.issues.auto_source_code_config.utils.platform import get_supported_extensions
-from sentry.shared_integrations.exceptions import ApiConflictError, ApiError, IntegrationError
+from sentry.shared_integrations.exceptions import (
+    ApiForbiddenError,
+    ApiConflictError,
+    ApiError,
+    IntegrationError,
+)
 from sentry.utils import metrics
 from sentry.utils.cache import cache
 
@@ -118,6 +123,10 @@ class RepoTreesIntegration(ABC):
         remaining_requests = MINIMUM_REQUESTS_REMAINING
         try:
             remaining_requests = self.get_client().get_remaining_api_requests()
+        except ApiForbiddenError:
+            # GitHub App installation has been suspended. This is expected behavior.
+            # Gracefully fall back to cache without logging a warning to avoid noise.
+            use_cache = True
         except Exception:
             use_cache = True
             # Report so we can investigate
