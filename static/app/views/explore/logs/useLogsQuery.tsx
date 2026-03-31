@@ -694,13 +694,24 @@ export function useInfiniteLogsQuery({
   const [autoFetchDuration, setAutoFetchDuration] = useState(
     FLEX_TIME_INITIAL_SEARCH_DURATION_MS
   );
+  const [autoFetchRequestCount, setAutoFetchRequestCount] = useState(0);
+  const maxAutoFetchRequests = 50;
+
+  useEffect(() => {
+    setAutoFetchStartTime(Date.now());
+    setAutoFetchDuration(FLEX_TIME_INITIAL_SEARCH_DURATION_MS);
+    setAutoFetchRequestCount(0);
+  }, [queryKeyWithInfinite]);
+
   const canAutoFetchNextPage =
     !!highFidelity &&
     hasNextPage &&
     nextPageHasData &&
     (lastPageLength === 0 || _data.length < limit);
   const shouldAutoFetchNextPage =
-    canAutoFetchNextPage && Date.now() - autoFetchStartTime < autoFetchDuration;
+    canAutoFetchNextPage &&
+    Date.now() - autoFetchStartTime < autoFetchDuration &&
+    autoFetchRequestCount < maxAutoFetchRequests;
 
   const autoFetchPageCount = useRef(0);
   const prevShouldAutoFetch = useRef(false);
@@ -735,6 +746,7 @@ export function useInfiniteLogsQuery({
     }
 
     autoFetchPageCount.current += 1;
+    setAutoFetchRequestCount(prev => prev + 1);
     _fetchNextPage();
   }, [shouldAutoFetchNextPage, isFetchingNextPage, _fetchNextPage, nextPageCursor]);
 
@@ -770,6 +782,7 @@ export function useInfiniteLogsQuery({
     resumeAutoFetch: () => {
       setAutoFetchStartTime(Date.now());
       setAutoFetchDuration(FLEX_TIME_RESUME_SEARCH_DURATION_MS);
+      setAutoFetchRequestCount(0);
     },
     dataScanned,
     bytesScanned: totalBytesScanned,
