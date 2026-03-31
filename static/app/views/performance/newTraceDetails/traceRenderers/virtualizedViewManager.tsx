@@ -1825,8 +1825,5 @@ function dispatchJestScrollUpdate(container: HTMLElement) {
   if (process.env.NODE_ENV !== 'test') {
     return;
   }
-  // since we do not tightly control how browsers handle event dispatching, dispatch it async
-  window.requestAnimationFrame(() => {
-    container.dispatchEvent(new CustomEvent('scroll'));
-  });
+  container.dispatchEvent(new CustomEvent('scroll'));
 }

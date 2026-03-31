@@ -28,6 +28,19 @@ import {DEFAULT_TRACE_VIEW_PREFERENCES} from 'sentry/views/performance/newTraceD
 
 import type {TraceFullDetailed} from './traceApi/types';
 
+jest.mock('sentry/utils/profiling/hooks/useVirtualizedTree/virtualizedTreeUtils', () => {
+  const actual = jest.requireActual(
+    'sentry/utils/profiling/hooks/useVirtualizedTree/virtualizedTreeUtils'
+  );
+  return {
+    ...actual,
+    requestAnimationTimeout: (cb: () => void, _delay: number) => {
+      const id = setTimeout(() => cb(), 0);
+      return {id};
+    },
+  };
+});
+
 class MockResizeObserver {
   callback: ResizeObserverCallback;
   constructor(callback: ResizeObserverCallback) {
@@ -1451,24 +1464,24 @@ describe('trace view', () => {
       });
     });
 
-    it.knownFlake('arrowup+shift scrolls to the start of the list', async () => {
-      const {virtualizedContainer} = await keyboardNavigationTestSetup();
+    it('arrowup+shift scrolls to the start of the list', async () => {
+      const {container, virtualizedContainer} = await keyboardNavigationTestSetup();
 
-      let rows = getVirtualizedRows(virtualizedContainer);
+      let rows = container.querySelectorAll(VISIBLE_TRACE_ROW_SELECTOR);
+      await userEvent.click(rows[0]!);
 
-      await userEvent.click(rows[1]!);
       await waitFor(() => {
-        rows = getVirtualizedRows(virtualizedContainer);
-        expect(rows[1]).toHaveFocus();
+        rows = container.querySelectorAll(VISIBLE_TRACE_ROW_SELECTOR);
+        expect(rows[0]).toHaveFocus();
       });
 
       await userEvent.keyboard('{Shift>}{arrowdown}{/Shift}');
+
       expect(
         await within(virtualizedContainer).findByText(/transaction-op-99/i)
       ).toBeInTheDocument();
-
       await waitFor(() => {
-        rows = getVirtualizedRows(virtualizedContainer);
+        rows = container.querySelectorAll(VISIBLE_TRACE_ROW_SELECTOR);
         expect(rows[rows.length - 1]).toHaveFocus();
       });
 
@@ -1477,9 +1490,8 @@ describe('trace view', () => {
       expect(
         await within(virtualizedContainer).findByText(/transaction-op-0/i)
       ).toBeInTheDocument();
-
       await waitFor(() => {
-        rows = getVirtualizedRows(virtualizedContainer);
+        rows = container.querySelectorAll(VISIBLE_TRACE_ROW_SELECTOR);
         expect(rows[0]).toHaveFocus();
       });
     });
