@@ -381,10 +381,8 @@ describe('Cart', () => {
     );
 
     // wait for preview to be loaded
-    await waitFor(() =>
-      expect(screen.getByTestId('summary-item-due-today')).toHaveTextContent(
-        'Due on Jun 7, 2023$89USD'
-      )
+    expect(await screen.findByTestId('summary-item-due-today')).toHaveTextContent(
+      'Due on Jun 7, 2023$89USD'
     );
     expect(screen.getByTestId('summary-item-plan-total')).toHaveTextContent('$89');
     expect(
@@ -425,11 +423,8 @@ describe('Cart', () => {
     );
 
     // wait for preview to be loaded
-    await waitFor(() =>
-      // shows original price and price after credits + additional fees
-      expect(screen.getByTestId('summary-item-due-today')).toHaveTextContent(
-        'Due today$89 $0USD'
-      )
+    expect(await screen.findByTestId('summary-item-due-today')).toHaveTextContent(
+      'Due today$89 $0USD'
     );
     expect(screen.getByRole('button', {name: 'Confirm'})).toBeInTheDocument();
     expect(
@@ -511,9 +506,7 @@ describe('Cart', () => {
     );
 
     // wait for preview to be loaded
-    await waitFor(() =>
-      expect(screen.getByRole('button', {name: 'Confirm and pay'})).toBeEnabled()
-    );
+    expect(await screen.findByRole('button', {name: 'Confirm and pay'})).toBeEnabled();
     screen.getByText(/you will be billed by Partner/);
   });
 

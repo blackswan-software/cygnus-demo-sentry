@@ -160,11 +160,9 @@ describe('FiltersBar', () => {
     });
 
     // Wait for any effects to settle
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', {name: /browser\.name.*Chrome/i})
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole('button', {name: /browser\.name.*Chrome/i})
+    ).toBeInTheDocument();
 
     expect(onDashboardFilterChange).not.toHaveBeenCalled();
   });
@@ -192,9 +190,7 @@ describe('FiltersBar', () => {
     });
 
     // Wait for component to fully render
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'All Releases'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('button', {name: 'All Releases'})).toBeInTheDocument();
 
     // Should NOT call onDashboardFilterChange — user cleared filters intentionally
     expect(onDashboardFilterChange).not.toHaveBeenCalled();

@@ -903,9 +903,7 @@ describe('Results', () => {
         organization,
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('this is a tip')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('this is a tip')).toBeInTheDocument();
     });
 
     it('renders metric fallback alert', async () => {
@@ -986,9 +984,7 @@ describe('Results', () => {
         organization,
       });
 
-      await waitFor(() =>
-        expect(screen.getByRole('button', {name: /set as default/i})).toBeEnabled()
-      );
+      expect(await screen.findByRole('button', {name: /set as default/i})).toBeEnabled();
       await userEvent.click(screen.getByText('Set as Default'));
 
       expect(mockHomepageUpdate).toHaveBeenCalledWith(
@@ -1045,9 +1041,7 @@ describe('Results', () => {
         organization,
       });
 
-      await waitFor(() =>
-        expect(screen.getByRole('button', {name: /set as default/i})).toBeEnabled()
-      );
+      expect(await screen.findByRole('button', {name: /set as default/i})).toBeEnabled();
       await userEvent.click(screen.getByText('Set as Default'));
       expect(await screen.findByText('Remove Default')).toBeInTheDocument();
 

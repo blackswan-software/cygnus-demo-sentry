@@ -186,11 +186,9 @@ describe('EditConnectedMonitors', () => {
     );
 
     // Wait for the initial mode to be determined
-    await waitFor(() => {
-      expect(
-        screen.getByRole('radio', {name: 'Alert on all issues in selected projects'})
-      ).toBeChecked();
-    });
+    expect(
+      await screen.findByRole('radio', {name: 'Alert on all issues in selected projects'})
+    ).toBeChecked();
   });
 
   it('switches between modes correctly', async () => {

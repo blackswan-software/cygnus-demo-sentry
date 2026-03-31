@@ -69,9 +69,7 @@ describe('IntegrationExternalTeamMappings', () => {
     });
     renderGlobalModal();
 
-    await waitFor(() => {
-      expect(screen.getByTestId('add-mapping-button')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('add-mapping-button')).toBeInTheDocument();
 
     // Open modal to create new mapping
     await userEvent.click(screen.getByTestId('add-mapping-button'));

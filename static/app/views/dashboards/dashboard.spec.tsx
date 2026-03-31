@@ -755,9 +755,7 @@ describe('Dashboards > Dashboard', () => {
       await userEvent.click(await screen.findByLabelText('Duplicate Widget'));
       rerender();
 
-      await waitFor(() => {
-        expect(screen.getAllByText('Test Discover Widget')).toHaveLength(2);
-      });
+      expect(await screen.findAllByText('Test Discover Widget')).toHaveLength(2);
     });
 
     it('triggers the edit widget callback', async () => {

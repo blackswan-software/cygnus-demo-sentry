@@ -76,9 +76,7 @@ describe('SeerNotices', () => {
     render(<SeerNotices groupId="123" hasGithubIntegration project={project} />, {
       organization,
     });
-    await waitFor(() => {
-      expect(screen.getByText('Unleash Automation')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Unleash Automation')).toBeInTheDocument();
   });
 
   it('shows fixability view step if automation is allowed and view not starred', async () => {
@@ -100,9 +98,7 @@ describe('SeerNotices', () => {
         features: ['issue-views'],
       },
     });
-    await waitFor(() => {
-      expect(screen.getByText('Get Some Quick Wins')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Get Some Quick Wins')).toBeInTheDocument();
   });
 
   it('shows cursor integration step if integration is installed but handoff not configured', async () => {
@@ -152,9 +148,9 @@ describe('SeerNotices', () => {
         features: ['integrations-cursor'],
       },
     });
-    await waitFor(() => {
-      expect(screen.getByText('Hand Off to Cursor Cloud Agents')).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText('Hand Off to Cursor Cloud Agents')
+    ).toBeInTheDocument();
   });
 
   it('does not show cursor integration step if localStorage skip key is set', () => {

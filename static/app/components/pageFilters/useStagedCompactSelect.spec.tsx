@@ -469,21 +469,17 @@ describe('useStagedCompactSelect', () => {
 
     // Open the menu, focus is on search input
     await userEvent.click(screen.getByRole('button', {expanded: false}));
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Search…')).toHaveFocus();
-    });
+    expect(await screen.findByPlaceholderText('Search…')).toHaveFocus();
 
     // Press Arrow Down to move focus to Option One
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => {
-      expect(screen.getByRole('row', {name: 'Option One'})).toHaveFocus();
-    });
+    expect(await screen.findByRole('row', {name: 'Option One'})).toHaveFocus();
 
     // Press Arrow Right to move focus to the checkbox
     await userEvent.keyboard('{ArrowRight}');
-    await waitFor(() => {
-      expect(screen.getByRole('checkbox', {name: 'Select Option One'})).toHaveFocus();
-    });
+    expect(
+      await screen.findByRole('checkbox', {name: 'Select Option One'})
+    ).toHaveFocus();
 
     // Activate the checkbox by clicking it
     await userEvent.click(screen.getByRole('checkbox', {name: 'Select Option One'}));

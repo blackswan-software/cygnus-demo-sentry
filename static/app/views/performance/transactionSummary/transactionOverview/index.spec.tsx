@@ -613,9 +613,7 @@ describe('Performance > TransactionSummary', () => {
       // It renders the web vitals widget
       await screen.findByRole('heading', {name: 'Web Vitals'});
 
-      await waitFor(() => {
-        expect(screen.getAllByTestId('vital-status')).toHaveLength(3);
-      });
+      expect(await screen.findAllByTestId('vital-status')).toHaveLength(3);
 
       const vitalStatues = screen.getAllByTestId('vital-status');
       expect(vitalStatues[0]).toHaveTextContent('31%');

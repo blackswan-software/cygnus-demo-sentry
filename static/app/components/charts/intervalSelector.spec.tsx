@@ -30,9 +30,7 @@ describe('IntervalSelector', () => {
     );
     render(intervalSelector);
 
-    await waitFor(() => {
-      expect(screen.getByText('Interval')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Interval')).toBeInTheDocument();
 
     expect(interval).toBe('4h');
   });
@@ -48,9 +46,7 @@ describe('IntervalSelector', () => {
     );
     render(intervalSelector);
 
-    await waitFor(() => {
-      expect(screen.getByText('Interval')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Interval')).toBeInTheDocument();
 
     expect(eventView.interval).toBe('1m');
   });
@@ -67,9 +63,7 @@ describe('IntervalSelector', () => {
     );
     render(intervalSelector);
 
-    await waitFor(() => {
-      expect(screen.getByText('Interval')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Interval')).toBeInTheDocument();
 
     expect(interval).toBe('not called');
   });

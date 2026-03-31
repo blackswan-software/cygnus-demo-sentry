@@ -250,9 +250,7 @@ describe('Discover > Homepage', () => {
       organization,
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: /set as default/i})).toBeDisabled();
-    });
+    expect(await screen.findByRole('button', {name: /set as default/i})).toBeDisabled();
 
     expect(measurementsMetaMock).toHaveBeenCalled();
   });
@@ -307,9 +305,7 @@ describe('Discover > Homepage', () => {
       organization,
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('title')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('title')).toBeInTheDocument();
 
     // Simulate navigation to update the query
     const queryParams = new URLSearchParams({
@@ -341,9 +337,7 @@ describe('Discover > Homepage', () => {
       organization,
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('title')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('title')).toBeInTheDocument();
 
     expect(screen.queryByText('environment')).not.toBeInTheDocument();
 
@@ -417,7 +411,7 @@ describe('Discover > Homepage', () => {
       organization,
     });
 
-    await waitFor(() => expect(screen.getByTestId('set-as-default')).toBeEnabled());
+    expect(await screen.findByTestId('set-as-default')).toBeEnabled();
   });
 
   it('shows Set as Default when dataset differs from saved homepage', async () => {

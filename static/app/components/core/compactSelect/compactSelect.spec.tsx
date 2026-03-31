@@ -242,25 +242,17 @@ describe('CompactSelect', () => {
     await waitFor(() => {
       expect(screen.queryByRole('option', {name: 'Option One'})).not.toBeInTheDocument();
     });
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Option One'})).toHaveFocus();
-    });
+    expect(await screen.findByRole('button', {name: 'Option One'})).toHaveFocus();
 
     // Can be dismissed by pressing Escape
     await userEvent.click(screen.getByRole('button', {name: 'Option One'}));
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'Option One'})).toBeInTheDocument();
-    });
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'Option One'})).toHaveFocus();
-    });
+    expect(await screen.findByRole('option', {name: 'Option One'})).toBeInTheDocument();
+    expect(await screen.findByRole('option', {name: 'Option One'})).toHaveFocus();
     await userEvent.keyboard('{Escape}');
     await waitFor(() => {
       expect(screen.queryByRole('option', {name: 'Option One'})).not.toBeInTheDocument();
     });
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Option One'})).toHaveFocus();
-    });
+    expect(await screen.findByRole('button', {name: 'Option One'})).toHaveFocus();
 
     // When menu A is open, clicking once on menu B's trigger button closes menu A and
     // then opens menu B
@@ -503,9 +495,7 @@ describe('CompactSelect', () => {
 
       // reopen the menu — search input should be empty and all options visible
       await userEvent.click(screen.getByRole('button'));
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText('Search here…')).toHaveValue('');
-      });
+      expect(await screen.findByPlaceholderText('Search here…')).toHaveValue('');
       expect(screen.getByRole('option', {name: 'Option One'})).toBeInTheDocument();
       expect(screen.getByRole('option', {name: 'Option Two'})).toBeInTheDocument();
     });
@@ -877,18 +867,12 @@ describe('CompactSelect', () => {
         screen.queryByRole('option', {name: 'Option Three'})
       ).not.toBeInTheDocument();
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText('Search…')).toHaveFocus();
-      });
+      expect(await screen.findByPlaceholderText('Search…')).toHaveFocus();
       // Option Three is not reachable via keyboard, focus wraps back to Option One
       await userEvent.keyboard(`{ArrowDown}`);
-      await waitFor(() => {
-        expect(screen.getByRole('option', {name: 'Option One'})).toHaveFocus();
-      });
+      expect(await screen.findByRole('option', {name: 'Option One'})).toHaveFocus();
       await userEvent.keyboard(`{ArrowDown>2}`);
-      await waitFor(() => {
-        expect(screen.getByRole('option', {name: 'Option One'})).toHaveFocus();
-      });
+      expect(await screen.findByRole('option', {name: 'Option One'})).toHaveFocus();
 
       // Option Three is still available via search
       await userEvent.type(screen.getByPlaceholderText('Search…'), 'three');
@@ -938,9 +922,7 @@ describe('CompactSelect', () => {
 
       // click on the trigger button
       await userEvent.click(screen.getByRole('button', {expanded: false}));
-      await waitFor(() =>
-        expect(screen.getByRole('option', {name: 'Option One'})).toHaveFocus()
-      );
+      expect(await screen.findByRole('option', {name: 'Option One'})).toHaveFocus();
 
       // move focus to Section 1's toggle button and press it to select all
       await userEvent.keyboard('{Tab}');
@@ -1254,9 +1236,7 @@ describe('CompactSelect', () => {
 
       // reopen the menu — search input should be empty and all options visible
       await userEvent.click(screen.getByRole('button'));
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText('Search here…')).toHaveValue('');
-      });
+      expect(await screen.findByPlaceholderText('Search here…')).toHaveValue('');
       expect(screen.getByRole('row', {name: 'Option One'})).toBeInTheDocument();
       expect(screen.getByRole('row', {name: 'Option Two'})).toBeInTheDocument();
     });
@@ -1314,9 +1294,7 @@ describe('CompactSelect', () => {
       expect(screen.getByRole('row', {name: 'Option Two'})).toBeInTheDocument();
       expect(screen.queryByRole('row', {name: 'Option Three'})).not.toBeInTheDocument();
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText('Search…')).toHaveFocus();
-      });
+      expect(await screen.findByPlaceholderText('Search…')).toHaveFocus();
       // Option Three is not reachable via keyboard, focus wraps back to Option One
       await userEvent.keyboard(`{ArrowDown}`);
       expect(screen.getByRole('row', {name: 'Option One'})).toHaveFocus();
@@ -1372,9 +1350,7 @@ describe('CompactSelect', () => {
 
       // click on the trigger button
       await userEvent.click(screen.getByRole('button', {expanded: false}));
-      await waitFor(() =>
-        expect(screen.getByRole('row', {name: 'Option One'})).toHaveFocus()
-      );
+      expect(await screen.findByRole('row', {name: 'Option One'})).toHaveFocus();
 
       // move focus to Section 1's toggle button and press it to select all
       await userEvent.keyboard('{Tab}');
@@ -1510,9 +1486,7 @@ describe('CompactSelect', () => {
 
       // click on the trigger button
       await userEvent.click(screen.getByRole('button'));
-      await waitFor(() =>
-        expect(screen.getByRole('row', {name: 'Option One'})).toHaveFocus()
-      );
+      expect(await screen.findByRole('row', {name: 'Option One'})).toHaveFocus();
 
       // press Arrow Right, focus should be moved to the trailing button
       await userEvent.keyboard('{ArrowRight}');

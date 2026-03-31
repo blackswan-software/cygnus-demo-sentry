@@ -72,9 +72,7 @@ describe('GroupSummary', () => {
       organization,
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('What Happened')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('What Happened')).toBeInTheDocument();
     expect(await screen.findByText('Test whats wrong')).toBeInTheDocument();
     expect(screen.getByText('In the Trace')).toBeInTheDocument();
     expect(screen.getByText('Test trace')).toBeInTheDocument();
@@ -93,9 +91,7 @@ describe('GroupSummary', () => {
       organization,
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('What Happened')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('What Happened')).toBeInTheDocument();
     expect(await screen.findByText('Test whats wrong')).toBeInTheDocument();
     expect(screen.getByText('In the Trace')).toBeInTheDocument();
     expect(screen.getByText('Test trace')).toBeInTheDocument();
@@ -130,9 +126,7 @@ describe('GroupSummary', () => {
       organization,
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('Error loading summary')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Error loading summary')).toBeInTheDocument();
   });
 
   it('hides cards with no content', async () => {
@@ -149,9 +143,7 @@ describe('GroupSummary', () => {
       organization,
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('What Happened')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('What Happened')).toBeInTheDocument();
     expect(await screen.findByText('Test whats wrong')).toBeInTheDocument();
     expect(screen.queryByText('In the Trace')).not.toBeInTheDocument();
     expect(screen.getByText('Initial Guess')).toBeInTheDocument();
@@ -170,9 +162,7 @@ describe('GroupSummary', () => {
       {organization}
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Initial Guess')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Initial Guess')).toBeInTheDocument();
     expect(await screen.findByText('Test possible cause')).toBeInTheDocument();
     expect(screen.queryByText('What Happened')).not.toBeInTheDocument();
     expect(screen.queryByText('Test whats wrong')).not.toBeInTheDocument();

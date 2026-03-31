@@ -31,9 +31,7 @@ describe('AutofixOutputStream', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Hello World')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Hello World')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Add context...')).toBeInTheDocument();
   });
 
@@ -48,9 +46,7 @@ describe('AutofixOutputStream', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Active log message')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Active log message')).toBeInTheDocument();
   });
 
   it('shows required input placeholder when responseRequired is true', () => {
@@ -75,18 +71,14 @@ describe('AutofixOutputStream', () => {
       <AutofixOutputStream stream="Initial" groupId="123" runId="456" />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Initial')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Initial')).toBeInTheDocument();
 
     rerender(
       <AutofixOutputStream stream="Initial content updated" groupId="123" runId="456" />
     );
 
     // Wait for animation to complete
-    await waitFor(() => {
-      expect(screen.getByText('Initial content updated')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Initial content updated')).toBeInTheDocument();
   });
 
   it('handles user interruption', async () => {

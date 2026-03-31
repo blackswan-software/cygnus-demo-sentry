@@ -492,9 +492,7 @@ describe('AssigneeSelectorDropdown', () => {
     await userEvent.type(screen.getByRole('textbox'), 'Cert');
 
     // 1 total item
-    await waitFor(() => {
-      expect(screen.getAllByRole('option')).toHaveLength(1);
-    });
+    expect(await screen.findAllByRole('option')).toHaveLength(1);
 
     expect(await screen.findByText(USER_2.name)).toBeInTheDocument();
 
@@ -537,9 +535,7 @@ describe('AssigneeSelectorDropdown', () => {
     await userEvent.type(screen.getByRole('textbox'), 'github@example.com');
 
     // 1 total item
-    await waitFor(() => {
-      expect(screen.getAllByRole('option')).toHaveLength(1);
-    });
+    expect(await screen.findAllByRole('option')).toHaveLength(1);
 
     expect(await screen.findByText(USER_4.name)).toBeInTheDocument();
   });

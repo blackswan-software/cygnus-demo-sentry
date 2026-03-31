@@ -308,9 +308,7 @@ describe('IssueList', () => {
         });
       });
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', {name: 'Previous'})).toBeEnabled();
-      });
+      expect(await screen.findByRole('button', {name: 'Previous'})).toBeEnabled();
 
       // Click next again
       await userEvent.click(screen.getByRole('button', {name: 'Next'}));
@@ -590,9 +588,7 @@ describe('IssueList', () => {
       await userEvent.keyboard('void{enter}');
 
       // Wait for the empty state to appear (not loading skeleton)
-      await waitFor(() => {
-        expect(screen.getByText(/No issues match your search/i)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(/No issues match your search/i)).toBeInTheDocument();
     });
   });
 
@@ -838,9 +834,9 @@ describe('IssueList', () => {
       }),
     });
 
-    await waitFor(() => {
-      expect(screen.getByText(textWithMarkupMatcher('1-25 of 500'))).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText(textWithMarkupMatcher('1-25 of 500'))
+    ).toBeInTheDocument();
 
     parseLinkHeaderSpy.mockReturnValue({
       next: {
@@ -856,9 +852,9 @@ describe('IssueList', () => {
     });
     rerender(<IssueListOverview />);
 
-    await waitFor(() => {
-      expect(screen.getByText(textWithMarkupMatcher('26-50 of 500'))).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText(textWithMarkupMatcher('26-50 of 500'))
+    ).toBeInTheDocument();
   }, 20_000);
 
   describe('project low trends queue alert', () => {

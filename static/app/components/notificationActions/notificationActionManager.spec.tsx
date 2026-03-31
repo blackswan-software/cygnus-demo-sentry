@@ -156,9 +156,7 @@ describe('Adds, deletes, and updates notification actions', () => {
         }),
       })
     );
-    await waitFor(() => {
-      expect(screen.getByTestId('sentry_notification-action')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('sentry_notification-action')).toBeInTheDocument();
   });
 
   it('Removes a Sentry notification action', async () => {
@@ -230,9 +228,7 @@ describe('Adds, deletes, and updates notification actions', () => {
         }),
       })
     );
-    await waitFor(() => {
-      expect(screen.getByTestId('slack-action')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('slack-action')).toBeInTheDocument();
   });
 
   it('Removes a Slack action', async () => {
@@ -366,9 +362,7 @@ describe('Adds, deletes, and updates notification actions', () => {
         }),
       })
     );
-    await waitFor(() => {
-      expect(screen.getByTestId('pagerduty-action')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('pagerduty-action')).toBeInTheDocument();
   });
 
   it('Edits a Pagerduty action', async () => {
@@ -471,9 +465,7 @@ describe('Adds, deletes, and updates notification actions', () => {
         }),
       })
     );
-    await waitFor(() => {
-      expect(screen.getByTestId('opsgenie-action')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('opsgenie-action')).toBeInTheDocument();
   });
 
   it('Edits an Opsgenie Action', async () => {

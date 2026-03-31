@@ -213,9 +213,7 @@ describe('ChartWidgetLoader - unmocked imports', () => {
     // @ts-expect-error - fails type check because `invalid-widget` is not a valid chart id, but we want to test that it shows an error state
     render(<ChartWidgetLoader id="invalid-widget" />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Error loading widget')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Error loading widget')).toBeInTheDocument();
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
   });

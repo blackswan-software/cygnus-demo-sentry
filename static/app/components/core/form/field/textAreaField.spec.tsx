@@ -123,9 +123,7 @@ describe('TextAreaField disabled', () => {
     // Hover on the lock icon to trigger tooltip
     await userEvent.hover(lockIcon);
 
-    await waitFor(() => {
-      expect(screen.getByText('Feature not available')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Feature not available')).toBeInTheDocument();
   });
 });
 
@@ -154,9 +152,7 @@ describe('TextAreaField auto-save', () => {
     // AutoSaveForm triggers mutation on blur for string fields
     await userEvent.tab();
 
-    await waitFor(() => {
-      expect(screen.getByTestId('icon-check-mark')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('icon-check-mark')).toBeInTheDocument();
     expect(mutationFn).toHaveBeenCalledWith({bio: 'test'});
   });
 

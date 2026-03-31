@@ -222,9 +222,7 @@ describe('RepositoryProjectPathConfigModal', () => {
     await userEvent.click(screen.getByRole('menuitemradio', {name: 'org/repo-one'}));
 
     // Branch should be auto-filled
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', {name: 'Branch'})).toHaveValue('trunk');
-    });
+    expect(await screen.findByRole('textbox', {name: 'Branch'})).toHaveValue('trunk');
   });
 
   it('allows submitting with empty stream for Perforce (stream-based) integrations', async () => {
@@ -310,10 +308,8 @@ describe('RepositoryProjectPathConfigModal', () => {
     await userEvent.click(screen.getByRole('menuitemradio', {name: 'org/repo-one'}));
 
     // Branch should keep the manually entered value
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', {name: 'Branch'})).toHaveValue(
-        'my-custom-branch'
-      );
-    });
+    expect(await screen.findByRole('textbox', {name: 'Branch'})).toHaveValue(
+      'my-custom-branch'
+    );
   });
 });

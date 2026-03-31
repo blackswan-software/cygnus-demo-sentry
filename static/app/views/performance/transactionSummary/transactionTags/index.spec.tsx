@@ -204,10 +204,7 @@ describe('Performance > Transaction Tags', () => {
 
     renderWithLayout(data);
 
-    await waitFor(() => {
-      // Table is loaded.
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('table')).toBeInTheDocument();
 
     await waitFor(() => expect(histogramMock).toHaveBeenCalledTimes(1));
     expect(histogramMock).toHaveBeenNthCalledWith(
@@ -229,10 +226,7 @@ describe('Performance > Transaction Tags', () => {
 
     renderWithLayout(data);
 
-    await waitFor(() => {
-      // Table is loaded.
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('table')).toBeInTheDocument();
 
     await waitFor(() => expect(histogramMock).toHaveBeenCalledTimes(1));
     expect(histogramMock).toHaveBeenNthCalledWith(
@@ -252,10 +246,7 @@ describe('Performance > Transaction Tags', () => {
 
     renderWithLayout(initialData);
 
-    await waitFor(() => {
-      // Table is loaded.
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('table')).toBeInTheDocument();
 
     // Release link is properly setup
     expect(await screen.findByText(TEST_RELEASE_NAME)).toBeInTheDocument();
@@ -327,10 +318,7 @@ describe('Performance > Transaction Tags', () => {
 
     renderWithLayout(data);
 
-    await waitFor(() => {
-      // Table is loaded.
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('table')).toBeInTheDocument();
 
     await waitFor(() => expect(histogramMock).toHaveBeenCalledTimes(1));
 

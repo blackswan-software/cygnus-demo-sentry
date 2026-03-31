@@ -71,13 +71,11 @@ describe('OrganizationSecurityAndPrivacy', () => {
 
     // AutoSaveForm calls onError and reverts the switch.
     // The checkbox should become enabled again after the mutation fails.
-    await waitFor(() => {
-      expect(
-        screen.getByRole('checkbox', {
-          name: 'Enable to require and enforce two-factor authentication for all members',
-        })
-      ).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('checkbox', {
+        name: 'Enable to require and enforce two-factor authentication for all members',
+      })
+    ).toBeEnabled();
   });
 
   it('renders join request switch', async () => {
@@ -155,13 +153,11 @@ describe('OrganizationSecurityAndPrivacy', () => {
 
     // After successful save, form.reset() syncs defaults so the form is pristine again
     // The changes alert should become hidden
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          'Changes to your scrubbing configuration will apply to all new events.'
-        )
-      ).not.toBeVisible();
-    });
+    expect(
+      await screen.findByText(
+        'Changes to your scrubbing configuration will apply to all new events.'
+      )
+    ).not.toBeVisible();
   });
 
   it('enables require2fa with confirm modal', async () => {

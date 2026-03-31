@@ -112,9 +112,7 @@ describe('AssertionSuggestionsDrawerContent', () => {
       {organization}
     );
 
-    await waitFor(() => {
-      expect(screen.getByText(/Status code/)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/Status code/)).toBeInTheDocument();
 
     expect(screen.getByText(/\$\.status/)).toBeInTheDocument();
     expect(screen.getByText(/95% confidence/)).toBeInTheDocument();

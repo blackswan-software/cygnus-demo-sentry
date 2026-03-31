@@ -265,9 +265,7 @@ describe('ScmPlatformFeatures', () => {
     );
 
     // Wait for auto-select of first detected platform
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Continue'})).toBeEnabled();
-    });
+    expect(await screen.findByRole('button', {name: 'Continue'})).toBeEnabled();
   });
 
   it('enabling profiling auto-enables tracing', async () => {

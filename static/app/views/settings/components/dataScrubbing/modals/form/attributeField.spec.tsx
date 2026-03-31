@@ -86,9 +86,9 @@ describe('AttributeField', () => {
       {organization}
     );
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
   });
 
   it('displays suggestions when input is focused', async () => {
@@ -105,9 +105,9 @@ describe('AttributeField', () => {
       {organization}
     );
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
 
     await userEvent.click(screen.getByPlaceholderText('Select or type attribute'));
 
@@ -136,9 +136,9 @@ describe('AttributeField', () => {
 
     await userEvent.click(screen.getByPlaceholderText('Select or type attribute'));
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
 
     // Wait for suggestions to load
     await screen.findByText('user.email');
@@ -168,9 +168,9 @@ describe('AttributeField', () => {
 
     await userEvent.click(screen.getByPlaceholderText('Select or type attribute'));
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
 
     // Wait for suggestions to load
     await screen.findByText('message');
@@ -200,9 +200,9 @@ describe('AttributeField', () => {
     const input = screen.getByPlaceholderText('Select or type attribute');
     await userEvent.click(input);
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
 
     // Wait for suggestions to load
     await screen.findByText('message');
@@ -230,9 +230,9 @@ describe('AttributeField', () => {
     const input = screen.getByPlaceholderText('Select or type attribute');
     await userEvent.click(input);
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
 
     // Wait for suggestions to load
     await screen.findByText('message');
@@ -258,9 +258,9 @@ describe('AttributeField', () => {
     const input = screen.getByPlaceholderText('Select or type attribute');
     await userEvent.click(input);
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
 
     // Wait for suggestions to load
     await screen.findByText('message');
@@ -287,9 +287,9 @@ describe('AttributeField', () => {
       {organization}
     );
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
     const input = screen.getByPlaceholderText('Select or type attribute');
     await userEvent.click(input);
     await userEvent.tab();
@@ -312,9 +312,9 @@ describe('AttributeField', () => {
       {organization}
     );
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
     const input = screen.getByPlaceholderText('Select or type attribute');
     await userEvent.type(input, 'custom');
 
@@ -350,9 +350,9 @@ describe('AttributeField', () => {
       {organization}
     );
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
 
     await userEvent.click(screen.getByPlaceholderText('Select or type attribute'));
 
@@ -410,9 +410,9 @@ describe('AttributeField', () => {
       {organization}
     );
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Select or type attribute')).toHaveValue(value);
-    });
+    expect(await screen.findByPlaceholderText('Select or type attribute')).toHaveValue(
+      value
+    );
 
     await screen.findByPlaceholderText('Select or type attribute');
 

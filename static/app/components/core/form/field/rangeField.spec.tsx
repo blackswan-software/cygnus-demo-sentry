@@ -125,9 +125,7 @@ describe('RangeField disabled', () => {
     // Hover on the lock icon to trigger tooltip
     await userEvent.hover(lockIcon);
 
-    await waitFor(() => {
-      expect(screen.getByText('Feature not available')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Feature not available')).toBeInTheDocument();
   });
 });
 

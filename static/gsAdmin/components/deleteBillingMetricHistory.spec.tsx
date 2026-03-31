@@ -87,11 +87,11 @@ describe('DeleteBillingMetricHistory', () => {
     });
 
     // Check for the description text
-    await waitFor(() => {
-      expect(
-        screen.getByText('Delete billing metric history for a specific data category.')
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText(
+        'Delete billing metric history for a specific data category.'
+      )
+    ).toBeInTheDocument();
 
     // Check that the form elements are rendered
     expect(screen.getByRole('textbox', {name: 'Data Category'})).toBeInTheDocument();
@@ -153,9 +153,9 @@ describe('DeleteBillingMetricHistory', () => {
     });
 
     // Wait for the form to be visible
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', {name: 'Data Category'})).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole('textbox', {name: 'Data Category'})
+    ).toBeInTheDocument();
 
     // Select a data category
     await selectEvent.select(
@@ -232,9 +232,9 @@ describe('DeleteBillingMetricHistory', () => {
     });
 
     // Wait for the form to be visible
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', {name: 'Data Category'})).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole('textbox', {name: 'Data Category'})
+    ).toBeInTheDocument();
 
     // Select a data category
     await selectEvent.select(
@@ -286,9 +286,9 @@ describe('DeleteBillingMetricHistory', () => {
     });
 
     // Wait for the form to be visible
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', {name: 'Data Category'})).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole('textbox', {name: 'Data Category'})
+    ).toBeInTheDocument();
 
     // Check that the Delete button is disabled when no data category is selected
     expect(screen.getByRole('button', {name: 'Delete'})).toBeDisabled();
@@ -336,9 +336,9 @@ describe('DeleteBillingMetricHistory', () => {
     expect(screen.getByText('Delete Billing Metric History')).toBeInTheDocument();
 
     // Wait for the form to be visible
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', {name: 'Data Category'})).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole('textbox', {name: 'Data Category'})
+    ).toBeInTheDocument();
 
     // Click the Cancel button
     await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));

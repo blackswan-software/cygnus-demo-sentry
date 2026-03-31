@@ -503,9 +503,7 @@ describe('ChoiceMapperAdapter', () => {
     resolveMutation();
 
     // Controls should be re-enabled
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Delete'})).toBeEnabled();
-    });
+    expect(await screen.findByRole('button', {name: 'Delete'})).toBeEnabled();
     expect(screen.getByRole('button', {name: /Add Repo/i})).toBeEnabled();
   });
 });

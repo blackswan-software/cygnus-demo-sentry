@@ -49,9 +49,9 @@ describe('TeamKeyTransactionField', () => {
       </TeamKeyTransactionManager.Provider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     expect(getTeamKeyTransactionsMock).toHaveBeenCalledTimes(1);
 
@@ -91,9 +91,9 @@ describe('TeamKeyTransactionField', () => {
       </TeamKeyTransactionManager.Provider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     expect(getTeamKeyTransactionsMock).toHaveBeenCalledTimes(1);
 
@@ -130,9 +130,9 @@ describe('TeamKeyTransactionField', () => {
       </TeamKeyTransactionManager.Provider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     expect(getTeamKeyTransactionsMock).toHaveBeenCalledTimes(1);
 
@@ -179,9 +179,9 @@ describe('TeamKeyTransactionField', () => {
       </TeamKeyTransactionManager.Provider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     await userEvent.click(screen.getByRole('button', {name: 'Toggle star for team'}));
 
@@ -190,9 +190,9 @@ describe('TeamKeyTransactionField', () => {
 
     await userEvent.click(teamOneOption);
     expect(postTeamKeyTransactionsMock).toHaveBeenCalledTimes(1);
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     expect(teamOneOption).toHaveAttribute('aria-selected', 'true');
   });
@@ -233,9 +233,9 @@ describe('TeamKeyTransactionField', () => {
       </TeamKeyTransactionManager.Provider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     await userEvent.click(screen.getByRole('button', {name: 'Toggle star for team'}));
 
@@ -244,9 +244,9 @@ describe('TeamKeyTransactionField', () => {
 
     await userEvent.click(teamOneOption);
     expect(deleteTeamKeyTransactionsMock).toHaveBeenCalledTimes(1);
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     expect(teamOneOption).toHaveAttribute('aria-selected', 'false');
   });
@@ -290,18 +290,18 @@ describe('TeamKeyTransactionField', () => {
       </TeamKeyTransactionManager.Provider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     await userEvent.click(screen.getByRole('button', {name: 'Toggle star for team'}));
 
     await userEvent.click(screen.getByRole('button', {name: 'Select All in My Teams'}));
 
     expect(postTeamKeyTransactionsMock).toHaveBeenCalledTimes(1);
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     const [teamOneOption, teamTwoOption] = screen.getAllByRole('option');
     expect(teamOneOption).toHaveAttribute('aria-selected', 'true');
@@ -347,18 +347,18 @@ describe('TeamKeyTransactionField', () => {
       </TeamKeyTransactionManager.Provider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     await userEvent.click(screen.getByRole('button', {name: 'Toggle star for team'}));
 
     await userEvent.click(screen.getByRole('button', {name: 'Unselect All in My Teams'}));
 
     expect(deleteTeamKeyTransactionsMock).toHaveBeenCalledTimes(1);
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Toggle star for team'})).toBeEnabled();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Toggle star for team'})
+    ).toBeEnabled();
 
     const [teamOneOption, teamTwoOption] = screen.getAllByRole('option');
     expect(teamOneOption).toHaveAttribute('aria-selected', 'false');

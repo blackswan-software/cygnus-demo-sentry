@@ -172,9 +172,9 @@ describe('Logs Field Renderers', () => {
 
       await userEvent.hover(timestampElement);
 
-      await waitFor(() => {
-        expect(screen.getByText(/Jan 15, 2024.*2:30:45\.123 PM UTC/)).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByText(/Jan 15, 2024.*2:30:45\.123 PM UTC/)
+      ).toBeInTheDocument();
     });
   });
 });

@@ -181,9 +181,7 @@ describe('ChoiceMapperField', () => {
       const searchInput = screen.getByRole('textbox');
       await userEvent.type(searchInput, 'repo');
 
-      await waitFor(() => {
-        expect(screen.getByText('my-org/my-repo')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('my-org/my-repo')).toBeInTheDocument();
 
       await userEvent.click(screen.getByText('my-org/my-repo'));
 
@@ -230,9 +228,7 @@ describe('ChoiceMapperField', () => {
       const searchInput = screen.getByRole('textbox');
       await userEvent.type(searchInput, 'nonexistent');
 
-      await waitFor(() => {
-        expect(screen.getByText('No repos found')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('No repos found')).toBeInTheDocument();
     });
 
     it('filters out already added items from async results', async () => {
@@ -262,9 +258,7 @@ describe('ChoiceMapperField', () => {
       const searchInput = screen.getByPlaceholderText('Search…');
       await userEvent.type(searchInput, 'repo');
 
-      await waitFor(() => {
-        expect(screen.getByText('other-org/other-repo')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('other-org/other-repo')).toBeInTheDocument();
 
       const menuItems = screen.getAllByText('my-org/my-repo');
 
@@ -288,12 +282,9 @@ describe('ChoiceMapperField', () => {
       await userEvent.type(searchInput, 'test', {delay: 10});
 
       // Wait for the debounced request and result to appear
-      await waitFor(
-        () => {
-          expect(screen.getByText('Test Item')).toBeInTheDocument();
-        },
-        {timeout: 1000}
-      );
+      expect(
+        await screen.findByText('Test Item', undefined, {timeout: 1000})
+      ).toBeInTheDocument();
 
       expect(mockRequest).toHaveBeenCalled();
     });

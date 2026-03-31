@@ -156,11 +156,9 @@ describe('AutomateSection', () => {
 
     // Clicking connect should add the automation to the connected list
     await userEvent.click(within(drawer).getByRole('button', {name: 'Connect'}));
-    await waitFor(() => {
-      expect(
-        within(connectedAutomationsList).getByText(automation1.name)
-      ).toBeInTheDocument();
-    });
+    expect(
+      await within(connectedAutomationsList).findByText(automation1.name)
+    ).toBeInTheDocument();
   });
 
   it('can disconnect an existing automation', async () => {

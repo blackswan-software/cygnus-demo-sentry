@@ -59,9 +59,7 @@ describe('AddCodeOwnerModal', () => {
         project={project}
       />
     );
-    await waitFor(() =>
-      expect(screen.getByRole('button', {name: 'Add File'})).toBeDisabled()
-    );
+    expect(await screen.findByRole('button', {name: 'Add File'})).toBeDisabled();
   });
 
   it('renders codeowner file', async () => {

@@ -145,9 +145,7 @@ describe('ProjectSampling', () => {
     await userEvent.type(input, '30');
     await userEvent.click(screen.getByRole('button', {name: 'Apply Changes'}));
 
-    await waitFor(() =>
-      expect(screen.getByRole('button', {name: 'Reset'})).toBeDisabled()
-    );
+    expect(await screen.findByRole('button', {name: 'Reset'})).toBeDisabled();
   });
 
   it('keeps form dirty after an API error', async () => {
@@ -165,9 +163,7 @@ describe('ProjectSampling', () => {
     await userEvent.type(input, '30');
     await userEvent.click(screen.getByRole('button', {name: 'Apply Changes'}));
 
-    await waitFor(() =>
-      expect(screen.getByRole('button', {name: 'Reset'})).toBeEnabled()
-    );
+    expect(await screen.findByRole('button', {name: 'Reset'})).toBeEnabled();
   });
 
   it('updates project rates atomically via bulk org rate edit', async () => {

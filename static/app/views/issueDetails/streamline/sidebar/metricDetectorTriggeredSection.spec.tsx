@@ -250,11 +250,9 @@ describe('MetricDetectorTriggeredSection', () => {
 
     render(<MetricDetectorTriggeredSection {...defaultProps} event={event} />);
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole('region', {name: 'Contributing Issues'})
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole('region', {name: 'Contributing Issues'})
+    ).toBeInTheDocument();
 
     expect(contributingIssuesMock).toHaveBeenCalledWith(
       expect.anything(),

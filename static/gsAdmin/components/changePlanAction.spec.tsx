@@ -119,9 +119,7 @@ describe('ChangePlanAction', () => {
     openAndLoadModal();
 
     // Wait for async data to load
-    await waitFor(() => {
-      expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
 
     // Verify the tabs are rendered
     expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
@@ -211,9 +209,7 @@ describe('ChangePlanAction', () => {
     openAndLoadModal();
 
     // Wait for component to load
-    await waitFor(() => {
-      expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
 
     // Select a plan
     await userEvent.click(screen.getAllByRole('radio')[0] as HTMLElement);
@@ -258,9 +254,7 @@ describe('ChangePlanAction', () => {
 
     openAndLoadModal();
 
-    await waitFor(() => {
-      expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
 
     await userEvent.click(screen.getAllByRole('radio')[0] as HTMLElement);
 
@@ -306,9 +300,7 @@ describe('ChangePlanAction', () => {
     openAndLoadModal();
 
     // Wait for component to load
-    await waitFor(() => {
-      expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
 
     // Verify AM3 tier plans are displayed
     expect(screen.getByTestId('change-plan-label-am3_business')).toBeInTheDocument();
@@ -340,9 +332,7 @@ describe('ChangePlanAction', () => {
     openAndLoadModal();
 
     // First, click the TEST tier to activate it
-    await waitFor(() => {
-      expect(screen.getByRole('tab', {name: 'TEST'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('tab', {name: 'TEST'})).toBeInTheDocument();
 
     const testTierTab = screen.getByRole('tab', {name: 'TEST'});
     await userEvent.click(testTierTab);
@@ -370,9 +360,7 @@ describe('ChangePlanAction', () => {
     openAndLoadModal();
 
     // Wait for component to load
-    await waitFor(() => {
-      expect(screen.getByRole('tab', {name: 'TEST'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('tab', {name: 'TEST'})).toBeInTheDocument();
 
     // Click on the TEST tier tab (if not already active)
     const testTierTab = screen.getByRole('tab', {name: 'TEST'});
@@ -428,9 +416,7 @@ describe('ChangePlanAction', () => {
     it('shows Seer budget checkbox for AM tiers', async () => {
       openAndLoadModal();
 
-      await waitFor(() => {
-        expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-      });
+      expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
       await userEvent.click(screen.getAllByRole('radio')[0] as HTMLElement);
 
       expect(screen.getByText('Seer')).toBeInTheDocument();
@@ -451,9 +437,7 @@ describe('ChangePlanAction', () => {
     it('hides Seer budget checkbox for MM2 tier', async () => {
       openAndLoadModal();
 
-      await waitFor(() => {
-        expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-      });
+      expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
 
       const mm2Tab = screen.getByRole('tab', {name: 'MM2'});
       await userEvent.click(mm2Tab);
@@ -484,9 +468,7 @@ describe('ChangePlanAction', () => {
       await openAndLoadModal({subscription: subscriptionWithSeer});
 
       // Wait for component to load
-      await waitFor(() => {
-        expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-      });
+      expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
 
       // Select a plan to make the Available Products section visible
       await userEvent.click(screen.getAllByRole('radio')[0] as HTMLElement);
@@ -502,9 +484,7 @@ describe('ChangePlanAction', () => {
       openAndLoadModal({});
 
       // Wait for component to load
-      await waitFor(() => {
-        expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-      });
+      expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
 
       // Select a plan to make the Available Products section visible
       await userEvent.click(screen.getAllByRole('radio')[0] as HTMLElement);
@@ -527,9 +507,7 @@ describe('ChangePlanAction', () => {
       openAndLoadModal({});
 
       // Wait for component to load
-      await waitFor(() => {
-        expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-      });
+      expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
 
       // Select a plan
       await userEvent.click(screen.getAllByRole('radio')[0] as HTMLElement);
@@ -587,9 +565,7 @@ describe('ChangePlanAction', () => {
       openAndLoadModal({});
 
       // Wait for component to load
-      await waitFor(() => {
-        expect(screen.getByRole('tab', {name: 'AM3'})).toBeInTheDocument();
-      });
+      expect(await screen.findByRole('tab', {name: 'AM3'})).toBeInTheDocument();
 
       // Select a plan
       await userEvent.click(screen.getAllByRole('radio')[0] as HTMLElement);

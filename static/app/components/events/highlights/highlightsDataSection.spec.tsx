@@ -95,11 +95,9 @@ describe('HighlightsDataSection', () => {
         const highlightTagDropdown = within(row).getByLabelText('Tag Actions Menu');
         expect(highlightTagDropdown).toBeInTheDocument();
         await userEvent.click(highlightTagDropdown);
-        await waitFor(() => {
-          expect(
-            screen.getByLabelText('Search issues with this tag value')
-          ).toBeInTheDocument();
-        });
+        expect(
+          await screen.findByLabelText('Search issues with this tag value')
+        ).toBeInTheDocument();
         expect(
           screen.queryByLabelText('Add to event highlights')
         ).not.toBeInTheDocument();

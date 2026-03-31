@@ -1257,9 +1257,7 @@ describe('trace view', () => {
       await waitFor(() => expect(rows[1]).toHaveFocus());
 
       await userEvent.keyboard('{arrowright}');
-      await waitFor(() => {
-        expect(screen.getByText('special-span')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('special-span')).toBeInTheDocument();
     });
 
     it('arrow left collapses row', async () => {
@@ -1511,11 +1509,9 @@ describe('trace view', () => {
       const searchInput = await screen.findByPlaceholderText('Search in trace');
       expect(searchInput).toHaveValue('dead');
 
-      await waitFor(() => {
-        expect(screen.getByTestId('trace-search-result-iterator')).toHaveTextContent(
-          'no results'
-        );
-      });
+      expect(await screen.findByTestId('trace-search-result-iterator')).toHaveTextContent(
+        'no results'
+      );
 
       await waitFor(() => {
         const rows = container.querySelectorAll(VISIBLE_TRACE_ROW_SELECTOR);
@@ -1580,11 +1576,9 @@ describe('trace view', () => {
       expect(searchInput).toHaveFocus();
       await userEvent.keyboard('{arrowdown}');
 
-      await waitFor(() => {
-        expect(screen.getByTestId('trace-drawer-title')).toHaveTextContent(
-          'TransactionID: 1'
-        );
-      });
+      expect(await screen.findByTestId('trace-drawer-title')).toHaveTextContent(
+        'TransactionID: 1'
+      );
     });
 
     it('highlighted node narrows down on the first result', async () => {
@@ -1843,11 +1837,9 @@ describe('trace view', () => {
       }
 
       // User clicks on an entry in the list, then proceeds to search
-      await waitFor(() => {
-        expect(screen.getByTestId('trace-search-result-iterator')).toHaveTextContent(
-          '6/11'
-        );
-      });
+      expect(await screen.findByTestId('trace-search-result-iterator')).toHaveTextContent(
+        '6/11'
+      );
       // And then continues the query - the highlighting is preserved as long as the
       // row is part of the search results
       await assertHighlightedRowAtIndex(container, 6);

@@ -51,9 +51,7 @@ describe('SamplingModeSwitchModal', () => {
       await userEvent.click(screen.getByRole('button', {name: 'Deactivate'}));
 
       // Modal should remain open and API should not have been called
-      await waitFor(() => {
-        expect(screen.getByText('Deactivate Advanced Mode')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Deactivate Advanced Mode')).toBeInTheDocument();
       expect(putMock).not.toHaveBeenCalled();
     });
 
@@ -129,9 +127,7 @@ describe('SamplingModeSwitchModal', () => {
       await screen.findByText('Deactivate Advanced Mode');
       await userEvent.click(screen.getByRole('button', {name: 'Deactivate'}));
 
-      await waitFor(() => {
-        expect(screen.getByText('Deactivate Advanced Mode')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Deactivate Advanced Mode')).toBeInTheDocument();
     });
 
     it('closes the modal when Cancel is clicked without submitting', async () => {
@@ -226,9 +222,7 @@ describe('SamplingModeSwitchModal', () => {
       await screen.findByText('Activate Advanced Mode');
       await userEvent.click(screen.getByRole('button', {name: 'Activate'}));
 
-      await waitFor(() => {
-        expect(screen.getByText('Activate Advanced Mode')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Activate Advanced Mode')).toBeInTheDocument();
     });
 
     it('closes the modal when Cancel is clicked without submitting', async () => {

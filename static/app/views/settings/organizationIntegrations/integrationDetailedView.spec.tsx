@@ -189,12 +189,10 @@ describe('IntegrationDetailedView', () => {
       initialRouterConfig: createRouterConfig('bitbucket', {tab: 'configurations'}),
       organization,
     });
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Uninstall'})).toHaveAttribute(
-        'aria-disabled',
-        'true'
-      );
-    });
+    expect(await screen.findByRole('button', {name: 'Uninstall'})).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
   });
 
   it('allows members to configure github/gitlab', async () => {

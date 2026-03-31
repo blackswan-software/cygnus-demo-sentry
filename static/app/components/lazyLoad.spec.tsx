@@ -32,9 +32,7 @@ describe('LazyLoad', () => {
     const getComponent = () => importTest;
     render(<LazyLoad LazyComponent={lazy(getComponent)} />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId('loading-indicator')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('loading-indicator')).toBeInTheDocument();
   });
 
   it('renders when given a promise of a "foo" component', async () => {
@@ -46,9 +44,7 @@ describe('LazyLoad', () => {
     render(<LazyLoad LazyComponent={lazy(() => importFoo)} />);
 
     // Should be loading
-    await waitFor(() => {
-      expect(screen.getByTestId('loading-indicator')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('loading-indicator')).toBeInTheDocument();
 
     // resolve with foo
     doResolve!({default: FooComponent});
@@ -79,9 +75,7 @@ describe('LazyLoad', () => {
 
     // First render Foo
     const {rerender} = render(<LazyLoad LazyComponent={lazy(() => importFoo)} />);
-    await waitFor(() => {
-      expect(screen.getByTestId('loading-indicator')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('loading-indicator')).toBeInTheDocument();
 
     // resolve with foo
     doResolve!({default: FooComponent});

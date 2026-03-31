@@ -82,9 +82,7 @@ describe('ProjectPageFilter', () => {
     await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
 
     // Trigger button & router are updated
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'project-3'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('button', {name: 'project-3'})).toBeInTheDocument();
     expect(router.location.query).toEqual({project: '3'});
   });
 
@@ -103,9 +101,7 @@ describe('ProjectPageFilter', () => {
 
     // Open the menu, search input has focus
     await userEvent.click(screen.getByRole('button', {name: 'My Projects'}));
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Search…')).toHaveFocus();
-    });
+    expect(await screen.findByPlaceholderText('Search…')).toHaveFocus();
 
     // Move focus past the two special items ("All Projects", "My Projects") to project-1
     await userEvent.keyboard('{ArrowDown}');

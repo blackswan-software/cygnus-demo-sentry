@@ -157,10 +157,8 @@ describe('projectGeneralSettings', () => {
       })
     );
 
-    await waitFor(() =>
-      expect(screen.getByRole('textbox', {name: 'Allowed Domains'})).toHaveValue(
-        'example.com,https://example.com'
-      )
+    expect(await screen.findByRole('textbox', {name: 'Allowed Domains'})).toHaveValue(
+      'example.com,https://example.com'
     );
   });
 

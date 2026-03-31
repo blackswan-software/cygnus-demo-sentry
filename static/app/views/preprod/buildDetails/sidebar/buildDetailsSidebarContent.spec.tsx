@@ -94,9 +94,7 @@ describe('BuildDetailsSidebarContent', () => {
     });
 
     // App info should be visible
-    await waitFor(() => {
-      expect(screen.getByText('Test App')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Test App')).toBeInTheDocument();
 
     // Build Metadata should show VCS data
     expect(screen.getByText('Build Metadata')).toBeInTheDocument();
@@ -170,9 +168,7 @@ describe('BuildDetailsSidebarContent', () => {
         organization,
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Build Metadata')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Build Metadata')).toBeInTheDocument();
 
       // Base Build row should not be present
       expect(screen.queryByText('Base Build')).not.toBeInTheDocument();
@@ -192,9 +188,7 @@ describe('BuildDetailsSidebarContent', () => {
         organization,
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Build Metadata')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Build Metadata')).toBeInTheDocument();
 
       // Base Build row should be present with label
       const baseBuildLabel = screen.getByText('Base Build');
@@ -226,9 +220,7 @@ describe('BuildDetailsSidebarContent', () => {
         organization,
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Build Metadata')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Build Metadata')).toBeInTheDocument();
 
       // Base Build row should be present with label
       const baseBuildLabel = screen.getByText('Base Build');
@@ -275,9 +267,7 @@ describe('BuildDetailsSidebarContent', () => {
         }
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Build Metadata')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Build Metadata')).toBeInTheDocument();
 
       // Base Build row should be present with label and link
       const baseBuildLink = screen.getByRole('link', {name: 'v1.0 (2)'});

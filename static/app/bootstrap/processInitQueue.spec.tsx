@@ -140,12 +140,9 @@ describe('processInitQueue', () => {
       render(<div id="setup-wizard-container" />);
       processInitQueue();
 
-      await waitFor(
-        () => {
-          expect(screen.getByText('Select your Sentry project')).toBeInTheDocument();
-        },
-        {timeout: 5000}
-      );
+      expect(
+        await screen.findByText('Select your Sentry project', undefined, {timeout: 5000})
+      ).toBeInTheDocument();
     });
 
     it('renders WebAuthn Assert', async () => {

@@ -67,8 +67,6 @@ describe('TimeSince', () => {
     );
     const timeElement = screen.getByRole('time');
     await userEvent.hover(timeElement);
-    await waitFor(() => {
-      expect(screen.getByText(/EST/)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/EST/)).toBeInTheDocument();
   });
 });

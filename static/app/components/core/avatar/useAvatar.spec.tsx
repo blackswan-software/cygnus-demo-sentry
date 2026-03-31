@@ -105,9 +105,7 @@ describe('useAvatar', () => {
         img.dispatchEvent(new Event('error'));
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('JB')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('JB')).toBeInTheDocument();
       expect(screen.queryByRole('img')).not.toBeInTheDocument();
     });
 

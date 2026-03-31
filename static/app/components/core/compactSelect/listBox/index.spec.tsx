@@ -212,18 +212,14 @@ describe('ListBox', () => {
 
     await userEvent.click(screen.getByRole('button'));
 
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'Option One'})).toHaveFocus();
-    });
+    expect(await screen.findByRole('option', {name: 'Option One'})).toHaveFocus();
 
     expect(await screen.findByRole('tooltip')).toHaveTextContent(
       'Details for option one'
     );
 
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'Option Two'})).toHaveFocus();
-    });
+    expect(await screen.findByRole('option', {name: 'Option Two'})).toHaveFocus();
 
     expect(await screen.findByRole('tooltip')).toHaveTextContent(
       'Details for option two'

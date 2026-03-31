@@ -118,9 +118,7 @@ describe('OrganizationSampling', () => {
     await userEvent.type(screen.getByRole('spinbutton'), '30');
     await userEvent.click(screen.getByRole('button', {name: 'Apply Changes'}));
 
-    await waitFor(() =>
-      expect(screen.getByRole('button', {name: 'Reset'})).toBeDisabled()
-    );
+    expect(await screen.findByRole('button', {name: 'Reset'})).toBeDisabled();
   });
 
   it('keeps form dirty after an API error', async () => {
@@ -137,9 +135,7 @@ describe('OrganizationSampling', () => {
     await userEvent.type(screen.getByRole('spinbutton'), '30');
     await userEvent.click(screen.getByRole('button', {name: 'Apply Changes'}));
 
-    await waitFor(() =>
-      expect(screen.getByRole('button', {name: 'Reset'})).toBeEnabled()
-    );
+    expect(await screen.findByRole('button', {name: 'Reset'})).toBeEnabled();
   });
 
   it('disables Apply Changes and input for users without org:write access', () => {

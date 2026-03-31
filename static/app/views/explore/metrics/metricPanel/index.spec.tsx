@@ -158,9 +158,7 @@ describe('MetricPanel', () => {
         additionalWrapper: createWrapper({queryParams, traceMetric}),
       });
 
-      await waitFor(() => {
-        expect(screen.getByTestId('metric-panel')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('metric-panel')).toBeInTheDocument();
 
       // The visualize label badge ("A") should NOT be present
       expect(screen.queryByText('A')).not.toBeInTheDocument();
@@ -248,9 +246,7 @@ describe('MetricPanel', () => {
         additionalWrapper: createWrapper({queryParams, traceMetric}),
       });
 
-      await waitFor(() => {
-        expect(screen.getByTestId('metric-panel')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('metric-panel')).toBeInTheDocument();
 
       // Orientation controls should NOT be present in the refreshed UI
       expect(

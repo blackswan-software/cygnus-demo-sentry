@@ -224,9 +224,7 @@ describe('OurlogsSection', () => {
     });
     expect(mockRequest).toHaveBeenCalledTimes(1);
 
-    await waitFor(() => {
-      expect(screen.getByText(/i am a log/)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/i am a log/)).toBeInTheDocument();
 
     expect(
       screen.queryByRole('complementary', {name: 'logs drawer'})
@@ -241,9 +239,7 @@ describe('OurlogsSection', () => {
       expect(mockRowDetailsRequest).toHaveBeenCalledTimes(1);
     });
 
-    await waitFor(() => {
-      expect(within(aside).getByText(/special value/)).toBeInTheDocument();
-    });
+    expect(await within(aside).findByText(/special value/)).toBeInTheDocument();
 
     expect(within(aside).getByTestId('tree-key-severity')).toBeInTheDocument();
     expect(within(aside).getByTestId('tree-key-severity')).toHaveTextContent('severity');
@@ -264,9 +260,7 @@ describe('OurlogsSection', () => {
       },
     });
 
-    await waitFor(() => {
-      expect(screen.getByText(/i am a log/)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/i am a log/)).toBeInTheDocument();
 
     await userEvent.click(screen.getByText(/i am a log/));
 

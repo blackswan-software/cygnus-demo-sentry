@@ -202,7 +202,7 @@ describe('IntegrationRepos', () => {
       });
 
       render(<IntegrationRepos integration={integration} />);
-      await waitFor(() => expect(screen.getByText('Add Repository')).toBeEnabled());
+      expect(await screen.findByText('Add Repository')).toBeEnabled();
     });
   });
 

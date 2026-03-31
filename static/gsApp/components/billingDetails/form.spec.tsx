@@ -63,16 +63,13 @@ describe('BillingDetailsForm', () => {
 
     render(<BillingDetailsForm {...defaultProps} />);
 
-    await waitFor(
-      () => {
-        expect(
-          screen.getByText(
-            /To add or update your business address, you may need to disable any ad or tracker blocking extensions/
-          )
-        ).toBeInTheDocument();
-      },
-      {timeout: 11000} // the timeout in the code is 10 seconds so we need to wait longer
-    );
+    expect(
+      await screen.findByText(
+        /To add or update your business address, you may need to disable any ad or tracker blocking extensions/,
+        undefined,
+        {timeout: 11000}
+      )
+    ).toBeInTheDocument();
 
     jest.restoreAllMocks();
   }, 15000);

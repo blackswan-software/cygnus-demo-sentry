@@ -126,9 +126,7 @@ describe('token', () => {
 
       expect(await screen.findByLabelText('avg(span.duration)')).toBeInTheDocument();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText('Select an attribute')).toHaveFocus();
-      });
+      expect(await screen.findByLabelText('Select an attribute')).toHaveFocus();
     });
 
     it('allow selecting function using keyboard', async () => {
@@ -152,9 +150,7 @@ describe('token', () => {
         })
       ).toBeInTheDocument();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText('Select an attribute')).toHaveFocus();
-      });
+      expect(await screen.findByLabelText('Select an attribute')).toHaveFocus();
     });
 
     it('allows selecting function with no arguments using mouse', async () => {
@@ -259,9 +255,7 @@ describe('token', () => {
         })
       ).toBeInTheDocument();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText('Select an attribute')).toHaveFocus();
-      });
+      expect(await screen.findByLabelText('Select an attribute')).toHaveFocus();
     });
 
     it('autocompletes function token when they reach the open parenthesis even if there is more text', async () => {
@@ -283,9 +277,7 @@ describe('token', () => {
 
       expect(input).toHaveValue('foo bar');
 
-      await waitFor(() => {
-        expect(screen.getByLabelText('Select an attribute')).toHaveFocus();
-      });
+      expect(await screen.findByLabelText('Select an attribute')).toHaveFocus();
     });
 
     it('autocompletes function token with no arguments when they reach the open parenthesis', async () => {
@@ -450,13 +442,11 @@ describe('token', () => {
       await waitFor(() => expect(getLastInput()).toHaveFocus());
       await userEvent.type(getLastInput(), '{Escape}');
 
-      await waitFor(() => {
-        expect(
-          screen.getByRole('row', {
-            name: 'avg(span.self_time)',
-          })
-        ).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByRole('row', {
+          name: 'avg(span.self_time)',
+        })
+      ).toBeInTheDocument();
     });
 
     it('allows changing attribute using combo box', async () => {

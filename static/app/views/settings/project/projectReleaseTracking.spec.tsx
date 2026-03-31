@@ -50,9 +50,7 @@ describe('ProjectReleaseTracking', () => {
       initialRouterConfig,
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toHaveValue('token token token');
-    });
+    expect(await screen.findByRole('textbox')).toHaveValue('token token token');
   });
 
   it('can regenerate token', async () => {
@@ -81,9 +79,7 @@ describe('ProjectReleaseTracking', () => {
 
     await userEvent.click(screen.getByRole('button', {name: 'Confirm'}));
 
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toHaveValue('token2 token2 token2');
-    });
+    expect(await screen.findByRole('textbox')).toHaveValue('token2 token2 token2');
     expect(mock).toHaveBeenCalledWith(
       url,
       expect.objectContaining({
@@ -109,8 +105,6 @@ describe('ProjectReleaseTracking', () => {
       initialRouterConfig,
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toHaveValue('YOUR_TOKEN');
-    });
+    expect(await screen.findByRole('textbox')).toHaveValue('YOUR_TOKEN');
   });
 });

@@ -53,9 +53,7 @@ describe('UserAvatar', () => {
         });
 
         // Should show letter avatar with initials from user.name, not email
-        await waitFor(() => {
-          expect(screen.getByText('JD')).toBeInTheDocument();
-        });
+        expect(await screen.findByText('JD')).toBeInTheDocument();
         expect(screen.queryByRole('img')).not.toBeInTheDocument();
       }
     );

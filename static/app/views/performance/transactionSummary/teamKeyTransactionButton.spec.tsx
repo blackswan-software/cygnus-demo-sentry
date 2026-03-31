@@ -12,9 +12,7 @@ import {MAX_TEAM_KEY_TRANSACTIONS} from 'sentry/utils/performance/constants';
 import TeamKeyTransactionButton from 'sentry/views/performance/transactionSummary/teamKeyTransactionButton';
 
 async function clickTeamKeyTransactionDropdown() {
-  await waitFor(() =>
-    expect(screen.getByRole('button', {expanded: false})).toBeEnabled()
-  );
+  expect(await screen.findByRole('button', {expanded: false})).toBeEnabled();
   await userEvent.click(screen.getByRole('button', {expanded: false}));
 }
 

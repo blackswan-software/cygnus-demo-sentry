@@ -127,12 +127,10 @@ describe('CommandPalette', () => {
     await userEvent.click(await screen.findByRole('option', {name: 'Parent action'}));
 
     // Textbox changes placeholder to parent action label
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', {name: 'Search commands'})).toHaveAttribute(
-        'placeholder',
-        'Search inside Parent action...'
-      );
-    });
+    expect(await screen.findByRole('textbox', {name: 'Search commands'})).toHaveAttribute(
+      'placeholder',
+      'Search inside Parent action...'
+    );
 
     // Child actions are visible, global actions are not
     expect(screen.getByRole('option', {name: 'Child action'})).toBeInTheDocument();

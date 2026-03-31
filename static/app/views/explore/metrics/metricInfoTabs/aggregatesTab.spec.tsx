@@ -93,9 +93,7 @@ describe('AggregatesTab', () => {
     });
 
     // Wait for the table to render with header cells
-    await waitFor(() => {
-      expect(screen.getByRole('columnheader', {name: /avg/i})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('columnheader', {name: /avg/i})).toBeInTheDocument();
 
     // Both aggregate columns should be present
     expect(screen.getByRole('columnheader', {name: /sum/i})).toBeInTheDocument();
@@ -145,11 +143,9 @@ describe('AggregatesTab', () => {
     });
 
     // Wait for the table to render
-    await waitFor(() => {
-      expect(
-        screen.getByRole('columnheader', {name: /environment/i})
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole('columnheader', {name: /environment/i})
+    ).toBeInTheDocument();
 
     // GroupBy columns
     expect(screen.getByRole('columnheader', {name: /service/i})).toBeInTheDocument();
@@ -200,9 +196,7 @@ describe('AggregatesTab', () => {
     });
 
     // Wait for the empty state
-    await waitFor(() => {
-      expect(screen.getByText('No aggregates found')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('No aggregates found')).toBeInTheDocument();
   });
 
   it('shows error state when request fails', async () => {
@@ -241,8 +235,6 @@ describe('AggregatesTab', () => {
     });
 
     // Wait for the error state
-    await waitFor(() => {
-      expect(screen.getByTestId('error-indicator')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('error-indicator')).toBeInTheDocument();
   });
 });

@@ -209,9 +209,7 @@ describe('LogsInfiniteTable', () => {
   it('should render the table component', async () => {
     renderWithProviders(<LogsInfiniteTable />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId('logs-table')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('logs-table')).toBeInTheDocument();
   });
 
   it('should render with loading state initially', async () => {
@@ -241,9 +239,7 @@ describe('LogsInfiniteTable', () => {
     }
     renderWithProviders(<LogsInfiniteTable />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId('logs-table')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('logs-table')).toBeInTheDocument();
 
     const allTreeRows = await screen.findAllByTestId('log-table-row');
     expect(allTreeRows).toHaveLength(3);
@@ -273,9 +269,7 @@ describe('LogsInfiniteTable', () => {
   it('should not be interactable on embedded views', async () => {
     renderWithProviders(<LogsInfiniteTable embedded />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId('logs-table')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('logs-table')).toBeInTheDocument();
 
     const allTreeRows = await screen.findAllByTestId('log-table-row');
     expect(allTreeRows).toHaveLength(3);

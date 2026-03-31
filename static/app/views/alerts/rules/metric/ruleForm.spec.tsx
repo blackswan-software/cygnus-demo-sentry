@@ -806,9 +806,7 @@ describe('Incident Rules Form', () => {
       expect(screen.getByLabelText('Static: above or below {x}')).not.toBeChecked();
       await userEvent.click(screen.getByText('Static: above or below {x}'));
 
-      await waitFor(() =>
-        expect(screen.getByLabelText('Static: above or below {x}')).toBeChecked()
-      );
+      expect(await screen.findByLabelText('Static: above or below {x}')).toBeChecked();
 
       await userEvent.click(screen.getByLabelText('Save Rule'));
 

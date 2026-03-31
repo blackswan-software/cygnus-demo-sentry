@@ -95,9 +95,7 @@ describe('DataExport', () => {
       }
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button')).toBeDisabled();
-    });
+    expect(await screen.findByRole('button')).toBeDisabled();
   });
 
   it('should reset the state when receiving a new payload', async () => {
@@ -112,17 +110,13 @@ describe('DataExport', () => {
     });
 
     await userEvent.click(screen.getByText(/Export All to CSV/));
-    await waitFor(() => {
-      expect(screen.getByRole('button')).toBeDisabled();
-    });
+    expect(await screen.findByRole('button')).toBeDisabled();
 
     rerender(
       <DataExport payload={{...mockPayload, queryType: ExportQueryType.DISCOVER}} />
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button')).toBeEnabled();
-    });
+    expect(await screen.findByRole('button')).toBeEnabled();
   });
 
   it('should display default error message if non provided', async () => {
@@ -144,9 +138,7 @@ describe('DataExport', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('button')).toBeEnabled();
-    });
+    expect(await screen.findByRole('button')).toBeEnabled();
   });
 
   it('should display provided error message', async () => {

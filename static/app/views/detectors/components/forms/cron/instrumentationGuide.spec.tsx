@@ -161,9 +161,7 @@ describe('InstrumentationGuide', () => {
       expect(router.location.query.guide).toBe('upsert');
 
       // Should show PHP guide, not auto-select Python based on project
-      await waitFor(() => {
-        expect(screen.getByText('Auto-Instrument with PHP')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Auto-Instrument with PHP')).toBeInTheDocument();
     });
 
     it('auto-selects platform based on selected project', async () => {

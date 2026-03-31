@@ -103,9 +103,7 @@ describe('InviteMembersModal', () => {
 
   it('renders', async () => {
     setupView();
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Send invite'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('button', {name: 'Send invite'})).toBeInTheDocument();
 
     // We have two roles loaded from the members/me endpoint, defaulting to the
     // 'member' role.
@@ -259,9 +257,7 @@ describe('InviteMembersModal', () => {
       },
     });
 
-    await waitFor(() => {
-      expect(screen.getByText(initialEmail)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(initialEmail)).toBeInTheDocument();
 
     // Just immediately click send
     await userEvent.click(screen.getByRole('button', {name: 'Send invite'}));
@@ -294,9 +290,7 @@ describe('InviteMembersModal', () => {
       },
     });
 
-    await waitFor(() => {
-      expect(screen.getByText(initialEmail)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(initialEmail)).toBeInTheDocument();
     // Just immediately click send
     await userEvent.click(screen.getByRole('button', {name: 'Send invite'}));
 
@@ -350,9 +344,7 @@ describe('InviteMembersModal', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(screen.getByText(initialEmail)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(initialEmail)).toBeInTheDocument();
       await userEvent.click(screen.getByRole('button', {name: 'Send invite request'}));
       const apiMock = mocks[1];
       expect(apiMock).toHaveBeenCalledTimes(1);

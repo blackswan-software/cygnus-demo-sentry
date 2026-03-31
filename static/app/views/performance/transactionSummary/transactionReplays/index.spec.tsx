@@ -263,11 +263,9 @@ describe('TransactionReplays', () => {
       },
     });
 
-    await waitFor(() => {
-      expect(
-        screen.getByText("You don't have access to this feature")
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText("You don't have access to this feature")
+    ).toBeInTheDocument();
   });
 
   it('should hide replay content when user does not have granular replay permissions', async () => {

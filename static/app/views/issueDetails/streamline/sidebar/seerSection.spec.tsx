@@ -62,9 +62,7 @@ describe('SeerSection', () => {
       organization,
     });
 
-    await waitFor(() => {
-      expect(screen.getByText(mockCause)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(mockCause)).toBeInTheDocument();
     expect(screen.queryByText(mockWhatHappened)).not.toBeInTheDocument();
     expect(screen.queryByText(mockTrace)).not.toBeInTheDocument();
   });
@@ -180,9 +178,9 @@ describe('SeerSection', () => {
         organization,
       });
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', {name: 'Find Root Cause'})).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByRole('button', {name: 'Find Root Cause'})
+      ).toBeInTheDocument();
     });
 
     it('shows resource link when available', () => {

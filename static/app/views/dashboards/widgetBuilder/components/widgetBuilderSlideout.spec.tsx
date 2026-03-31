@@ -643,9 +643,7 @@ describe('WidgetBuilderSlideout', () => {
     expect(screen.queryByLabelText('Add a search term')).not.toBeInTheDocument();
 
     // Wait for any pending popper updates to complete
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Issues'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('button', {name: 'Issues'})).toBeInTheDocument();
   });
 
   it('should show the markdown content field for text widgets', async () => {
@@ -781,8 +779,6 @@ describe('WidgetBuilderSlideout', () => {
     expect(screen.queryByText('Group by')).not.toBeInTheDocument();
 
     // Wait for any pending popper updates to complete
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Issues'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('button', {name: 'Issues'})).toBeInTheDocument();
   });
 });

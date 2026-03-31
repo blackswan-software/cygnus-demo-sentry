@@ -48,9 +48,7 @@ describe('AutofixInsightCards', () => {
     const contextButton = screen.getByText('Sample insight 1');
 
     await userEvent.click(contextButton);
-    await waitFor(() => {
-      expect(screen.getByText('Sample justification 1')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Sample justification 1')).toBeInTheDocument();
 
     await userEvent.click(contextButton);
     await waitFor(() => {

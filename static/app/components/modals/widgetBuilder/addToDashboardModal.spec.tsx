@@ -150,9 +150,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
     expect(screen.getByText('Test title')).toBeInTheDocument();
     expect(screen.getByText('Select Dashboard')).toBeInTheDocument();
@@ -180,9 +178,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
     expect(screen.getByRole('button', {name: 'Add + Stay on this Page'})).toBeDisabled();
     expect(screen.getByRole('button', {name: 'Open in Widget Builder'})).toBeDisabled();
@@ -208,9 +204,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
     await selectEvent.openMenu(screen.getByText('Select Dashboard'));
     expect(screen.getByText('+ Create New Dashboard')).toBeInTheDocument();
@@ -232,9 +226,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
     expect(eventsStatsMock).toHaveBeenCalledWith(
       '/organizations/org-slug/events-stats/',
@@ -284,9 +276,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
     expect(eventsStatsMock).toHaveBeenCalledWith(
       '/organizations/org-slug/events-stats/',
@@ -319,9 +309,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
     await selectEvent.select(screen.getByText('Select Dashboard'), 'Test Dashboard');
 
     await userEvent.click(screen.getByText('Open in Widget Builder'));
@@ -360,9 +348,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
     await selectEvent.select(screen.getByText('Select Dashboard'), 'Test Dashboard');
 
     await userEvent.click(screen.getByText('Open in Widget Builder'));
@@ -410,9 +396,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
     await selectEvent.select(screen.getByText('Select Dashboard'), 'Test Dashboard');
 
     await userEvent.click(screen.getByText('Add + Stay on this Page'));
@@ -472,9 +456,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
     await selectEvent.select(screen.getByText('Select Dashboard'), 'Test Dashboard');
 
     await userEvent.click(screen.getByText('Add + Stay on this Page'));
@@ -552,9 +534,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
     await selectEvent.select(screen.getByText('Select Dashboard'), 'Test Dashboard');
 
     await userEvent.click(screen.getByText('Add + Stay on this Page'));
@@ -609,9 +589,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
     await selectEvent.select(
       screen.getByText('Select Dashboard'),
       '+ Create New Dashboard'
@@ -644,9 +622,7 @@ describe('add to dashboard modal', () => {
       }
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
     await userEvent.click(screen.getByText('Select Dashboard'));
     expect(screen.getByText('Other Dashboard')).toBeInTheDocument();
@@ -681,9 +657,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
     // Open the dropdown to see the options
     await selectEvent.openMenu(screen.getByText('Select Dashboard'));
@@ -737,9 +711,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
     await selectEvent.openMenu(screen.getByText('Select Dashboard'));
     expect(screen.queryByText('Prebuilt Dashboard')).not.toBeInTheDocument();
     expect(screen.getByText('Test Dashboard')).toBeInTheDocument();
@@ -773,9 +745,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
     await selectEvent.select(
       screen.getByText('Select Dashboard'),
       '+ Create New Dashboard'
@@ -831,9 +801,7 @@ describe('add to dashboard modal', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('Select Dashboard')).toBeEnabled();
-    });
+    expect(await screen.findByText('Select Dashboard')).toBeEnabled();
     await selectEvent.select(screen.getByText('Select Dashboard'), 'Test Dashboard');
 
     await userEvent.click(screen.getByText('Open in Widget Builder'));
@@ -887,9 +855,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
       expect(eventsStatsMock).not.toHaveBeenCalled();
     });
@@ -919,9 +885,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
       await selectEvent.select(screen.getByText('Select Dashboard'), 'Test Dashboard');
       await userEvent.click(screen.getByText('Add + Stay on this Page'));
 
@@ -962,9 +926,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
       await selectEvent.select(
         screen.getByText('Select Dashboard'),
         '+ Create New Dashboard'
@@ -1003,9 +965,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
       await selectEvent.select(
         screen.getByText('Select Dashboard'),
         '+ Create New Dashboard'
@@ -1083,9 +1043,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
       // Widget name input should not be present
       expect(screen.queryByLabelText('Optional Widget Name')).not.toBeInTheDocument();
@@ -1106,9 +1064,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
       // Widget preview message should not be present
       expect(
@@ -1133,9 +1089,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
       // Should show message about adding multiple widgets with full text
       expect(
@@ -1161,9 +1115,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
 
       // Should show "Add + Open Dashboard" button
       expect(
@@ -1201,9 +1153,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
       await selectEvent.select(screen.getByText('Select Dashboard'), 'Test Dashboard');
 
       await userEvent.click(screen.getByText('Add + Open Dashboard'));
@@ -1253,9 +1203,7 @@ describe('add to dashboard modal', () => {
         />
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Select Dashboard')).toBeEnabled();
-      });
+      expect(await screen.findByText('Select Dashboard')).toBeEnabled();
       await selectEvent.select(
         screen.getByText('Select Dashboard'),
         '+ Create New Dashboard'

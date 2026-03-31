@@ -116,9 +116,7 @@ describe('UptimeAssertionsField', () => {
     );
 
     // Wait for component to settle (react-popper causes async updates)
-    await waitFor(() => {
-      expect(screen.getAllByRole('textbox')).toHaveLength(2);
-    });
+    expect(await screen.findAllByRole('textbox')).toHaveLength(2);
 
     // UI should show default 2xx assertions
     const textboxes = screen.getAllByRole('textbox');
@@ -177,9 +175,7 @@ describe('UptimeAssertionsField', () => {
     );
 
     // Wait for component to settle (react-popper causes async updates)
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('textbox')).toBeInTheDocument();
 
     // Raw field value should still have NaN
     const rawValue = model.fields.get('assertion') as unknown as UptimeAssertion;
@@ -224,9 +220,7 @@ describe('UptimeAssertionsField', () => {
     );
 
     // Wait for component to settle (react-popper causes async updates)
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('textbox')).toBeInTheDocument();
 
     // getTransformedData should clamp to valid range
     const transformedData = model.getTransformedData();
@@ -263,9 +257,7 @@ describe('UptimeAssertionsField', () => {
       </Form>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('textbox')).toBeInTheDocument();
 
     const transformedData = model.getTransformedData();
     const transformedAssertion = transformedData.assertion as UptimeAssertion;
@@ -328,9 +320,7 @@ describe('UptimeAssertionsField', () => {
     await userEvent.click(screen.getByRole('menuitemradio', {name: 'Status Code'}));
 
     // Should now have 1 assertion input
-    await waitFor(() => {
-      expect(screen.getAllByRole('textbox')).toHaveLength(1);
-    });
+    expect(await screen.findAllByRole('textbox')).toHaveLength(1);
 
     // getValue should return the new assertion (not null)
     const transformedData = model.getTransformedData();
@@ -350,18 +340,14 @@ describe('UptimeAssertionsField', () => {
     );
 
     // Wait for default assertions to render (2 status code checks)
-    await waitFor(() => {
-      expect(screen.getAllByRole('textbox')).toHaveLength(2);
-    });
+    expect(await screen.findAllByRole('textbox')).toHaveLength(2);
 
     // Delete both default assertions by clicking their remove buttons
     const removeButtons = screen.getAllByRole('button', {name: 'Remove assertion'});
     expect(removeButtons).toHaveLength(2);
 
     await userEvent.click(removeButtons[0]!);
-    await waitFor(() => {
-      expect(screen.getAllByRole('textbox')).toHaveLength(1);
-    });
+    expect(await screen.findAllByRole('textbox')).toHaveLength(1);
 
     const remainingRemoveButton = screen.getByRole('button', {name: 'Remove assertion'});
     await userEvent.click(remainingRemoveButton);

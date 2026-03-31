@@ -391,12 +391,8 @@ describe('Sentry Application Details', () => {
 
       await userEvent.click(screen.getByRole('button', {name: 'New Token'}));
 
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('Token preview')).toHaveLength(1);
-      });
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('Generated token')).toHaveLength(1);
-      });
+      expect(await screen.findAllByLabelText('Token preview')).toHaveLength(1);
+      expect(await screen.findAllByLabelText('Generated token')).toHaveLength(1);
     });
 
     it('removing token from list', async () => {

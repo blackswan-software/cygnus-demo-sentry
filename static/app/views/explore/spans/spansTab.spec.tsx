@@ -690,12 +690,10 @@ describe('SpansTabContent', () => {
       await userEvent.click(screen.getByRole('menuitemradio', {name: 'Logs'}));
 
       // Should switch to Span tab
-      await waitFor(() => {
-        expect(screen.getByRole('tab', {name: 'Span Samples'})).toHaveAttribute(
-          'aria-selected',
-          'true'
-        );
-      });
+      expect(await screen.findByRole('tab', {name: 'Span Samples'})).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
     });
   });
 });

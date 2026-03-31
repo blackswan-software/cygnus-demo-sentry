@@ -1505,21 +1505,16 @@ describe('SearchQueryBuilder', () => {
 
       // Shift+ArrowLeft should select assigned:me
       await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}');
-      await waitFor(() => {
-        expect(screen.getByRole('row', {name: 'assigned:me'})).toHaveAttribute(
-          'aria-selected',
-          'true'
-        );
-      });
+      expect(await screen.findByRole('row', {name: 'assigned:me'})).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
 
       // Shift+ArrowLeft again should select browser.name
       await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}');
-      await waitFor(() => {
-        expect(screen.getByRole('row', {name: 'browser.name:firefox'})).toHaveAttribute(
-          'aria-selected',
-          'true'
-        );
-      });
+      expect(
+        await screen.findByRole('row', {name: 'browser.name:firefox'})
+      ).toHaveAttribute('aria-selected', 'true');
       // assigned:me should still be selected
       expect(screen.getByRole('row', {name: 'assigned:me'})).toHaveAttribute(
         'aria-selected',
@@ -1528,11 +1523,9 @@ describe('SearchQueryBuilder', () => {
 
       // Shift+ArrowRight should unselect browser.name:firefox
       await userEvent.keyboard('{Shift>}{ArrowRight}{/Shift}');
-      await waitFor(() => {
-        expect(
-          screen.getByRole('row', {name: 'browser.name:firefox'})
-        ).not.toHaveAttribute('aria-selected', 'true');
-      });
+      expect(
+        await screen.findByRole('row', {name: 'browser.name:firefox'})
+      ).not.toHaveAttribute('aria-selected', 'true');
       // assigned:me should still be selected
       expect(screen.getByRole('row', {name: 'assigned:me'})).toHaveAttribute(
         'aria-selected',
@@ -1847,12 +1840,10 @@ describe('SearchQueryBuilder', () => {
 
       await userEvent.click(getLastInput());
       await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}');
-      await waitFor(() => {
-        expect(screen.getByRole('row', {name: 'is:unresolved'})).toHaveAttribute(
-          'aria-selected',
-          'true'
-        );
-      });
+      expect(await screen.findByRole('row', {name: 'is:unresolved'})).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
       await userEvent.keyboard('(');
 
       expect(mockOnChange).toHaveBeenCalledWith('( is:unresolved )', expect.anything());
@@ -1880,12 +1871,9 @@ describe('SearchQueryBuilder', () => {
       await userEvent.click(getLastInput());
       // Select only the browser.name token (shift+left)
       await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}');
-      await waitFor(() => {
-        expect(screen.getByRole('row', {name: 'browser.name:chrome'})).toHaveAttribute(
-          'aria-selected',
-          'true'
-        );
-      });
+      expect(
+        await screen.findByRole('row', {name: 'browser.name:chrome'})
+      ).toHaveAttribute('aria-selected', 'true');
       await userEvent.keyboard('(');
 
       // Should wrap only the selected token, preserving existing parens
@@ -2406,11 +2394,9 @@ describe('SearchQueryBuilder', () => {
           screen.getByRole('button', {name: 'Edit value for filter: browser.name'})
         );
         // Should start with previous values and an appended ',' for the next value
-        await waitFor(() => {
-          expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveValue(
-            'firefox,'
-          );
-        });
+        expect(
+          await screen.findByRole('combobox', {name: 'Edit filter value'})
+        ).toHaveValue('firefox,');
 
         // Clicking the "Chrome option should add it to the list and commit changes
         await userEvent.click(screen.getByRole('option', {name: 'Chrome'}));
@@ -2446,11 +2432,9 @@ describe('SearchQueryBuilder', () => {
         await userEvent.clear(combobox);
         await userEvent.click(screen.getByRole('option', {name: 'custom_tag_name'}));
 
-        await waitFor(() => {
-          expect(
-            screen.getByRole('row', {name: 'custom_tag_name:firefox'})
-          ).toBeInTheDocument();
-        });
+        expect(
+          await screen.findByRole('row', {name: 'custom_tag_name:firefox'})
+        ).toBeInTheDocument();
         expect(getLastInput()).toHaveFocus();
 
         await waitFor(() => {
@@ -2483,9 +2467,7 @@ describe('SearchQueryBuilder', () => {
         await userEvent.clear(combobox);
         await userEvent.click(screen.getByRole('option', {name: 'age'}));
 
-        await waitFor(() => {
-          expect(screen.getByRole('row', {name: 'age:-24h'})).toBeInTheDocument();
-        });
+        expect(await screen.findByRole('row', {name: 'age:-24h'})).toBeInTheDocument();
         // Filter value should have focus
         expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveFocus();
 
@@ -2507,11 +2489,9 @@ describe('SearchQueryBuilder', () => {
           screen.getByRole('button', {name: 'Edit value for filter: browser.name'})
         );
         // Input value should start with previous value and appended ','
-        await waitFor(() => {
-          expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveValue(
-            'firefox,'
-          );
-        });
+        expect(
+          await screen.findByRole('combobox', {name: 'Edit filter value'})
+        ).toHaveValue('firefox,');
 
         // Toggling off the "firefox" option should:
         // - Commit an empty string as the filter value
@@ -2524,11 +2504,9 @@ describe('SearchQueryBuilder', () => {
         expect(
           await screen.findByRole('row', {name: 'browser.name:""'})
         ).toBeInTheDocument();
-        await waitFor(() => {
-          expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveValue(
-            ''
-          );
-        });
+        expect(
+          await screen.findByRole('combobox', {name: 'Edit filter value'})
+        ).toHaveValue('');
         expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveFocus();
         expect(mockOnChange).not.toHaveBeenCalled();
 
@@ -2543,11 +2521,9 @@ describe('SearchQueryBuilder', () => {
         expect(
           await screen.findByRole('row', {name: 'browser.name:Chrome'})
         ).toBeInTheDocument();
-        await waitFor(() => {
-          expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveValue(
-            'Chrome,'
-          );
-        });
+        expect(
+          await screen.findByRole('combobox', {name: 'Edit filter value'})
+        ).toHaveValue('Chrome,');
         expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveFocus();
         expect(mockOnChange).not.toHaveBeenCalled();
 
@@ -2582,11 +2558,9 @@ describe('SearchQueryBuilder', () => {
         expect(
           await screen.findByRole('row', {name: 'browser.name:[firefox,Chrome]'})
         ).toBeInTheDocument();
-        await waitFor(() => {
-          expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveValue(
-            'firefox,Chrome,'
-          );
-        });
+        expect(
+          await screen.findByRole('combobox', {name: 'Edit filter value'})
+        ).toHaveValue('firefox,Chrome,');
         expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveFocus();
 
         // onChange should not be called until exiting edit mode
@@ -2623,11 +2597,9 @@ describe('SearchQueryBuilder', () => {
         expect(
           await screen.findByRole('row', {name: 'browser.name:[firefox,Chrome]'})
         ).toBeInTheDocument();
-        await waitFor(() => {
-          expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveValue(
-            'firefox,Chrome,'
-          );
-        });
+        expect(
+          await screen.findByRole('combobox', {name: 'Edit filter value'})
+        ).toHaveValue('firefox,Chrome,');
         expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveFocus();
 
         // onChange should not be called until exiting edit mode
@@ -2942,11 +2914,9 @@ describe('SearchQueryBuilder', () => {
         await userEvent.click(
           screen.getByRole('button', {name: 'Edit value for filter: browser.name'})
         );
-        await waitFor(() => {
-          expect(screen.getByRole('combobox', {name: 'Edit filter value'})).toHaveValue(
-            '1,c,3,'
-          );
-        });
+        expect(
+          await screen.findByRole('combobox', {name: 'Edit filter value'})
+        ).toHaveValue('1,c,3,');
 
         // Arrow left three times to put cursor inside "c" value
         await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}');
@@ -4189,11 +4159,9 @@ describe('SearchQueryBuilder', () => {
 
         // After moving to next parameter, should now highlight 'operator'
         await userEvent.keyboard('a,');
-        await waitFor(() => {
-          expect(
-            within(descriptionTooltip).getByTestId('focused-param')
-          ).toHaveTextContent('operator: string');
-        });
+        expect(
+          await within(descriptionTooltip).findByTestId('focused-param')
+        ).toHaveTextContent('operator: string');
       });
 
       it('focuses on the filter value when user selects an aggregate filter with no arguments', async () => {
@@ -5905,9 +5873,9 @@ describe('SearchQueryBuilder', () => {
       await userEvent.keyboard('brow');
 
       // browser.name should appear only once despite being in both static and async keys
-      await waitFor(() => {
-        expect(screen.getAllByRole('option', {name: 'browser.name'})).toHaveLength(1);
-      });
+      expect(await screen.findAllByRole('option', {name: 'browser.name'})).toHaveLength(
+        1
+      );
     });
 
     it('can select an async-only key to create a filter token', async () => {

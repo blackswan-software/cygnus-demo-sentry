@@ -138,31 +138,25 @@ describe('DetectorEdit', () => {
       await userEvent.click(screen.getByRole('button', {name: 'count'}));
       await userEvent.click(await screen.findByRole('option', {name: 'p75'}));
 
-      await waitFor(() => {
-        expect(screen.getByTestId('editable-text-label')).toHaveTextContent(
-          'p75(span.duration) above 100ms over past 1 hour'
-        );
-      });
+      expect(await screen.findByTestId('editable-text-label')).toHaveTextContent(
+        'p75(span.duration) above 100ms over past 1 hour'
+      );
 
       // Change dataset from Spans to Errors
       await userEvent.click(screen.getByText('Spans'));
       await userEvent.click(await screen.findByRole('menuitemradio', {name: 'Errors'}));
 
-      await waitFor(() => {
-        expect(screen.getByTestId('editable-text-label')).toHaveTextContent(
-          'Number of errors above 100 over past 1 hour'
-        );
-      });
+      expect(await screen.findByTestId('editable-text-label')).toHaveTextContent(
+        'Number of errors above 100 over past 1 hour'
+      );
 
       // Change interval from 1 hour to 4 hours
       await userEvent.click(screen.getByText('1 hour'));
       await userEvent.click(screen.getByRole('menuitemradio', {name: '4 hours'}));
 
-      await waitFor(() => {
-        expect(screen.getByTestId('editable-text-label')).toHaveTextContent(
-          'Number of errors above 100 over past 4 hours'
-        );
-      });
+      expect(await screen.findByTestId('editable-text-label')).toHaveTextContent(
+        'Number of errors above 100 over past 4 hours'
+      );
     });
 
     it('can submit a new metric detector', async () => {
@@ -260,9 +254,7 @@ describe('DetectorEdit', () => {
       );
 
       // Verify form fields are pre-filled with template values
-      await waitFor(() => {
-        expect(screen.getByText('Errors')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Errors')).toBeInTheDocument();
 
       // Set threshold and submit
       await userEvent.type(

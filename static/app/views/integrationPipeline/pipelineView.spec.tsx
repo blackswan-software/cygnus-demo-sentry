@@ -67,9 +67,7 @@ describe('PipelineView', () => {
   it('renders awsLambdaProjectSelect', async () => {
     render(<PipelineView pipelineName="awsLambdaProjectSelect" someField="someVal" />);
 
-    await waitFor(() => {
-      expect(screen.getByText('mock_AwsLambdaProjectSelect')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('mock_AwsLambdaProjectSelect')).toBeInTheDocument();
     expect(document.title).toBe('AWS Lambda Select Project');
   });
 

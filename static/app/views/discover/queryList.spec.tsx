@@ -108,9 +108,7 @@ describe('Discover > QueryList', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getAllByTestId(/card-.*/)).toHaveLength(5);
-    });
+    expect(await screen.findAllByTestId(/card-.*/)).toHaveLength(5);
 
     expect(eventsStatsMock).toHaveBeenCalledWith(
       '/organizations/org-slug/events-stats/',
@@ -146,9 +144,7 @@ describe('Discover > QueryList', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getAllByTestId(/card-.*/)).toHaveLength(5);
-    });
+    expect(await screen.findAllByTestId(/card-.*/)).toHaveLength(5);
 
     expect(eventsStatsMock).toHaveBeenCalledWith(
       '/organizations/org-slug/events-stats/',
@@ -203,9 +199,7 @@ describe('Discover > QueryList', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getAllByTestId(/card-.*/)).toHaveLength(5);
-    });
+    expect(await screen.findAllByTestId(/card-.*/)).toHaveLength(5);
 
     expect(eventsStatsMock).toHaveBeenCalledWith(
       '/organizations/org-slug/events-stats/',

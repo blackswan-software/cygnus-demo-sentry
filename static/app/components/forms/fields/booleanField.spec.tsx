@@ -60,9 +60,7 @@ describe('BooleanField', () => {
     expect(checkbox).toBeDisabled();
 
     await userEvent.hover(checkbox);
-    await waitFor(() => {
-      expect(screen.getByText('Not allowed')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Not allowed')).toBeInTheDocument();
   });
 
   describe('with confirm prop', () => {

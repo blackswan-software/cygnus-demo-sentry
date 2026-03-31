@@ -490,9 +490,7 @@ describe('ProjectsDashboard', () => {
       render(<ProjectsDashboard />);
 
       // check that all projects are displayed
-      await waitFor(() =>
-        expect(screen.getAllByTestId('badge-display-name')).toHaveLength(6)
-      );
+      expect(await screen.findAllByTestId('badge-display-name')).toHaveLength(6);
 
       const projectName = screen.getAllByTestId('badge-display-name');
       // check that projects are in the correct order - alphabetical with bookmarked projects in front
@@ -610,9 +608,9 @@ describe('ProjectsDashboard', () => {
       jest.useRealTimers();
 
       // All cards have loaded
-      await waitFor(() => {
-        expect(within(projectSummary[0]!).getByText('Errors: 3')).toBeInTheDocument();
-      });
+      expect(
+        await within(projectSummary[0]!).findByText('Errors: 3')
+      ).toBeInTheDocument();
       expect(within(projectSummary[1]!).getByText('Errors: 3')).toBeInTheDocument();
       expect(within(projectSummary[2]!).getByText('Errors: 3')).toBeInTheDocument();
       expect(within(projectSummary[3]!).getByText('Errors: 3')).toBeInTheDocument();

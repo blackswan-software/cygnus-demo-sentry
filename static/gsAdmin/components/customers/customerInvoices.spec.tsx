@@ -32,9 +32,7 @@ describe('CustomerInvoices', () => {
 
       render(<CustomerInvoices orgId={orgId} region={region} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Paid')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Paid')).toBeInTheDocument();
 
       // Verify that invoice status is paid
       expect(screen.getByText('Paid')).toBeInTheDocument();
@@ -57,9 +55,7 @@ describe('CustomerInvoices', () => {
 
       render(<CustomerInvoices orgId={orgId} region={region} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Closed')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Closed')).toBeInTheDocument();
 
       // Verify that invoice status is closed
       expect(screen.getByText('Closed')).toBeInTheDocument();
@@ -86,9 +82,7 @@ describe('CustomerInvoices', () => {
 
       render(<CustomerInvoices orgId={orgId} region={region} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Pending')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Pending')).toBeInTheDocument();
 
       // Verify that invoice status is pending
       expect(screen.getByText('Pending')).toBeInTheDocument();
@@ -132,9 +126,7 @@ describe('CustomerInvoices', () => {
 
       render(<CustomerInvoices orgId={orgId} region={region} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Paid')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Paid')).toBeInTheDocument();
       expect(screen.getByText('Closed')).toBeInTheDocument();
       expect(screen.getByText('Pending')).toBeInTheDocument();
     });
@@ -160,9 +152,7 @@ describe('CustomerInvoices', () => {
       render(<CustomerInvoices orgId={orgId} region={region} />);
 
       // Wait for date to be displayed (moment format 'll')
-      await waitFor(() => {
-        expect(screen.getByText(/Jan.*2024/i)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(/Jan.*2024/i)).toBeInTheDocument();
 
       // Check Stripe ID is displayed
       expect(screen.getByText('in_test123456')).toBeInTheDocument();
@@ -189,9 +179,7 @@ describe('CustomerInvoices', () => {
 
       render(<CustomerInvoices orgId={orgId} region={region} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('n/a')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('n/a')).toBeInTheDocument();
     });
 
     it('displays refund information for refunded invoices', async () => {
@@ -211,10 +199,7 @@ describe('CustomerInvoices', () => {
 
       render(<CustomerInvoices orgId={orgId} region={region} />);
 
-      await waitFor(() => {
-        // Check that refund information is displayed (text is split across elements)
-        expect(screen.getByText(/refunded/i)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(/refunded/i)).toBeInTheDocument();
     });
   });
 
@@ -301,9 +286,7 @@ describe('CustomerInvoices', () => {
 
       render(<CustomerInvoices orgId={orgId} region={region} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('$0')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('$0')).toBeInTheDocument();
     });
   });
 
@@ -317,9 +300,7 @@ describe('CustomerInvoices', () => {
       render(<CustomerInvoices orgId={orgId} region={region} />);
 
       // Verify table headers are rendered
-      await waitFor(() => {
-        expect(screen.getByText('Invoice')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Invoice')).toBeInTheDocument();
       expect(screen.getByText('Stripe ID')).toBeInTheDocument();
       expect(screen.getByText('Channel')).toBeInTheDocument();
       expect(screen.getByText('Status')).toBeInTheDocument();

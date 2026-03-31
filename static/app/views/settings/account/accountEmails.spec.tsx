@@ -151,11 +151,9 @@ describe('AccountEmails', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(screen.getAllByLabelText('Remove email')).toHaveLength(
-        mockGetResponseBody.filter(email => !email.isPrimary).length
-      );
-    });
+    expect(await screen.findAllByLabelText('Remove email')).toHaveLength(
+      mockGetResponseBody.filter(email => !email.isPrimary).length
+    );
 
     expect(mockGet).toHaveBeenCalledWith(
       ENDPOINT,

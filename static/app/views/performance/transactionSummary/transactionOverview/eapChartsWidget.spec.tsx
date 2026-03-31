@@ -22,9 +22,7 @@ describe('EAPChartsWidget', () => {
   it('shows default widget type when no query param is provided', async () => {
     render(<EAPChartsWidget transactionName={transactionName} query="" />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Duration Breakdown')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Duration Breakdown')).toBeInTheDocument();
   });
 
   it('shows default widget when invalid query param is provided', async () => {
@@ -40,8 +38,6 @@ describe('EAPChartsWidget', () => {
       },
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('Duration Breakdown')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Duration Breakdown')).toBeInTheDocument();
   });
 });

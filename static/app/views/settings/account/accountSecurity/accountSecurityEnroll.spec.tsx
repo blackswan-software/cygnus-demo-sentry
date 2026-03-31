@@ -61,11 +61,9 @@ describe('AccountSecurityEnroll', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(
-          screen.getByRole('status', {name: 'Authentication Method Inactive'})
-        ).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByRole('status', {name: 'Authentication Method Inactive'})
+      ).toBeInTheDocument();
     });
 
     it('has qrcode component', async () => {
@@ -78,9 +76,7 @@ describe('AccountSecurityEnroll', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(screen.getByLabelText('Enrollment QR Code')).toBeInTheDocument();
-      });
+      expect(await screen.findByLabelText('Enrollment QR Code')).toBeInTheDocument();
     });
 
     it('can enroll from org subdomain', async () => {
@@ -112,11 +108,9 @@ describe('AccountSecurityEnroll', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(
-          screen.getByRole('status', {name: 'Authentication Method Inactive'})
-        ).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByRole('status', {name: 'Authentication Method Inactive'})
+      ).toBeInTheDocument();
 
       await userEvent.type(screen.getByRole('textbox', {name: 'OTP Code'}), 'otp{enter}');
 
@@ -163,11 +157,9 @@ describe('AccountSecurityEnroll', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(
-          screen.getByRole('status', {name: 'Authentication Method Inactive'})
-        ).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByRole('status', {name: 'Authentication Method Inactive'})
+      ).toBeInTheDocument();
 
       await userEvent.type(screen.getByRole('textbox', {name: 'OTP Code'}), 'otp{enter}');
 

@@ -38,11 +38,9 @@ describe('Organization Developer Settings', () => {
       render(<OrganizationDeveloperSettings />, {
         organization: org,
       });
-      await waitFor(() => {
-        expect(
-          screen.getByText('No internal integrations have been created yet.')
-        ).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByText('No internal integrations have been created yet.')
+      ).toBeInTheDocument();
     });
   });
 

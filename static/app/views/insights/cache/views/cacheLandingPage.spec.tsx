@@ -274,11 +274,9 @@ describe('CacheLandingPage', () => {
       initialRouterConfig,
     });
 
-    await waitFor(() => {
-      expect(
-        screen.getByText('Bringing you one less hard problem in computer science')
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText('Bringing you one less hard problem in computer science')
+    ).toBeInTheDocument();
   });
 });
 

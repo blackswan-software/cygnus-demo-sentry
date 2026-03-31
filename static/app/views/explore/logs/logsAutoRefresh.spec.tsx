@@ -142,11 +142,9 @@ describe('LogsAutoRefresh Integration Tests', () => {
 
     await userEvent.hover(toggleSwitch);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(/Auto-refresh is only supported when sorting by time/i)
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText(/Auto-refresh is only supported when sorting by time/i)
+    ).toBeInTheDocument();
   });
 
   it('disables toggle when using absolute date range', async () => {
@@ -170,13 +168,11 @@ describe('LogsAutoRefresh Integration Tests', () => {
 
     await userEvent.hover(toggleSwitch);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          /Auto-refresh is only supported when using a relative time period/i
-        )
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText(
+        /Auto-refresh is only supported when using a relative time period/i
+      )
+    ).toBeInTheDocument();
   });
 
   it('disables auto-refresh when on aggregates mode', async () => {
@@ -199,11 +195,9 @@ describe('LogsAutoRefresh Integration Tests', () => {
 
     await userEvent.hover(toggleSwitch);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(/Auto-refresh is not available in the aggregates view./i)
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText(/Auto-refresh is not available in the aggregates view./i)
+    ).toBeInTheDocument();
   });
 
   it('disables auto-refresh when using not count(message)', async () => {
@@ -227,13 +221,11 @@ describe('LogsAutoRefresh Integration Tests', () => {
 
     await userEvent.hover(toggleSwitch);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          /Auto-refresh is only available when visualizing `count\(logs\)`./i
-        )
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText(
+        /Auto-refresh is only available when visualizing `count\(logs\)`./i
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows error state in URL when query fails', async () => {

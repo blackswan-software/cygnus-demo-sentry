@@ -326,9 +326,9 @@ describe('CreateProject', () => {
     router.navigate('/projects/new/?referrer=getting-started&project=12345');
 
     // The slug field should be auto-filled with the stored name
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('project-slug')).toHaveValue('my-custom-name');
-    });
+    expect(await screen.findByPlaceholderText('project-slug')).toHaveValue(
+      'my-custom-name'
+    );
 
     // Step 3: Click a different platform
     await userEvent.click(screen.getByTestId('platform-apple-ios'));
@@ -381,11 +381,9 @@ describe('CreateProject', () => {
 
     router.navigate('/projects/new/?referrer=getting-started&project=12345');
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('project-slug')).toHaveValue(
-        'javascript-angular'
-      );
-    });
+    expect(await screen.findByPlaceholderText('project-slug')).toHaveValue(
+      'javascript-angular'
+    );
 
     // Click a different platform — slug should update since user didn't manually modify it
     await userEvent.click(screen.getByTestId('platform-apple-ios'));
@@ -517,9 +515,7 @@ describe('CreateProject', () => {
     await userEvent.type(screen.getByLabelText('Select a Team'), teamWithAccess.slug);
     await userEvent.click(screen.getByText(`#${teamWithAccess.slug}`));
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Create Project'})).toBeEnabled();
-    });
+    expect(await screen.findByRole('button', {name: 'Create Project'})).toBeEnabled();
 
     renderGlobalModal();
 
@@ -553,9 +549,7 @@ describe('CreateProject', () => {
     await userEvent.type(screen.getByLabelText('Select a Team'), teamWithAccess.slug);
     await userEvent.click(screen.getByText(`#${teamWithAccess.slug}`));
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: 'Create Project'})).toBeEnabled();
-    });
+    expect(await screen.findByRole('button', {name: 'Create Project'})).toBeEnabled();
 
     renderGlobalModal();
 
@@ -819,9 +813,7 @@ describe('CreateProject', () => {
           name: /Notify via integration/,
         })
       );
-      await waitFor(() => {
-        expect(screen.getByRole('button', {name: 'Create Project'})).toBeEnabled();
-      });
+      expect(await screen.findByRole('button', {name: 'Create Project'})).toBeEnabled();
     });
 
     it('should show validating tooltip and disable button while validating channel', async () => {

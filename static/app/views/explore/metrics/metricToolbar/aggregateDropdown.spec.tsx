@@ -155,9 +155,7 @@ describe('AggregateDropdown', () => {
     const trigger = screen.getByRole('button', {name: /Agg/});
     await userEvent.click(trigger);
 
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'p75'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('option', {name: 'p75'})).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('option', {name: 'p75'}));
 
@@ -203,18 +201,14 @@ describe('AggregateDropdown', () => {
     const trigger = screen.getByRole('button', {name: /Agg/});
     await userEvent.click(trigger);
 
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'p50'})).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('option', {name: 'p50'})).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('option', {name: 'p50'}));
 
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'p50'})).toHaveAttribute(
-        'aria-selected',
-        'false'
-      );
-    });
+    expect(await screen.findByRole('option', {name: 'p50'})).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
 
     await userEvent.click(screen.getByRole('option', {name: 'p90'}));
 
@@ -292,17 +286,13 @@ describe('AggregateDropdown', () => {
     const trigger = screen.getByRole('button', {name: /Agg/});
     await userEvent.click(trigger);
 
-    await waitFor(() =>
-      expect(screen.getByRole('option', {name: 'p50'})).toHaveAttribute(
-        'aria-selected',
-        'true'
-      )
+    expect(await screen.findByRole('option', {name: 'p50'})).toHaveAttribute(
+      'aria-selected',
+      'true'
     );
-    await waitFor(() =>
-      expect(screen.getByRole('option', {name: 'p90'})).toHaveAttribute(
-        'aria-selected',
-        'true'
-      )
+    expect(await screen.findByRole('option', {name: 'p90'})).toHaveAttribute(
+      'aria-selected',
+      'true'
     );
 
     await userEvent.click(screen.getByRole('option', {name: 'sum'}));
@@ -345,12 +335,10 @@ describe('AggregateDropdown', () => {
     const trigger = screen.getByRole('button', {name: /Agg/});
     await userEvent.click(trigger);
 
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'p50'})).toHaveAttribute(
-        'aria-selected',
-        'true'
-      );
-    });
+    expect(await screen.findByRole('option', {name: 'p50'})).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
 
     await userEvent.click(screen.getByRole('option', {name: 'p90'}));
 
@@ -393,11 +381,9 @@ describe('AggregateDropdown', () => {
     const trigger = screen.getByRole('button', {name: /Agg/});
     await userEvent.click(trigger);
 
-    await waitFor(() =>
-      expect(screen.getByRole('option', {name: 'sum'})).toHaveAttribute(
-        'aria-selected',
-        'true'
-      )
+    expect(await screen.findByRole('option', {name: 'sum'})).toHaveAttribute(
+      'aria-selected',
+      'true'
     );
 
     await userEvent.click(screen.getByRole('option', {name: 'per_second'}));
@@ -501,8 +487,6 @@ describe('AggregateDropdown', () => {
     await userEvent.click(trigger);
     await userEvent.click(screen.getByRole('option', {name: 'p75'}));
 
-    await waitFor(() => {
-      expect(within(trigger).getByText('+1')).toBeInTheDocument();
-    });
+    expect(await within(trigger).findByText('+1')).toBeInTheDocument();
   });
 });

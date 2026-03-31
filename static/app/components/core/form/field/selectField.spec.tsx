@@ -423,9 +423,7 @@ describe('SelectField disabled', () => {
     // Hover on the lock icon to trigger tooltip
     await userEvent.hover(lockIcon);
 
-    await waitFor(() => {
-      expect(screen.getByText('Feature not available')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Feature not available')).toBeInTheDocument();
   });
 });
 
@@ -462,9 +460,7 @@ describe('SelectField auto-save', () => {
     await userEvent.click(screen.getByRole('textbox'));
     await userEvent.click(screen.getByRole('menuitemradio', {name: 'Banana'}));
 
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toBeDisabled();
-    });
+    expect(await screen.findByRole('textbox')).toBeDisabled();
   });
 
   it('does not trigger mutation when selecting the same value', async () => {
@@ -734,9 +730,7 @@ describe('SelectField multiple', () => {
     // Hover on the lock icon to trigger tooltip
     await userEvent.hover(lockIcon);
 
-    await waitFor(() => {
-      expect(screen.getByText('Feature not available')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Feature not available')).toBeInTheDocument();
   });
 });
 
@@ -892,8 +886,6 @@ describe('SelectField multiple auto-save', () => {
     const removeButtons = screen.getAllByLabelText('Remove item');
     await userEvent.click(removeButtons[0]!);
 
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toBeDisabled();
-    });
+    expect(await screen.findByRole('textbox')).toBeDisabled();
   });
 });

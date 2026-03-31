@@ -247,7 +247,7 @@ describe('SentryAppExternalInstallation', () => {
       expect(getOrgMock).toHaveBeenCalled();
       expect(getInstallationsMock).toHaveBeenCalled();
       expect(screen.queryByText('Select an organization')).not.toBeInTheDocument();
-      await waitFor(() => expect(screen.getByTestId('install')).toBeEnabled());
+      expect(await screen.findByTestId('install')).toBeEnabled();
     });
 
     it('loads orgs from multiple regions', async () => {

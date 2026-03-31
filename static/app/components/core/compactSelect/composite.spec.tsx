@@ -129,9 +129,7 @@ describe('CompositeSelect', () => {
     await userEvent.click(screen.getByRole('button'));
 
     // first option is focused
-    await waitFor(() =>
-      expect(screen.getByRole('option', {name: 'Choice One'})).toHaveFocus()
-    );
+    expect(await screen.findByRole('option', {name: 'Choice One'})).toHaveFocus();
 
     // press arrow down and second option gets focus
     await userEvent.keyboard('{ArrowDown}');
@@ -143,16 +141,12 @@ describe('CompositeSelect', () => {
 
     // press arrow up and second option in the first region gets focus
     await userEvent.keyboard('{ArrowUp}');
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'Choice Two'})).toHaveFocus();
-    });
+    expect(await screen.findByRole('option', {name: 'Choice Two'})).toHaveFocus();
 
     // press arrow down 3 times and focus moves to the third and fourth option, before
     // wrapping back to the first option
     await userEvent.keyboard('{ArrowDown>3}');
-    await waitFor(() => {
-      expect(screen.getByRole('option', {name: 'Choice One'})).toHaveFocus();
-    });
+    expect(await screen.findByRole('option', {name: 'Choice One'})).toHaveFocus();
   });
 
   it('has separate, async self-contained select regions', async () => {
@@ -337,9 +331,7 @@ describe('CompositeSelect', () => {
     // Region 1 is rendered & Choice One is selected
     expect(screen.getByRole('grid', {name: 'Region 1'})).toBeInTheDocument();
     expect(screen.getByRole('row', {name: 'Choice One'})).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getByRole('row', {name: 'Choice One'})).toHaveFocus()
-    );
+    expect(await screen.findByRole('row', {name: 'Choice One'})).toHaveFocus();
     expect(screen.getByRole('row', {name: 'Choice One'})).toHaveAttribute(
       'aria-selected',
       'true'

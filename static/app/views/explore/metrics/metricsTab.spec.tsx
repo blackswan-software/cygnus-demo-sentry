@@ -157,10 +157,9 @@ describe('MetricsTabContent', () => {
     let toolbars = screen.getAllByTestId('metric-toolbar');
     expect(toolbars).toHaveLength(1);
     // have to wait for the response to load
-    await waitFor(() => {
-      // selects the first metric available - sorted alphanumerically
-      expect(within(toolbars[0]!).getByRole('button', {name: 'bar'})).toBeInTheDocument();
-    });
+    expect(
+      await within(toolbars[0]!).findByRole('button', {name: 'bar'})
+    ).toBeInTheDocument();
     expect(screen.getAllByTestId('metric-panel')).toHaveLength(1);
 
     let addButton = screen.getByRole('button', {name: 'Add Metric'});
@@ -258,9 +257,7 @@ describe('MetricsTabContent', () => {
     const addButton = screen.getByRole('button', {name: 'Add Metric'});
     await userEvent.click(addButton);
 
-    await waitFor(() => {
-      expect(screen.getAllByTestId('metric-panel')).toHaveLength(2);
-    });
+    expect(await screen.findAllByTestId('metric-panel')).toHaveLength(2);
 
     expect(trackAnalyticsMock).toHaveBeenNthCalledWith(
       1,
@@ -403,9 +400,9 @@ describe('MetricsTabContent', () => {
     const toolbars = screen.getAllByTestId('metric-toolbar');
     expect(toolbars).toHaveLength(1);
 
-    await waitFor(() => {
-      expect(within(toolbars[0]!).getByRole('button', {name: 'bar'})).toBeInTheDocument();
-    });
+    expect(
+      await within(toolbars[0]!).findByRole('button', {name: 'bar'})
+    ).toBeInTheDocument();
 
     trackAnalyticsMock.mockClear();
 
@@ -489,11 +486,9 @@ describe('MetricsTabContent', () => {
     const toolbars = screen.getAllByTestId('metric-toolbar');
     expect(toolbars).toHaveLength(1);
 
-    await waitFor(() => {
-      expect(
-        within(toolbars[0]!).getByRole('button', {name: 'None'})
-      ).toBeInTheDocument();
-    });
+    expect(
+      await within(toolbars[0]!).findByRole('button', {name: 'None'})
+    ).toBeInTheDocument();
 
     expect(screen.getByTestId('metric-panel')).toBeInTheDocument();
 
@@ -554,9 +549,9 @@ describe('MetricsTabContent', () => {
     expect(toolbars).toHaveLength(1);
 
     // Wait for the toolbar to load
-    await waitFor(() => {
-      expect(within(toolbars[0]!).getByRole('button', {name: 'bar'})).toBeInTheDocument();
-    });
+    expect(
+      await within(toolbars[0]!).findByRole('button', {name: 'bar'})
+    ).toBeInTheDocument();
 
     // Verify initial state is samples mode
     const initialMetricQuery = JSON.parse(router.location.query.metric as string);
@@ -711,13 +706,11 @@ describe('MetricsTabContent (tracemetrics-ui-refresh)', () => {
       }
     );
 
-    await waitFor(() => {
-      expect(
-        within(screen.getAllByTestId('metric-toolbar')[0]!).getByRole('button', {
-          name: 'bar',
-        })
-      ).toBeInTheDocument();
-    });
+    expect(
+      await within(screen.getAllByTestId('metric-toolbar')[0]!).findByRole('button', {
+        name: 'bar',
+      })
+    ).toBeInTheDocument();
 
     expect(screen.getByRole('button', {name: 'Collapse sidebar'})).toBeInTheDocument();
 
@@ -728,8 +721,6 @@ describe('MetricsTabContent (tracemetrics-ui-refresh)', () => {
 
     await userEvent.click(screen.getByRole('button', {name: 'Expand sidebar'}));
 
-    await waitFor(() => {
-      expect(screen.getAllByTestId('metric-toolbar')).toHaveLength(1);
-    });
+    expect(await screen.findAllByTestId('metric-toolbar')).toHaveLength(1);
   });
 });

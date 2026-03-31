@@ -188,10 +188,8 @@ describe('ApiApplications', () => {
       expect.objectContaining({method: 'DELETE'})
     );
 
-    await waitFor(() => {
-      expect(
-        screen.getByText("You haven't created any applications yet.")
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText("You haven't created any applications yet.")
+    ).toBeInTheDocument();
   });
 });

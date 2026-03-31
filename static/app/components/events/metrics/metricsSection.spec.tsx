@@ -186,9 +186,7 @@ describe('MetricsSection', () => {
 
     expect(mockRequest).toHaveBeenCalledTimes(1);
 
-    await waitFor(() => {
-      expect(screen.getByText(/Metrics/)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/Metrics/)).toBeInTheDocument();
 
     expect(screen.getByTestId('metrics')).toBeInTheDocument();
   });
@@ -224,9 +222,7 @@ describe('MetricsSection', () => {
 
     expect(mockRequestWithManyMetrics).toHaveBeenCalledTimes(1);
 
-    await waitFor(() => {
-      expect(screen.getByText(/Metrics/)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/Metrics/)).toBeInTheDocument();
 
     expect(screen.getByRole('button', {name: 'View more'})).toBeInTheDocument();
   });
@@ -270,9 +266,7 @@ describe('MetricsSection', () => {
 
     expect(mockRequestWithManyMetrics).toHaveBeenCalledTimes(1);
 
-    await waitFor(() => {
-      expect(screen.getByText(/Metrics/)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/Metrics/)).toBeInTheDocument();
 
     expect(
       screen.queryByRole('complementary', {name: 'metrics drawer'})
@@ -321,9 +315,7 @@ describe('MetricsSection', () => {
 
     expect(mockRequestWithFewMetrics).toHaveBeenCalledTimes(1);
 
-    await waitFor(() => {
-      expect(screen.getByText(/Metrics/)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/Metrics/)).toBeInTheDocument();
 
     expect(screen.queryByRole('button', {name: 'View more'})).not.toBeInTheDocument();
   });

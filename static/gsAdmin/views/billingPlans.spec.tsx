@@ -107,9 +107,7 @@ describe('BillingPlans Component', () => {
     render(<BillingPlans />);
 
     // Wait for the Table of Contents to be rendered
-    await waitFor(() => {
-      expect(screen.getByText('Table of Contents')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Table of Contents')).toBeInTheDocument();
 
     expect(await screen.findByRole('link', {name: /AM9000\s+Plans/})).toBeInTheDocument();
     expect(screen.getByRole('link', {name: /Business/})).toBeInTheDocument();
@@ -121,9 +119,7 @@ describe('BillingPlans Component', () => {
     render(<BillingPlans />);
 
     // Wait for the pricing tables to be rendered
-    await waitFor(() => {
-      expect(screen.getByText('Pricing:')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Pricing:')).toBeInTheDocument();
 
     // Check that pricing information is displayed
     expect(
@@ -137,9 +133,7 @@ describe('BillingPlans Component', () => {
     render(<BillingPlans />);
 
     // Wait for the price tiers tables to be rendered
-    await waitFor(() => {
-      expect(screen.getByText('Errors for AM9000 Business')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Errors for AM9000 Business')).toBeInTheDocument();
 
     // Check that price tier information is displayed
     expect(await screen.findByText('Tier')).toBeInTheDocument();

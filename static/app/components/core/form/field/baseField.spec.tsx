@@ -215,9 +215,7 @@ describe('BaseField indicator', () => {
     await userEvent.click(input);
     await userEvent.tab(); // blur to trigger validation
 
-    await waitFor(() => {
-      expect(screen.getByRole('img')).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('img')).toBeInTheDocument();
   });
 
   it('shows error message in tooltip when field has validation errors', async () => {
@@ -231,9 +229,7 @@ describe('BaseField indicator', () => {
     await userEvent.click(input);
     await userEvent.tab(); // blur to trigger validation
 
-    await waitFor(() => {
-      expect(screen.getByText('Must be at least 3 characters')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Must be at least 3 characters')).toBeInTheDocument();
   });
 });
 

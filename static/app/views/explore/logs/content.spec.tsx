@@ -163,9 +163,7 @@ describe('LogsPage', () => {
     expect(projectSlugMock).toHaveBeenCalled();
     expect(sdkMock).toHaveBeenCalled();
 
-    await waitFor(() => {
-      expect(screen.getByText('Your Source for Log-ical Data')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Your Source for Log-ical Data')).toBeInTheDocument();
   });
 
   it('should call aggregates APIs as expected', async () => {
@@ -273,9 +271,7 @@ describe('LogsPage', () => {
         initialRouterConfig,
       });
 
-      await waitFor(() => {
-        expect(screen.getByTestId('logs-table')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('logs-table')).toBeInTheDocument();
 
       const switchInput = screen.getByRole('checkbox', {name: /auto-refresh/i});
       expect(switchInput).not.toBeChecked();
@@ -304,9 +300,7 @@ describe('LogsPage', () => {
       });
       expect(router.location.query[LOGS_AUTO_REFRESH_KEY]).toBe('enabled');
 
-      await waitFor(() => {
-        expect(screen.getByTestId('logs-table')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('logs-table')).toBeInTheDocument();
 
       const switchInput = screen.getByRole('checkbox', {name: /auto-refresh/i});
       expect(switchInput).toBeChecked();
@@ -337,9 +331,7 @@ describe('LogsPage', () => {
 
       expect(router.location.query[LOGS_AUTO_REFRESH_KEY]).toBe('enabled');
 
-      await waitFor(() => {
-        expect(screen.getByTestId('logs-table')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('logs-table')).toBeInTheDocument();
 
       expect(screen.getAllByTestId('log-table-row')).toHaveLength(5);
 

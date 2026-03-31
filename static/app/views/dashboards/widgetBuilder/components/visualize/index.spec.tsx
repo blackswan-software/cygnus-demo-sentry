@@ -1525,9 +1525,7 @@ describe('Visualize', () => {
         })
       ).toBeInTheDocument();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText('Select an attribute')).toHaveFocus();
-      });
+      expect(await screen.findByLabelText('Select an attribute')).toHaveFocus();
       await userEvent.type(input, '{ArrowDown}{Enter}');
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1576,9 +1574,7 @@ describe('Visualize', () => {
         })
       ).toBeInTheDocument();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText('Select an attribute')).toHaveFocus();
-      });
+      expect(await screen.findByLabelText('Select an attribute')).toHaveFocus();
       await userEvent.type(input, '{ArrowDown}{Enter}');
 
       expect(mockNavigate).toHaveBeenCalledWith(

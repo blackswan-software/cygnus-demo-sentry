@@ -879,9 +879,7 @@ describe('ExploreToolbar', () => {
     );
 
     // After navigation, the UI should update to show "Save" instead of "Save as…"
-    await waitFor(() => {
-      expect(screen.getByText('Save')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Save')).toBeInTheDocument();
   });
 
   it('disables save as and compare when cross events are present', async () => {

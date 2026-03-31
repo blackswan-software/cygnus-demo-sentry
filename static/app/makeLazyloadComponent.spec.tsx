@@ -42,9 +42,7 @@ describe('makeLazyloadComponent', () => {
 
       render(<LazyComponent title="Test Title" />);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('mock-component')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('mock-component')).toBeInTheDocument();
 
       expect(screen.getByText('Test Title')).toBeInTheDocument();
     });
@@ -54,9 +52,7 @@ describe('makeLazyloadComponent', () => {
 
       render(<LazyComponent title="Test Title" count={42} />);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('mock-component')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('mock-component')).toBeInTheDocument();
 
       expect(screen.getByText('Test Title')).toBeInTheDocument();
       expect(screen.getByText('Count: 42')).toBeInTheDocument();
@@ -74,9 +70,7 @@ describe('makeLazyloadComponent', () => {
       expect(screen.getByTestId('loading')).toBeInTheDocument();
 
       // Wait for component to load
-      await waitFor(() => {
-        expect(screen.getByTestId('mock-component')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('mock-component')).toBeInTheDocument();
 
       // Loading fallback should be gone
       expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
@@ -90,11 +84,9 @@ describe('makeLazyloadComponent', () => {
       // Should not throw when rendering
       render(<LazyComponent title="Test Title" />);
 
-      await waitFor(() => {
-        expect(
-          screen.getByText('There was an error loading a component.')
-        ).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByText('There was an error loading a component.')
+      ).toBeInTheDocument();
       expect(consoleSpy).toHaveBeenCalledWith(new Error('Load failed'));
     });
   });
@@ -158,9 +150,7 @@ describe('makeLazyloadComponent', () => {
       render(<LazyComponent title="Shared Promise Test" />);
 
       await act(() => preloadPromise);
-      await waitFor(() => {
-        expect(screen.getByTestId('mock-component')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('mock-component')).toBeInTheDocument();
 
       expect(callCount).toBe(1);
     });
@@ -187,9 +177,7 @@ describe('makeLazyloadComponent', () => {
       shouldError = false;
       render(<LazyComponent title="Error Recovery Test" />);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('mock-component')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('mock-component')).toBeInTheDocument();
     });
 
     it('multiple preload calls return the same promise', async () => {
@@ -301,9 +289,7 @@ describe('makeLazyloadComponent', () => {
 
       // Component should render immediately since it was preloaded
       // (though we still need to wait for React to process the render)
-      await waitFor(() => {
-        expect(screen.getByTestId('mock-component')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('mock-component')).toBeInTheDocument();
 
       expect(screen.getByText('Test Component')).toBeInTheDocument();
 
@@ -385,12 +371,8 @@ describe('makeLazyloadComponent', () => {
       );
 
       // Components should render successfully
-      await waitFor(() => {
-        expect(screen.getByTestId('component-1')).toBeInTheDocument();
-      });
-      await waitFor(() => {
-        expect(screen.getByTestId('component-2')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('component-1')).toBeInTheDocument();
+      expect(await screen.findByTestId('component-2')).toBeInTheDocument();
 
       // Preload functions should still only have been called once each
       expect(spy1).toHaveBeenCalledTimes(1);
@@ -425,9 +407,7 @@ describe('makeLazyloadComponent', () => {
       await userEvent.hover(screen.getByTestId('no-preload-link'));
 
       // Component should still load normally when rendered
-      await waitFor(() => {
-        expect(screen.getByTestId('mock-component')).toBeInTheDocument();
-      });
+      expect(await screen.findByTestId('mock-component')).toBeInTheDocument();
     });
 
     it('handles preload errors', async () => {

@@ -419,21 +419,15 @@ describe('desktop navigation', () => {
         const secondaryNav = screen.getByRole('navigation', {
           name: 'Secondary Navigation',
         });
-        await waitFor(() => {
-          expect(
-            within(secondaryNav).getByRole('link', {name: 'Organizations'})
-          ).toBeInTheDocument();
-        });
-        await waitFor(() => {
-          expect(
-            within(secondaryNav).getByRole('link', {name: 'Projects'})
-          ).toBeInTheDocument();
-        });
-        await waitFor(() => {
-          expect(
-            within(secondaryNav).getByRole('link', {name: 'Users'})
-          ).toBeInTheDocument();
-        });
+        expect(
+          await within(secondaryNav).findByRole('link', {name: 'Organizations'})
+        ).toBeInTheDocument();
+        expect(
+          await within(secondaryNav).findByRole('link', {name: 'Projects'})
+        ).toBeInTheDocument();
+        expect(
+          await within(secondaryNav).findByRole('link', {name: 'Users'})
+        ).toBeInTheDocument();
       });
 
       it('customer domain', async () => {
@@ -708,12 +702,9 @@ describe('desktop navigation', () => {
           await userEvent.hover(
             screen.getByRole('navigation', {name: 'Primary Navigation'})
           );
-          await waitFor(() => {
-            expect(screen.getByTestId('collapsed-secondary-sidebar')).toHaveAttribute(
-              'data-visible',
-              'true'
-            );
-          });
+          expect(
+            await screen.findByTestId('collapsed-secondary-sidebar')
+          ).toHaveAttribute('data-visible', 'true');
 
           expect(
             localStorage.getItem(NAVIGATION_SIDEBAR_COLLAPSED_LOCAL_STORAGE_KEY)
@@ -761,12 +752,9 @@ describe('desktop navigation', () => {
             screen.getByRole('navigation', {name: 'Primary Navigation'})
           );
 
-          await waitFor(() => {
-            expect(screen.getByTestId('collapsed-secondary-sidebar')).toHaveAttribute(
-              'data-visible',
-              'true'
-            );
-          });
+          expect(
+            await screen.findByTestId('collapsed-secondary-sidebar')
+          ).toHaveAttribute('data-visible', 'true');
         });
 
         it('hides the sidebar on mouse leave when collapsed', async () => {
@@ -784,22 +772,16 @@ describe('desktop navigation', () => {
           await userEvent.hover(
             screen.getByRole('navigation', {name: 'Primary Navigation'})
           );
-          await waitFor(() => {
-            expect(screen.getByTestId('collapsed-secondary-sidebar')).toHaveAttribute(
-              'data-visible',
-              'true'
-            );
-          });
+          expect(
+            await screen.findByTestId('collapsed-secondary-sidebar')
+          ).toHaveAttribute('data-visible', 'true');
 
           await userEvent.unhover(
             screen.getByRole('navigation', {name: 'Primary Navigation'})
           );
-          await waitFor(() => {
-            expect(screen.getByTestId('collapsed-secondary-sidebar')).toHaveAttribute(
-              'data-visible',
-              'false'
-            );
-          });
+          expect(
+            await screen.findByTestId('collapsed-secondary-sidebar')
+          ).toHaveAttribute('data-visible', 'false');
         });
 
         it('shows the sidebar when a nav element receives keyboard focus while collapsed', async () => {
@@ -822,12 +804,9 @@ describe('desktop navigation', () => {
           await userEvent.tab();
           await userEvent.tab();
 
-          await waitFor(() => {
-            expect(screen.getByTestId('collapsed-secondary-sidebar')).toHaveAttribute(
-              'data-visible',
-              'true'
-            );
-          });
+          expect(
+            await screen.findByTestId('collapsed-secondary-sidebar')
+          ).toHaveAttribute('data-visible', 'true');
         });
 
         it('shows hovered group content when sidebar is expanded', async () => {
@@ -874,12 +853,9 @@ describe('desktop navigation', () => {
 
           await userEvent.hover(screen.getByRole('link', {name: 'Explore'}));
 
-          await waitFor(() => {
-            expect(screen.getByTestId('collapsed-secondary-sidebar')).toHaveAttribute(
-              'data-visible',
-              'true'
-            );
-          });
+          expect(
+            await screen.findByTestId('collapsed-secondary-sidebar')
+          ).toHaveAttribute('data-visible', 'true');
 
           const secondaryNav = screen.getByRole('navigation', {
             name: 'Secondary Navigation',

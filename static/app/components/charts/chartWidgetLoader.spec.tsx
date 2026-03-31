@@ -67,9 +67,7 @@ describe('ChartWidgetLoader', () => {
 
     render(<ChartWidgetLoader {...defaultProps} />, {wrapper});
 
-    await waitFor(() => {
-      expect(screen.getByText('Error loading widget')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Error loading widget')).toBeInTheDocument();
 
     expect(Sentry.captureException).toHaveBeenCalled();
     consoleSpy.mockRestore();
@@ -88,9 +86,7 @@ describe('ChartWidgetLoader', () => {
 
     render(<ChartWidgetLoader {...defaultProps} />, {wrapper});
 
-    await waitFor(() => {
-      expect(screen.getByText('Mock Widget')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Mock Widget')).toBeInTheDocument();
 
     // Verify the query was called with correct parameters
     expect(mockUseQuery).toHaveBeenCalledWith({

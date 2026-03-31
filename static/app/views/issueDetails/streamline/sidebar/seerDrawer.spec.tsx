@@ -464,11 +464,9 @@ describe('SeerDrawer', () => {
     expect(resetButton).toBeEnabled();
     await userEvent.click(resetButton);
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', {name: 'Start Root Cause Analysis'})
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole('button', {name: 'Start Root Cause Analysis'})
+    ).toBeInTheDocument();
   });
 
   it('shows setup instructions when GitHub integration setup is needed', async () => {

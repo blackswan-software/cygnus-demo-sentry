@@ -134,8 +134,8 @@ describe('Relocation Details', () => {
       },
     });
 
-    await waitFor(() => expect(screen.getAllByText('Working')).toHaveLength(1));
-    await waitFor(() => expect(screen.getAllByText('--')).toHaveLength(2));
+    expect(await screen.findAllByText('Working')).toHaveLength(1);
+    expect(await screen.findAllByText('--')).toHaveLength(2);
 
     const {waitForModalToHide} = renderGlobalModal();
 
@@ -243,8 +243,8 @@ describe('Relocation Details', () => {
       },
     });
 
-    await waitFor(() => expect(screen.getAllByText('Paused')).toHaveLength(1));
-    await waitFor(() => expect(screen.getAllByText('--')).toHaveLength(3));
+    expect(await screen.findAllByText('Paused')).toHaveLength(1);
+    expect(await screen.findAllByText('--')).toHaveLength(3);
 
     const {waitForModalToHide} = renderGlobalModal();
 
@@ -348,8 +348,8 @@ describe('Relocation Details', () => {
       },
     });
 
-    await waitFor(() => expect(screen.getAllByText('Working')).toHaveLength(1));
-    await waitFor(() => expect(screen.getAllByText('--')).toHaveLength(2));
+    expect(await screen.findAllByText('Working')).toHaveLength(1);
+    expect(await screen.findAllByText('--')).toHaveLength(2);
 
     const {waitForModalToHide} = renderGlobalModal();
 

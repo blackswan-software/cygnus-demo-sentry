@@ -286,8 +286,6 @@ describe('TableAdapter', () => {
     resolveMutation();
 
     // Controls should be re-enabled
-    await waitFor(() => {
-      expect(screen.getByRole('button', {name: /Add Service/})).toBeEnabled();
-    });
+    expect(await screen.findByRole('button', {name: /Add Service/})).toBeEnabled();
   });
 });

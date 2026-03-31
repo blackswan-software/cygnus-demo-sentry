@@ -74,9 +74,7 @@ describe('GroupFeatureFlagsDrawerContent', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByTestId('loading-error')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('loading-error')).toBeInTheDocument();
   });
 
   it('renders empty state when no flags match the search', async () => {

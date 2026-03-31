@@ -193,9 +193,7 @@ describe('BalanceChangeAction', () => {
     await userEvent.type(screen.getByLabelText('Credit Amount'), '10');
 
     expect(await screen.findByRole('button', {name: /submit/i})).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getByRole('button', {name: /submit/i})).toBeEnabled()
-    );
+    expect(await screen.findByRole('button', {name: /submit/i})).toBeEnabled();
 
     // Disable pointer-events check to avoid false positive in CI
     // where modal overlay may still be settling during initialization
@@ -212,12 +210,9 @@ describe('BalanceChangeAction', () => {
       );
     });
 
-    await waitFor(
-      () => {
-        expect(screen.getByLabelText('Credit Amount')).toBeEnabled();
-      },
-      {timeout: 5_000}
-    );
+    expect(
+      await screen.findByLabelText('Credit Amount', undefined, {timeout: 5_000})
+    ).toBeEnabled();
     expect(screen.getByRole('textbox', {name: 'Ticket URL'})).toBeEnabled();
     expect(screen.getByRole('textbox', {name: 'Notes'})).toBeEnabled();
     expect(screen.getByRole('button', {name: /submit/i})).toBeEnabled();

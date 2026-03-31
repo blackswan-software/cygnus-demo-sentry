@@ -213,9 +213,7 @@ describe('IntegrationCodeMappings', () => {
     expect(screen.getByRole('textbox', {name: 'Branch'})).toHaveValue('main');
 
     await selectEvent.select(screen.getByText('Choose repo'), repos[1]!.name);
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', {name: 'Branch'})).toHaveValue('main');
-    });
+    expect(await screen.findByRole('textbox', {name: 'Branch'})).toHaveValue('main');
   });
 
   it('deletes existing config and refreshes data', async () => {
