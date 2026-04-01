@@ -1,5 +1,6 @@
 import {renderHook} from 'sentry-test/reactTestingLibrary';
 
+import {DiffFileType} from 'sentry/components/events/autofix/types';
 import type {Block, RepoPRState} from 'sentry/views/seerExplorer/types';
 
 import {usePRWidgetData} from './prWidget';
@@ -14,7 +15,12 @@ describe('usePRWidgetData', () => {
         {
           repo_name: 'getsentry/sentry',
           diff: '+added line',
-          patch: {path: 'src/file.py', added: 3, removed: 1, type: 'M'},
+          patch: {
+            path: 'src/file.py',
+            added: 3,
+            removed: 1,
+            type: DiffFileType.MODIFIED,
+          },
         },
       ],
     },
