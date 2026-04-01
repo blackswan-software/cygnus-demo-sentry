@@ -298,9 +298,14 @@ export function ExternalIssueForm({
     ]
   );
 
+  // Track the field that triggered the last dynamic refetch so we can
+  // preserve its value when the form remounts with new config.
+  const [lastChangedField, setLastChangedField] = useState<Record<string, unknown>>({});
+
   const onFieldChange = useCallback(
     (fieldName: string, value: unknown) => {
       if (dynamicFieldValues.hasOwnProperty(fieldName)) {
+        setLastChangedField({[fieldName]: value});
         setDynamicFieldValue(fieldName, value);
         refetchWithDynamicFields({
           ...dynamicFieldValues,
@@ -322,6 +327,13 @@ export function ExternalIssueForm({
   const hasFormErrors = useMemo(() => {
     return formFields.some(field => field.name === 'error' && field.type === 'blank');
   }, [formFields]);
+
+  // Key changes when field config changes, forcing the form to remount with fresh defaults.
+  // Includes field names and defaults so the form resets even when only defaults change.
+  const formKey = useMemo(
+    () => formFields.map(f => `${f.name}:${JSON.stringify(f.default)}`).join(','),
+    [formFields]
+  );
 
   if (isPending) {
     return (
@@ -369,7 +381,9 @@ export function ExternalIssueForm({
       </TabsContainer>
       <Body>
         <BackendJsonSubmitForm
+          key={formKey}
           fields={formFields}
+          initialValues={lastChangedField}
           onSubmit={handleSubmit}
           submitLabel={SUBMIT_LABEL_BY_ACTION[action]}
           isLoading={isDynamicallyRefetching}

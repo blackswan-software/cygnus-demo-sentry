@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef} from 'react';
+import {useMemo} from 'react';
 
 import {defaultFormOptions, useScrapsForm} from '@sentry/scraps/form';
 import {Stack} from '@sentry/scraps/layout';
@@ -37,6 +37,12 @@ interface BackendJsonSubmitFormProps {
    */
   footer?: (props: {SubmitButton: any; disabled: boolean}) => React.ReactNode;
   /**
+   * Override default values for specific fields. Takes precedence over
+   * `field.default`. Useful for preserving dynamic field selections
+   * across form remounts.
+   */
+  initialValues?: Record<string, unknown>;
+  /**
    * Whether the form is in a loading state (e.g., dynamic field refetch in progress).
    */
   isLoading?: boolean;
@@ -55,12 +61,14 @@ interface BackendJsonSubmitFormProps {
 }
 
 function computeDefaultValues(
-  fields: JsonFormAdapterFieldConfig[]
+  fields: JsonFormAdapterFieldConfig[],
+  initialValues?: Record<string, unknown>
 ): Record<string, unknown> {
   const defaults: Record<string, unknown> = {};
   for (const field of fields) {
     if (field.name && field.type !== 'blank') {
-      defaults[field.name] = field.default ?? getDefaultForType(field.type);
+      defaults[field.name] =
+        initialValues?.[field.name] ?? field.default ?? getDefaultForType(field.type);
     }
   }
   return defaults;
@@ -94,13 +102,16 @@ export function BackendJsonSubmitForm({
   onSubmit,
   submitLabel,
   submitDisabled,
+  initialValues,
   isLoading,
   dynamicFieldValues,
   onFieldChange,
   footer,
 }: BackendJsonSubmitFormProps) {
-  const defaultValues = useMemo(() => computeDefaultValues(fields), [fields]);
-  const prevFieldsRef = useRef<JsonFormAdapterFieldConfig[]>(fields);
+  const defaultValues = useMemo(
+    () => computeDefaultValues(fields, initialValues),
+    [fields, initialValues]
+  );
 
   const form = useScrapsForm({
     ...defaultFormOptions,
@@ -109,32 +120,6 @@ export function BackendJsonSubmitForm({
       await onSubmit(value);
     },
   });
-
-  // When fields change (e.g., dynamic refetch), set values for new fields
-  // while preserving user-entered values for existing fields
-  useEffect(() => {
-    const prevNames = new Set(
-      prevFieldsRef.current.filter(f => f.type !== 'blank').map(f => f.name)
-    );
-    const currentNames = new Set(fields.filter(f => f.type !== 'blank').map(f => f.name));
-
-    // Only act if the set of field names has changed
-    if (
-      prevNames.size !== currentNames.size ||
-      [...prevNames].some(n => !currentNames.has(n))
-    ) {
-      for (const field of fields) {
-        if (field.name && field.type !== 'blank' && !prevNames.has(field.name)) {
-          // New field — set its default value
-          form.setFieldValue(
-            field.name as never,
-            (field.default ?? getDefaultForType(field.type)) as never
-          );
-        }
-      }
-    }
-    prevFieldsRef.current = fields;
-  }, [fields, form]);
 
   const hasErrors = fields.some(
     field => field.name === 'error' && field.type === 'blank'

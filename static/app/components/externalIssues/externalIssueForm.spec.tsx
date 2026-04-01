@@ -321,6 +321,92 @@ describe('ExternalIssueForm', () => {
       expect(screen.queryByRole('textbox', {name: 'Reporter'})).not.toBeInTheDocument();
       expect(submitButton).toBeEnabled();
     });
+
+    it('should reset field values when dynamic refetch returns new config', async () => {
+      MockApiClient.addMockResponse({
+        url: `/organizations/org-slug/issues/${group.id}/integrations/${integration.id}/`,
+        match: [MockApiClient.matchQuery({action: 'create'})],
+        body: {
+          createIssueConfig: [
+            {
+              label: 'Project',
+              required: true,
+              choices: [
+                ['#proj-1', 'Project 1'],
+                ['#proj-2', 'Project 2'],
+              ],
+              type: 'select',
+              name: 'project',
+              updatesForm: true,
+            },
+            {
+              label: 'Summary',
+              required: false,
+              type: 'text',
+              name: 'summary',
+            },
+          ],
+        },
+      });
+      // After selecting Project 1, the refetch returns Summary with a new default
+      MockApiClient.addMockResponse({
+        url: `/organizations/org-slug/issues/${group.id}/integrations/${integration.id}/`,
+        match: [MockApiClient.matchQuery({action: 'create', project: '#proj-1'})],
+        body: {
+          createIssueConfig: [
+            {
+              label: 'Project',
+              required: true,
+              choices: [
+                ['#proj-1', 'Project 1'],
+                ['#proj-2', 'Project 2'],
+              ],
+              type: 'select',
+              name: 'project',
+              updatesForm: true,
+            },
+            {
+              label: 'Summary',
+              required: false,
+              type: 'text',
+              name: 'summary',
+              default: 'New default from server',
+            },
+          ],
+        },
+      });
+
+      render(
+        <ExternalIssueForm
+          Body={ModalBody}
+          Header={makeClosableHeader(closeModal)}
+          Footer={ModalFooter}
+          CloseButton={makeCloseButton(closeModal)}
+          closeModal={closeModal}
+          onChange={onChange}
+          group={group}
+          integration={integration}
+        />,
+        {organization}
+      );
+      await waitForElementToBeRemoved(() => screen.queryByTestId('loading-indicator'));
+
+      // Type something into Summary
+      const summaryInput = screen.getByRole('textbox', {name: 'Summary'});
+      await userEvent.type(summaryInput, 'User typed text');
+      expect(summaryInput).toHaveValue('User typed text');
+
+      // Select a project (triggers dynamic refetch)
+      await selectEvent.select(
+        screen.getByRole('textbox', {name: 'Project'}),
+        'Project 1'
+      );
+
+      // Summary should be reset to the new default from the server, not preserved
+      expect(screen.getByRole('textbox', {name: 'Summary'})).toHaveValue(
+        'New default from server'
+      );
+    });
   });
   describe('link', () => {
     let externalIssueField!: any;
