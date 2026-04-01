@@ -11,7 +11,10 @@ import {
 } from 'sentry-test/reactTestingLibrary';
 import {selectEvent} from 'sentry-test/selectEvent';
 
+import {addErrorMessage} from 'sentry/actionCreators/indicator';
 import {ExternalIssueForm} from 'sentry/components/externalIssues/externalIssueForm';
+
+jest.mock('sentry/actionCreators/indicator');
 import {
   makeClosableHeader,
   makeCloseButton,
@@ -198,6 +201,81 @@ describe('ExternalIssueForm', () => {
       expect(submitButton).toBeDisabled();
     });
 
+    it('should not submit when required fields are empty', async () => {
+      formConfig = {
+        createIssueConfig: [
+          {
+            label: 'Title',
+            required: true,
+            type: 'string',
+            name: 'title',
+            default: '',
+          },
+          {
+            label: 'Repo',
+            required: true,
+            type: 'select',
+            name: 'repo',
+            choices: [
+              ['repo-1', 'Repo 1'],
+              ['repo-2', 'Repo 2'],
+            ],
+          },
+        ],
+      };
+      MockApiClient.addMockResponse({
+        url: `/organizations/org-slug/issues/${group.id}/integrations/${integration.id}/`,
+        body: formConfig,
+      });
+
+      const submitRequest = MockApiClient.addMockResponse({
+        url: `/organizations/org-slug/issues/${group.id}/integrations/${integration.id}/`,
+        method: 'POST',
+        body: {},
+      });
+
+      await renderComponent();
+
+      // Click submit without filling required fields
+      await userEvent.click(screen.getByRole('button', {name: 'Create Issue'}));
+
+      // Should NOT have made an API request
+      expect(submitRequest).not.toHaveBeenCalled();
+      expect(closeModal).not.toHaveBeenCalled();
+    });
+
+    it('should show an error toast when the submit request fails', async () => {
+      formConfig = {
+        createIssueConfig: [
+          {
+            label: 'Title',
+            required: true,
+            type: 'string',
+            name: 'title',
+            default: 'Default Title',
+          },
+        ],
+      };
+      MockApiClient.addMockResponse({
+        url: `/organizations/org-slug/issues/${group.id}/integrations/${integration.id}/`,
+        body: formConfig,
+      });
+
+      MockApiClient.addMockResponse({
+        url: `/organizations/org-slug/issues/${group.id}/integrations/${integration.id}/`,
+        method: 'POST',
+        statusCode: 400,
+        body: {detail: 'Something went wrong'},
+      });
+
+      await renderComponent();
+
+      await userEvent.click(screen.getByRole('button', {name: 'Create Issue'}));
+
+      await waitFor(() => expect(addErrorMessage).toHaveBeenCalled());
+      expect(closeModal).not.toHaveBeenCalled();
+    });
+
     it('should refetch the form when a dynamic field is changed', async () => {
       const initialQuery = MockApiClient.addMockResponse({
         url: `/organizations/org-slug/issues/${group.id}/integrations/${integration.id}/`,
@@ -304,12 +382,6 @@ describe('ExternalIssueForm', () => {
       expect(screen.getByRole('textbox', {name: 'Summary'})).toBeInTheDocument();
       expect(screen.getByRole('textbox', {name: 'Reporter'})).toBeInTheDocument();
 
-      // We should also respect new required fields
-      const submitButton = screen.getByRole('button', {name: 'Create Issue'});
-      expect(submitButton).toBeDisabled();
-      await selectEvent.select(screen.getByRole('textbox', {name: 'Reporter'}), 'User 1');
-      await waitFor(() => expect(submitButton).toBeEnabled());
-
       // Swapping projects should refetch, and remove stale fields
       await selectEvent.select(
         screen.getByRole('textbox', {name: 'Project'}),
@@ -319,7 +391,6 @@ describe('ExternalIssueForm', () => {
 
       expect(screen.queryByRole('textbox', {name: 'Summary'})).not.toBeInTheDocument();
       expect(screen.queryByRole('textbox', {name: 'Reporter'})).not.toBeInTheDocument();
-      expect(submitButton).toBeEnabled();
     });
 
     it('should reset field values when dynamic refetch returns new config', async () => {

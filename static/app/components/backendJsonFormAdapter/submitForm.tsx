@@ -1,11 +1,15 @@
 import {useMemo} from 'react';
+import {z} from 'zod';
 
 import {defaultFormOptions, useScrapsForm} from '@sentry/scraps/form';
 import {Stack} from '@sentry/scraps/layout';
 
+import {addErrorMessage} from 'sentry/actionCreators/indicator';
 import {Client} from 'sentry/api';
 import {LoadingIndicator} from 'sentry/components/loadingIndicator';
+import {t} from 'sentry/locale';
 import type {SelectValue} from 'sentry/types/core';
+import {RequestError} from 'sentry/utils/requestError/requestError';
 
 import type {JsonFormAdapterFieldConfig} from './types';
 import {getDefaultForType, transformChoices} from './utils';
@@ -58,6 +62,26 @@ interface BackendJsonSubmitFormProps {
    * Label for the submit button.
    */
   submitLabel?: string;
+}
+
+/**
+ * Build a Zod schema that validates required fields are non-empty.
+ */
+function buildValidationSchema(fields: JsonFormAdapterFieldConfig[]) {
+  const shape: Record<string, z.ZodTypeAny> = {};
+  for (const field of fields) {
+    if (field.type === 'blank') {
+      continue;
+    }
+    if (field.required) {
+      shape[field.name] = z
+        .any()
+        .refine(val => val !== null && val !== undefined && val !== '', {
+          message: t('This field is required'),
+        });
+    }
+  }
+  return z.object(shape).passthrough();
 }
 
 function computeDefaultValues(
@@ -113,11 +137,24 @@ export function BackendJsonSubmitForm({
     [fields, initialValues]
   );
 
+  const validationSchema = useMemo(() => buildValidationSchema(fields), [fields]);
+
   const form = useScrapsForm({
     ...defaultFormOptions,
     defaultValues,
+    validators: {
+      onSubmit: validationSchema,
+    },
     onSubmit: async ({value}) => {
-      await onSubmit(value);
+      try {
+        await onSubmit(value);
+      } catch (err) {
+        if (err instanceof RequestError) {
+          const detail = err.responseJSON?.detail;
+          const message = typeof detail === 'string' ? detail : detail?.message;
+          addErrorMessage(message ?? t('An error occurred while submitting'));
+        }
+      }
     },
   });
 
@@ -125,20 +162,13 @@ export function BackendJsonSubmitForm({
     field => field.name === 'error' && field.type === 'blank'
   );
 
-  const requiredFields = useMemo(
-    () => fields.filter(f => f.required && f.type !== 'blank').map(f => f.name),
-    [fields]
-  );
+  const buttonDisabled = hasErrors || !!submitDisabled || !!isLoading;
 
-  const renderSubmitButton = (disabled: boolean) => {
-    if (footer) {
-      return footer({
-        SubmitButton: form.SubmitButton,
-        disabled,
-      });
-    }
-    return <form.SubmitButton disabled={disabled}>{submitLabel}</form.SubmitButton>;
-  };
+  const submitButton = footer ? (
+    footer({SubmitButton: form.SubmitButton, disabled: buttonDisabled})
+  ) : (
+    <form.SubmitButton disabled={buttonDisabled}>{submitLabel}</form.SubmitButton>
+  );
 
   return (
     <form.AppForm form={form}>
@@ -158,17 +188,7 @@ export function BackendJsonSubmitForm({
             ))}
         </Stack>
       )}
-      <form.Subscribe selector={(state: any) => state.values}>
-        {(values: any) => {
-          const hasUnfilledRequired = requiredFields.some(name => {
-            const val = values[name];
-            return val === null || val === undefined || val === '';
-          });
-          return renderSubmitButton(
-            hasErrors || !!submitDisabled || !!isLoading || hasUnfilledRequired
-          );
-        }}
-      </form.Subscribe>
+      {submitButton}
     </form.AppForm>
   );
 }
