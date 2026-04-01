@@ -80,6 +80,39 @@ describe('ExternalIssueForm', () => {
       await renderComponent();
     });
 
+    it('should render multi-select fields and allow selecting multiple values', async () => {
+      formConfig = {
+        createIssueConfig: [
+          {
+            label: 'Labels',
+            required: false,
+            type: 'select',
+            name: 'labels',
+            multiple: true,
+            choices: [
+              ['bug', 'bug'],
+              ['feature', 'feature'],
+              ['docs', 'docs'],
+            ],
+          },
+        ],
+      };
+      MockApiClient.addMockResponse({
+        url: `/organizations/org-slug/issues/${group.id}/integrations/${integration.id}/`,
+        body: formConfig,
+      });
+
+      await renderComponent();
+
+      const labelsSelect = screen.getByRole('textbox', {name: 'Labels'});
+      await selectEvent.select(labelsSelect, 'bug');
+      await selectEvent.select(labelsSelect, 'feature');
+
+      // Both values should be visible as selected tags
+      expect(screen.getAllByText('bug').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('feature').length).toBeGreaterThanOrEqual(1);
+    });
+
     it('should submit the form and close the modal on success', async () => {
       formConfig = {
         createIssueConfig: [

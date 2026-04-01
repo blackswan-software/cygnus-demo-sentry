@@ -12,7 +12,7 @@ import type {SelectValue} from 'sentry/types/core';
 import {RequestError} from 'sentry/utils/requestError/requestError';
 
 import type {JsonFormAdapterFieldConfig} from './types';
-import {getDefaultForType, transformChoices} from './utils';
+import {getDefaultForField, transformChoices} from './utils';
 
 /**
  * API client without base URL prefix, needed for async select fields
@@ -92,7 +92,7 @@ function computeDefaultValues(
   for (const field of fields) {
     if (field.name && field.type !== 'blank') {
       defaults[field.name] =
-        initialValues?.[field.name] ?? field.default ?? getDefaultForType(field.type);
+        initialValues?.[field.name] ?? field.default ?? getDefaultForField(field);
     }
   }
   return defaults;
@@ -269,6 +269,46 @@ function SubmitFormField({
               // Async select: fetch options from URL as user types.
               // Show static choices as initial options before any search.
               const staticOptions = transformChoices(field.choices);
+              const asyncQueryOptions = (debouncedInput: string) => ({
+                queryKey: [
+                  'backend-json-async-select',
+                  field.name,
+                  field.url,
+                  debouncedInput,
+                  dynamicFieldValues,
+                ],
+                queryFn: async (): Promise<Array<SelectValue<string | number>>> => {
+                  if (!debouncedInput) {
+                    return staticOptions;
+                  }
+                  return API_CLIENT.requestPromise(field.url!, {
+                    query: buildAsyncSelectQuery(
+                      field.name,
+                      debouncedInput,
+                      dynamicFieldValues
+                    ),
+                  });
+                },
+                // Always enabled so static choices show immediately
+                enabled: true,
+              });
+              if (field.multiple) {
+                return (
+                  <fieldApi.Layout.Stack
+                    label={field.label}
+                    hintText={field.help}
+                    required={field.required}
+                  >
+                    <fieldApi.SelectAsync
+                      multiple
+                      value={(fieldApi.state.value as string[]) ?? []}
+                      onChange={handleChange}
+                      disabled={field.disabled}
+                      queryOptions={asyncQueryOptions}
+                    />
+                  </fieldApi.Layout.Stack>
+                );
+              }
               return (
                 <fieldApi.Layout.Stack
                   label={field.label}
@@ -279,29 +319,24 @@ function SubmitFormField({
                     value={fieldApi.state.value as string | null}
                     onChange={handleChange}
                     disabled={field.disabled}
-                    queryOptions={(debouncedInput: string) => ({
-                      queryKey: [
-                        'backend-json-async-select',
-                        field.name,
-                        field.url,
-                        debouncedInput,
-                        dynamicFieldValues,
-                      ],
-                      queryFn: async (): Promise<Array<SelectValue<string | number>>> => {
-                        if (!debouncedInput) {
-                          return staticOptions;
-                        }
-                        return API_CLIENT.requestPromise(field.url!, {
-                          query: buildAsyncSelectQuery(
-                            field.name,
-                            debouncedInput,
-                            dynamicFieldValues
-                          ),
-                        });
-                      },
-                      // Always enabled so static choices show immediately
-                      enabled: true,
-                    })}
+                    queryOptions={asyncQueryOptions}
+                  />
+                </fieldApi.Layout.Stack>
+              );
+            }
+            if (field.multiple) {
+              return (
+                <fieldApi.Layout.Stack
+                  label={field.label}
+                  hintText={field.help}
+                  required={field.required}
+                >
+                  <fieldApi.Select
+                    multiple
+                    value={(fieldApi.state.value as string[]) ?? []}
+                    onChange={handleChange}
+                    options={transformChoices(field.choices)}
+                    disabled={field.disabled}
                   />
                 </fieldApi.Layout.Stack>
               );

@@ -11,7 +11,7 @@ import {ChoiceMapperDropdown, ChoiceMapperTable} from './choiceMapperAdapter';
 import {ProjectMapperAddRow, ProjectMapperTable} from './projectMapperAdapter';
 import {TableBody, TableHeaderRow} from './tableAdapter';
 import type {FieldValue, JsonFormAdapterFieldConfig} from './types';
-import {getDefaultForType, getZodType, transformChoices} from './utils';
+import {getDefaultForField, getZodType, transformChoices} from './utils';
 
 interface BackendJsonFormAdapterProps<
   TField extends JsonFormAdapterFieldConfig,
@@ -40,7 +40,7 @@ export function BackendJsonFormAdapter<
     [fieldName, field.type]
   );
 
-  const value = initialValue ?? field.default ?? getDefaultForType(field.type);
+  const value = initialValue ?? field.default ?? getDefaultForField(field);
 
   if (field.type === 'table') {
     return (

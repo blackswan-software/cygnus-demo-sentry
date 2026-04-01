@@ -44,10 +44,8 @@ export function transformChoices(
   return choices.map(([value, label]) => ({value, label}));
 }
 
-export function getDefaultForType(
-  fieldType: JsonFormAdapterFieldConfig['type']
-): unknown {
-  switch (fieldType) {
+export function getDefaultForField(field: JsonFormAdapterFieldConfig): unknown {
+  switch (field.type) {
     case 'boolean':
       return false;
     case 'string':
@@ -66,11 +64,11 @@ export function getDefaultForType(
       return [];
     case 'select':
     case 'choice':
-      return null;
+      return field.multiple ? [] : null;
     case 'blank':
       return null;
     default:
-      unreachable(fieldType);
+      unreachable(field);
       return '';
   }
 }
