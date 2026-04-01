@@ -69,12 +69,9 @@ export function SideBySideOrientation({
   const hasSize = width > 0;
   // Default split is 65% of the available width but not less than MIN_LEFT_WIDTH
   // while also accommodating the desired right panel width to show all of the telemetry icons.
-  const rightPanelDesiredWidth = hasMetricsUIRefresh
-    ? SAMPLES_PANEL_MIN_WIDTH
-    : WIDTH_WITH_TELEMETRY_ICONS_VISIBLE;
   const defaultSplit = Math.min(
     Math.max(width * 0.65, MIN_LEFT_WIDTH),
-    width - (rightPanelDesiredWidth + PADDING_SIZE + DIVIDER_WIDTH)
+    width - (WIDTH_WITH_TELEMETRY_ICONS_VISIBLE + PADDING_SIZE + DIVIDER_WIDTH)
   );
 
   const additionalActions = (
