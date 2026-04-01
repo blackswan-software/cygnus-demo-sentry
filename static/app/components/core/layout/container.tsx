@@ -353,20 +353,15 @@ function getOverflowStyle(
   `;
 }
 
+const SCROLL_VALUES = ['auto', 'scroll'];
 function checkOverflowCanScroll(
   props: Pick<ContainerLayoutProps, 'overflow' | 'overflowX' | 'overflowY'>
 ) {
   for (const property of ['overflow', 'overflowX', 'overflowY'] as const) {
     const value = props[property];
-    if (!value) {
-      return false;
-    }
-    if (typeof value === 'string') {
-      return value === 'auto' || value === 'scroll';
-    }
-    for (const v of Object.values(value)) {
-      return v === 'auto' || v === 'scroll';
-    }
+    if (!value) continue;
+    if (typeof value === 'string' && SCROLL_VALUES.includes(value)) return true;
+    if (Object.values(value).some(v => SCROLL_VALUES.includes(v))) return true;
   }
   return false;
 }
