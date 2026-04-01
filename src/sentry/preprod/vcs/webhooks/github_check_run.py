@@ -9,7 +9,8 @@ from typing import Any, Literal
 from django.db.models import F, Window
 from django.db.models.functions import RowNumber
 
-from sentry import analytics
+from sentry import analytics, features
+from sentry.integrations.github.status_check import GitHubCheckConclusion, GitHubCheckStatus
 from sentry.integrations.github.webhook_types import GithubWebhookType
 from sentry.integrations.services.integration.model import RpcIntegration
 from sentry.models.organization import Organization
@@ -37,6 +38,9 @@ class Log(StrEnum):
     APPROVAL_ALREADY_EXISTS = "preprod.webhook.check_run.approval_already_exists"
     APPROVALS_CREATED = "preprod.webhook.check_run.approvals_created"
     UNKNOWN_IDENTIFIER = "preprod.webhook.check_run.unknown_identifier"
+    OPTIMISTIC_UPDATE_SUCCESS = "preprod.webhook.check_run.optimistic_update_success"
+    OPTIMISTIC_UPDATE_FAILED = "preprod.webhook.check_run.optimistic_update_failed"
+    OPTIMISTIC_UPDATE_SKIPPED = "preprod.webhook.check_run.optimistic_update_skipped"
 
 
 class GitHubCheckRunAction(StrEnum):
@@ -207,6 +211,14 @@ def handle_preprod_check_run_event(
             )
         )
 
+    if approvals_created > 0:
+        _optimistic_update_check_run(
+            event=event,
+            organization=organization,
+            integration=integration,
+            identifier=identifier,
+        )
+
     if identifier == APPROVE_SIZE_ACTION_IDENTIFIER:
         create_preprod_status_check_task.apply_async(
             kwargs={
@@ -223,3 +235,66 @@ def handle_preprod_check_run_event(
         )
     else:
         raise ValueError(f"Unknown identifier: {identifier}")
+
+
+def _optimistic_update_check_run(
+    *,
+    event: Mapping[str, Any],
+    organization: Organization,
+    integration: RpcIntegration | None,
+    identifier: str,
+) -> None:
+    if not features.has("organizations:preprod-optimistic-check-run-update", organization):
+        return
+
+    if not integration:
+        logger.info(Log.OPTIMISTIC_UPDATE_SKIPPED, extra={"reason": "no_integration"})
+        return
+
+    check_run = event.get("check_run", {})
+    check_run_id = check_run.get("id")
+    repo_full_name = event.get("repository", {}).get("full_name")
+
+    if not check_run_id or not repo_full_name:
+        logger.info(
+            Log.OPTIMISTIC_UPDATE_SKIPPED,
+            extra={"reason": "missing_check_run_id_or_repo"},
+        )
+        return
+
+    try:
+        installation = integration.get_installation(organization_id=organization.id)
+        client = installation.get_client()
+        client.update_check_run(
+            repo=repo_full_name,
+            check_run_id=check_run_id,
+            data={
+                "status": GitHubCheckStatus.COMPLETED.value,
+                "conclusion": GitHubCheckConclusion.SUCCESS.value,
+                "completed_at": datetime.now(timezone.utc).isoformat(),
+                "output": {
+                    "title": "Approved",
+                    "summary": "Changes approved. Full status update in progress...",
+                },
+                "actions": [],
+            },
+        )
+        logger.info(
+            Log.OPTIMISTIC_UPDATE_SUCCESS,
+            extra={
+                "organization_id": organization.id,
+                "check_run_id": check_run_id,
+                "identifier": identifier,
+            },
+        )
+        metrics.incr(Log.OPTIMISTIC_UPDATE_SUCCESS)
+    except Exception:
+        logger.exception(
+            Log.OPTIMISTIC_UPDATE_FAILED,
+            extra={
+                "organization_id": organization.id,
+                "check_run_id": check_run_id,
+                "identifier": identifier,
+            },
+        )
+        metrics.incr(Log.OPTIMISTIC_UPDATE_FAILED)

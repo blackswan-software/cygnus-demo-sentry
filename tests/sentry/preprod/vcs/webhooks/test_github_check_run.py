@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import unittest.mock
 import uuid
 from datetime import datetime, timezone
 from unittest.mock import patch
@@ -9,6 +10,7 @@ from sentry.models.commitcomparison import CommitComparison
 from sentry.models.repository import Repository
 from sentry.preprod.models import PreprodArtifact, PreprodComparisonApproval
 from sentry.preprod.vcs.status_checks.size.tasks import APPROVE_SIZE_ACTION_IDENTIFIER
+from sentry.preprod.vcs.status_checks.snapshots.tasks import APPROVE_SNAPSHOT_ACTION_IDENTIFIER
 from sentry.preprod.vcs.webhooks.github_check_run import handle_preprod_check_run_event
 from sentry.testutils.cases import TestCase
 from sentry.testutils.silo import cell_silo_test
@@ -457,3 +459,149 @@ class HandlePreprodCheckRunEventTest(TestCase):
 
         # Should be 3 approvals now (A, B, then A again)
         assert PreprodComparisonApproval.objects.filter(preprod_artifact=artifact).count() == 3
+
+    @patch("sentry.preprod.vcs.webhooks.github_check_run.create_preprod_status_check_task")
+    def test_optimistic_update_patches_check_run_on_approval(self, mock_task) -> None:
+        artifact = self._create_preprod_artifact()
+        event = self._create_webhook_event(
+            action="requested_action",
+            identifier=APPROVE_SIZE_ACTION_IDENTIFIER,
+            external_id=str(artifact.id),
+        )
+
+        mock_client = unittest.mock.MagicMock()
+        mock_installation = unittest.mock.MagicMock()
+        mock_installation.get_client.return_value = mock_client
+        mock_integration = unittest.mock.MagicMock()
+        mock_integration.get_installation.return_value = mock_installation
+
+        with self.feature("organizations:preprod-optimistic-check-run-update"):
+            handle_preprod_check_run_event(
+                github_event=GithubWebhookType.CHECK_RUN,
+                event=event,
+                organization=self.organization,
+                repo=self.repo,
+                integration=mock_integration,
+            )
+
+        mock_client.update_check_run.assert_called_once()
+        call_kwargs = mock_client.update_check_run.call_args
+        assert call_kwargs.kwargs["repo"] == "owner/repo"
+        assert call_kwargs.kwargs["check_run_id"] == 987654321
+        data = call_kwargs.kwargs["data"]
+        assert data["status"] == "completed"
+        assert data["conclusion"] == "success"
+        assert data["actions"] == []
+        assert data["output"]["title"] == "Approved"
+
+        mock_task.apply_async.assert_called_once()
+
+    @patch("sentry.preprod.vcs.webhooks.github_check_run.create_preprod_status_check_task")
+    def test_optimistic_update_skipped_without_feature_flag(self, mock_task) -> None:
+        artifact = self._create_preprod_artifact()
+        event = self._create_webhook_event(
+            action="requested_action",
+            identifier=APPROVE_SIZE_ACTION_IDENTIFIER,
+            external_id=str(artifact.id),
+        )
+
+        mock_integration = unittest.mock.MagicMock()
+
+        handle_preprod_check_run_event(
+            github_event=GithubWebhookType.CHECK_RUN,
+            event=event,
+            organization=self.organization,
+            repo=self.repo,
+            integration=mock_integration,
+        )
+
+        mock_integration.get_installation.assert_not_called()
+        mock_task.apply_async.assert_called_once()
+
+    @patch("sentry.preprod.vcs.webhooks.github_check_run.create_preprod_status_check_task")
+    def test_optimistic_update_failure_does_not_block_async_task(self, mock_task) -> None:
+        artifact = self._create_preprod_artifact()
+        event = self._create_webhook_event(
+            action="requested_action",
+            identifier=APPROVE_SIZE_ACTION_IDENTIFIER,
+            external_id=str(artifact.id),
+        )
+
+        mock_client = unittest.mock.MagicMock()
+        mock_client.update_check_run.side_effect = Exception("GitHub API error")
+        mock_installation = unittest.mock.MagicMock()
+        mock_installation.get_client.return_value = mock_client
+        mock_integration = unittest.mock.MagicMock()
+        mock_integration.get_installation.return_value = mock_installation
+
+        with self.feature("organizations:preprod-optimistic-check-run-update"):
+            handle_preprod_check_run_event(
+                github_event=GithubWebhookType.CHECK_RUN,
+                event=event,
+                organization=self.organization,
+                repo=self.repo,
+                integration=mock_integration,
+            )
+
+        assert PreprodComparisonApproval.objects.filter(preprod_artifact=artifact).count() == 1
+        mock_task.apply_async.assert_called_once()
+
+    @patch("sentry.preprod.vcs.webhooks.github_check_run.create_preprod_status_check_task")
+    def test_optimistic_update_skipped_when_no_approvals_created(self, mock_task) -> None:
+        artifact = self._create_preprod_artifact()
+
+        PreprodComparisonApproval.objects.create(
+            preprod_artifact=artifact,
+            preprod_feature_type=PreprodComparisonApproval.FeatureType.SIZE,
+            approval_status=PreprodComparisonApproval.ApprovalStatus.APPROVED,
+            approved_at=datetime.now(timezone.utc),
+            extras={"github": {"id": 12345, "login": "octocat"}},
+        )
+
+        event = self._create_webhook_event(
+            action="requested_action",
+            identifier=APPROVE_SIZE_ACTION_IDENTIFIER,
+            external_id=str(artifact.id),
+            sender_id=12345,
+            sender_login="octocat",
+        )
+
+        mock_integration = unittest.mock.MagicMock()
+
+        with self.feature("organizations:preprod-optimistic-check-run-update"):
+            handle_preprod_check_run_event(
+                github_event=GithubWebhookType.CHECK_RUN,
+                event=event,
+                organization=self.organization,
+                repo=self.repo,
+                integration=mock_integration,
+            )
+
+        mock_integration.get_installation.assert_not_called()
+
+    @patch("sentry.preprod.vcs.webhooks.github_check_run.create_preprod_snapshot_status_check_task")
+    def test_optimistic_update_works_for_snapshot_approval(self, mock_task) -> None:
+        artifact = self._create_preprod_artifact()
+        event = self._create_webhook_event(
+            action="requested_action",
+            identifier=APPROVE_SNAPSHOT_ACTION_IDENTIFIER,
+            external_id=str(artifact.id),
+        )
+
+        mock_client = unittest.mock.MagicMock()
+        mock_installation = unittest.mock.MagicMock()
+        mock_installation.get_client.return_value = mock_client
+        mock_integration = unittest.mock.MagicMock()
+        mock_integration.get_installation.return_value = mock_installation
+
+        with self.feature("organizations:preprod-optimistic-check-run-update"):
+            handle_preprod_check_run_event(
+                github_event=GithubWebhookType.CHECK_RUN,
+                event=event,
+                organization=self.organization,
+                repo=self.repo,
+                integration=mock_integration,
+            )
+
+        mock_client.update_check_run.assert_called_once()
+        mock_task.apply_async.assert_called_once()
