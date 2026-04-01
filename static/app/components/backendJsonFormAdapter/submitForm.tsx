@@ -1,0 +1,360 @@
+import {useEffect, useMemo, useRef} from 'react';
+
+import {defaultFormOptions, useScrapsForm} from '@sentry/scraps/form';
+import {Stack} from '@sentry/scraps/layout';
+
+import {Client} from 'sentry/api';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
+import type {SelectValue} from 'sentry/types/core';
+
+import type {JsonFormAdapterFieldConfig} from './types';
+import {getDefaultForType, transformChoices} from './utils';
+
+/**
+ * API client without base URL prefix, needed for async select fields
+ * that use URLs like `/extensions/jira/search/...` or `/search`.
+ */
+const API_CLIENT = new Client({baseUrl: '', headers: {}});
+
+interface BackendJsonSubmitFormProps {
+  /**
+   * Field configs from the backend API response.
+   */
+  fields: JsonFormAdapterFieldConfig[];
+  /**
+   * Called when the form is submitted. Should return a promise that
+   * resolves on success or rejects/throws on error.
+   */
+  onSubmit: (values: Record<string, unknown>) => Promise<unknown>;
+  /**
+   * Current values of dynamic fields, passed as query params to async select endpoints.
+   */
+  dynamicFieldValues?: Record<string, unknown>;
+  /**
+   * Render prop for the submit button area. Receives the disabled state and the
+   * SubmitButton component. Use this to place the button in a custom location
+   * (e.g., a modal footer). If not provided, the submit button renders inline.
+   */
+  footer?: (props: {SubmitButton: any; disabled: boolean}) => React.ReactNode;
+  /**
+   * Whether the form is in a loading state (e.g., dynamic field refetch in progress).
+   */
+  isLoading?: boolean;
+  /**
+   * Called when a field with `updatesForm: true` changes value.
+   */
+  onFieldChange?: (fieldName: string, value: unknown) => void;
+  /**
+   * Whether the submit button should be disabled (e.g., form has errors).
+   */
+  submitDisabled?: boolean;
+  /**
+   * Label for the submit button.
+   */
+  submitLabel?: string;
+}
+
+function computeDefaultValues(
+  fields: JsonFormAdapterFieldConfig[]
+): Record<string, unknown> {
+  const defaults: Record<string, unknown> = {};
+  for (const field of fields) {
+    if (field.name && field.type !== 'blank') {
+      defaults[field.name] = field.default ?? getDefaultForType(field.type);
+    }
+  }
+  return defaults;
+}
+
+function buildAsyncSelectQuery(
+  fieldName: string,
+  query: string,
+  dynamicFieldValues?: Record<string, unknown>
+): Record<string, unknown> {
+  return {
+    ...dynamicFieldValues,
+    field: fieldName,
+    query,
+  };
+}
+
+/**
+ * A multi-field form that renders backend-driven field configs with a submit button.
+ * Unlike `BackendJsonFormAdapter` (which is per-field auto-save), this component
+ * renders all fields in a single form and submits them together.
+ *
+ * Supports:
+ * - Static select fields (from `field.choices`)
+ * - Async select fields (from `field.url` with debounced search)
+ * - Dynamic field refetching (via `onFieldChange` for `updatesForm` fields)
+ * - Text, textarea, number, boolean, and other basic field types
+ */
+export function BackendJsonSubmitForm({
+  fields,
+  onSubmit,
+  submitLabel,
+  submitDisabled,
+  isLoading,
+  dynamicFieldValues,
+  onFieldChange,
+  footer,
+}: BackendJsonSubmitFormProps) {
+  const defaultValues = useMemo(() => computeDefaultValues(fields), [fields]);
+  const prevFieldsRef = useRef<JsonFormAdapterFieldConfig[]>(fields);
+
+  const form = useScrapsForm({
+    ...defaultFormOptions,
+    defaultValues,
+    onSubmit: async ({value}) => {
+      await onSubmit(value);
+    },
+  });
+
+  // When fields change (e.g., dynamic refetch), set values for new fields
+  // while preserving user-entered values for existing fields
+  useEffect(() => {
+    const prevNames = new Set(
+      prevFieldsRef.current.filter(f => f.type !== 'blank').map(f => f.name)
+    );
+    const currentNames = new Set(fields.filter(f => f.type !== 'blank').map(f => f.name));
+
+    // Only act if the set of field names has changed
+    if (
+      prevNames.size !== currentNames.size ||
+      [...prevNames].some(n => !currentNames.has(n))
+    ) {
+      for (const field of fields) {
+        if (field.name && field.type !== 'blank' && !prevNames.has(field.name)) {
+          // New field — set its default value
+          form.setFieldValue(
+            field.name as never,
+            (field.default ?? getDefaultForType(field.type)) as never
+          );
+        }
+      }
+    }
+    prevFieldsRef.current = fields;
+  }, [fields, form]);
+
+  const hasErrors = fields.some(
+    field => field.name === 'error' && field.type === 'blank'
+  );
+
+  const requiredFields = useMemo(
+    () => fields.filter(f => f.required && f.type !== 'blank').map(f => f.name),
+    [fields]
+  );
+
+  const renderSubmitButton = (disabled: boolean) => {
+    if (footer) {
+      return footer({
+        SubmitButton: form.SubmitButton,
+        disabled,
+      });
+    }
+    return <form.SubmitButton disabled={disabled}>{submitLabel}</form.SubmitButton>;
+  };
+
+  return (
+    <form.AppForm form={form}>
+      {isLoading && <LoadingIndicator />}
+      {!isLoading && (
+        <Stack gap="xl">
+          {fields
+            .filter(field => field.hasOwnProperty('name') && field.type !== 'blank')
+            .map(field => (
+              <SubmitFormField
+                key={field.name}
+                form={form}
+                field={field}
+                dynamicFieldValues={dynamicFieldValues}
+                onFieldChange={onFieldChange}
+              />
+            ))}
+        </Stack>
+      )}
+      <form.Subscribe selector={(state: any) => state.values}>
+        {(values: any) => {
+          const hasUnfilledRequired = requiredFields.some(name => {
+            const val = values[name];
+            return val === null || val === undefined || val === '';
+          });
+          return renderSubmitButton(
+            hasErrors || !!submitDisabled || !!isLoading || hasUnfilledRequired
+          );
+        }}
+      </form.Subscribe>
+    </form.AppForm>
+  );
+}
+
+/**
+ * Renders a single field within the submit form.
+ */
+function SubmitFormField({
+  form,
+  field,
+  dynamicFieldValues,
+  onFieldChange,
+}: {
+  field: JsonFormAdapterFieldConfig;
+  form: any;
+  dynamicFieldValues?: Record<string, unknown>;
+  onFieldChange?: (fieldName: string, value: unknown) => void;
+}) {
+  return (
+    <form.AppField name={field.name as never}>
+      {(fieldApi: any) => {
+        const handleChange = (value: unknown) => {
+          fieldApi.handleChange(value as never);
+          if (field.updatesForm && onFieldChange) {
+            onFieldChange(field.name, value);
+          }
+        };
+
+        switch (field.type) {
+          case 'boolean':
+            return (
+              <fieldApi.Layout.Stack
+                label={field.label}
+                hintText={field.help}
+                required={field.required}
+              >
+                <fieldApi.Switch
+                  checked={fieldApi.state.value as boolean}
+                  onChange={handleChange}
+                  disabled={field.disabled}
+                />
+              </fieldApi.Layout.Stack>
+            );
+          case 'textarea':
+            return (
+              <fieldApi.Layout.Stack
+                label={field.label}
+                hintText={field.help}
+                required={field.required}
+              >
+                <fieldApi.TextArea
+                  autosize
+                  value={(fieldApi.state.value as string) ?? ''}
+                  onChange={handleChange}
+                  placeholder={field.placeholder}
+                  disabled={field.disabled}
+                />
+              </fieldApi.Layout.Stack>
+            );
+          case 'number':
+            return (
+              <fieldApi.Layout.Stack
+                label={field.label}
+                hintText={field.help}
+                required={field.required}
+              >
+                <fieldApi.Number
+                  value={fieldApi.state.value as number}
+                  onChange={handleChange}
+                  placeholder={field.placeholder}
+                  disabled={field.disabled}
+                />
+              </fieldApi.Layout.Stack>
+            );
+          case 'select':
+          case 'choice':
+            if (field.url) {
+              // Async select: fetch options from URL as user types.
+              // Show static choices as initial options before any search.
+              const staticOptions = transformChoices(field.choices);
+              return (
+                <fieldApi.Layout.Stack
+                  label={field.label}
+                  hintText={field.help}
+                  required={field.required}
+                >
+                  <fieldApi.SelectAsync
+                    value={fieldApi.state.value as string | null}
+                    onChange={handleChange}
+                    disabled={field.disabled}
+                    queryOptions={(debouncedInput: string) => ({
+                      queryKey: [
+                        'backend-json-async-select',
+                        field.name,
+                        field.url,
+                        debouncedInput,
+                        dynamicFieldValues,
+                      ],
+                      queryFn: async (): Promise<Array<SelectValue<string | number>>> => {
+                        if (!debouncedInput) {
+                          return staticOptions;
+                        }
+                        return API_CLIENT.requestPromise(field.url!, {
+                          query: buildAsyncSelectQuery(
+                            field.name,
+                            debouncedInput,
+                            dynamicFieldValues
+                          ),
+                        });
+                      },
+                      // Always enabled so static choices show immediately
+                      enabled: true,
+                    })}
+                  />
+                </fieldApi.Layout.Stack>
+              );
+            }
+            return (
+              <fieldApi.Layout.Stack
+                label={field.label}
+                hintText={field.help}
+                required={field.required}
+              >
+                <fieldApi.Select
+                  value={fieldApi.state.value as string | null}
+                  onChange={handleChange}
+                  options={transformChoices(field.choices)}
+                  disabled={field.disabled}
+                />
+              </fieldApi.Layout.Stack>
+            );
+          case 'secret':
+            return (
+              <fieldApi.Layout.Stack
+                label={field.label}
+                hintText={field.help}
+                required={field.required}
+              >
+                <fieldApi.Password
+                  value={(fieldApi.state.value as string) ?? ''}
+                  onChange={handleChange}
+                  placeholder={field.placeholder}
+                  disabled={field.disabled}
+                />
+              </fieldApi.Layout.Stack>
+            );
+          case 'string':
+          case 'text':
+          case 'url':
+          case 'email':
+            return (
+              <fieldApi.Layout.Stack
+                label={field.label}
+                hintText={field.help}
+                required={field.required}
+              >
+                <fieldApi.Input
+                  value={(fieldApi.state.value as string) ?? ''}
+                  onChange={handleChange}
+                  placeholder={field.placeholder}
+                  disabled={field.disabled}
+                  type={
+                    field.type === 'string' || field.type === 'text' ? 'text' : field.type
+                  }
+                />
+              </fieldApi.Layout.Stack>
+            );
+          default:
+            return null;
+        }
+      }}
+    </form.AppField>
+  );
+}
