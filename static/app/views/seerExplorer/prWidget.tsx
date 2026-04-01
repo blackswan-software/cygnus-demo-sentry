@@ -132,7 +132,7 @@ export function usePRWidgetData({
     return status;
   }, [blocks, repoPRStates, repoStats]);
 
-  const repoNames = Object.keys(repoStats);
+  const repoNames = useMemo(() => Object.keys(repoStats), [repoStats]);
 
   // Compute overall sync status
   const {allInSync, anyCreating, hasPRs} = useMemo(() => {
