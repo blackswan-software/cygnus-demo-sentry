@@ -32,7 +32,7 @@ from sentry.search.eap.occurrences.definitions import OCCURRENCE_DEFINITIONS
 from sentry.search.eap.resolver import SearchResolver
 from sentry.search.eap.spans.definitions import SPAN_DEFINITIONS
 from sentry.search.eap.spans.sentry_conventions import SENTRY_CONVENTIONS_DIRECTORY
-from sentry.search.eap.types import SearchResolverConfig
+from sentry.search.eap.types import QueryContext, SearchResolverConfig
 from sentry.search.events.types import SnubaParams
 from sentry.testutils.cases import TestCase
 from sentry.testutils.helpers.datetime import freeze_time
@@ -365,6 +365,23 @@ class SearchResolverQueryTest(TestCase):
                 ]
             )
         )
+
+    def test_query_context_collects_terms(self) -> None:
+        query_context = QueryContext()
+
+        self.resolver.resolve_query(
+            "(span.description:foo OR span.op:bar) count():>1 avg(measurements.lcp):>3000",
+            query_context=query_context,
+        )
+
+        assert [term.key.name for term in query_context.where_terms] == [
+            "span.description",
+            "span.op",
+        ]
+        assert [term.key.name for term in query_context.having_terms] == [
+            "count()",
+            "avg(measurements.lcp)",
+        ]
 
     def test_empty_query(self) -> None:
         where, having, _ = self.resolver.resolve_query("")
