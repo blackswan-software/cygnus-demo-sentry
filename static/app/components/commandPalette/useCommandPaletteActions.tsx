@@ -11,7 +11,7 @@ import type {
   CommandPaletteActionWithKey,
 } from './types';
 
-function addKeysToActions(
+export function addKeysToActions(
   id: string,
   actions: CommandPaletteAction[]
 ): CommandPaletteActionWithKey[] {

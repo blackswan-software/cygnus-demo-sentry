@@ -19,7 +19,10 @@ import {InnerWrap} from '@sentry/scraps/menuListItem';
 import type {MenuListItemProps} from '@sentry/scraps/menuListItem';
 import {Text} from '@sentry/scraps/text';
 
-import {useCommandPaletteActions} from 'sentry/components/commandPalette/context';
+import {
+  useCommandPaletteActions,
+  useCommandPaletteAsyncState,
+} from 'sentry/components/commandPalette/context';
 import type {
   CommandPaletteActionCallbackWithKey,
   CommandPaletteActionLinkWithKey,
@@ -32,6 +35,7 @@ import {
 } from 'sentry/components/commandPalette/ui/commandPaletteStateContext';
 import {useCommandPaletteAnalytics} from 'sentry/components/commandPalette/useCommandPaletteAnalytics';
 import {FeedbackButton} from 'sentry/components/feedbackButton/feedbackButton';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {IconArrow, IconClose, IconSearch} from 'sentry/icons';
 import {IconDefaultsProvider} from 'sentry/icons/useIconDefaults';
 import {t} from 'sentry/locale';
@@ -40,6 +44,7 @@ import type {Theme} from 'sentry/utils/theme';
 
 const MotionButton = motion.create(Button);
 const MotionIconSearch = motion.create(IconSearch);
+const MotionLoadingIndicator = motion.create(LoadingIndicator);
 
 function makeLeadingItemAnimation(theme: Theme) {
   return {
@@ -76,6 +81,7 @@ export function CommandPalette(props: CommandPaletteProps) {
   const actions = useCommandPaletteActions();
   const state = useCommandPaletteState();
   const dispatch = useCommandPaletteDispatch();
+  const {isLoading} = useCommandPaletteAsyncState();
 
   // Preload the empty state image so it's ready if/when there are no results
   // Guard against non-string imports (e.g. SVG objects in test environments)
@@ -201,7 +207,14 @@ export function CommandPalette(props: CommandPaletteProps) {
               <InputGroup {...p}>
                 <StyledInputLeadingItems>
                   <AnimatePresence mode="popLayout">
-                    {state.action ? (
+                    {isLoading ? (
+                      <MotionLoadingIndicator
+                        size={14}
+                        style={{margin: 0}}
+                        aria-hidden
+                        {...makeLeadingItemAnimation(theme)}
+                      />
+                    ) : state.action ? (
                       <Container position="absolute" left="-8px">
                         {containerProps => (
                           <MotionButton
