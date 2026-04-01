@@ -19,7 +19,7 @@
     "test-precommit": "node scripts/test.js --bail --findRelatedTests -u",
     "test-staged": "node scripts/test.js --findRelatedTests $(git diff --name-only --cached)",
     "lint": "pnpm run lint:format && pnpm run lint:js && pnpm run lint:css",
-    "lint:js": "eslint --concurrency=3",
+    "lint:js": "eslint",
     "lint:css": "stylelint '**/*.[jt]sx'",
     "lint:format": "oxfmt --check",
     "fix": "pnpm run fix:format && pnpm run fix:eslint",
