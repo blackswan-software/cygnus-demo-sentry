@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Mapping
 
 from django.contrib.auth import logout
 from django.http import HttpRequest, HttpResponse
@@ -20,10 +19,7 @@ from sentry.api.invite_helper import (
 )
 from sentry.demo_mode.utils import is_demo_user
 from sentry.models.authprovider import AuthProvider
-from sentry.models.organizationmapping import OrganizationMapping
-from sentry.models.organizationmembermapping import OrganizationMemberMapping
 from sentry.organizations.services.organization import RpcUserInviteContext, organization_service
-from sentry.types.cell import CellResolutionError, get_cell_by_name
 from sentry.utils import auth
 
 logger = logging.getLogger(__name__)
@@ -32,41 +28,9 @@ logger = logging.getLogger(__name__)
 def handle_empty_organization_id_or_slug(
     member_id: int, user_id: int | None, request: HttpRequest
 ) -> RpcUserInviteContext | None:
-    member_mapping: OrganizationMemberMapping | None = None
-    member_mappings: Mapping[int, OrganizationMemberMapping] = {
-        omm.organization_id: omm
-        for omm in OrganizationMemberMapping.objects.filter(organizationmember_id=member_id).all()
-    }
-    org_mappings = OrganizationMapping.objects.filter(
-        organization_id__in=list(member_mappings.keys())
-    )
-    for mapping in org_mappings:
-        try:
-            if get_cell_by_name(mapping.cell_name).is_historic_monolith_region():
-                member_mapping = member_mappings.get(mapping.organization_id)
-                break
-        except CellResolutionError:
-            pass
-
-    if member_mapping is None:
-        return None
-    invite_context = organization_service.get_invite_by_id(
-        organization_id=member_mapping.organization_id,
-        organization_member_id=member_id,
-        user_id=user_id,
-    )
-
-    logger.info(
-        "organization.member_invite.no_id_or_slug",
-        extra={
-            "member_id": member_id,
-            "org_id": member_mapping.organization_id,
-            "url": request.path,
-            "method": request.method,
-        },
-    )
-
-    return invite_context
+    # The pre-silo migration invite URL format omitted the org ID/slug.
+    # Those links have long since expired, so we no longer attempt to resolve them.
+    return None
 
 
 def get_invite_state(
@@ -78,21 +42,18 @@ def get_invite_state(
     if organization_id_or_slug is None:
         return handle_empty_organization_id_or_slug(member_id, user_id, request)
 
+    if str(organization_id_or_slug).isdecimal():
+        return organization_service.get_invite_by_id(
+            organization_id=organization_id_or_slug,
+            organization_member_id=member_id,
+            user_id=user_id,
+        )
     else:
-        if str(organization_id_or_slug).isdecimal():
-            invite_context = organization_service.get_invite_by_id(
-                organization_id=organization_id_or_slug,
-                organization_member_id=member_id,
-                user_id=user_id,
-            )
-        else:
-            invite_context = organization_service.get_invite_by_slug(
-                organization_member_id=member_id,
-                slug=organization_id_or_slug,
-                user_id=user_id,
-            )
-
-    return invite_context
+        return organization_service.get_invite_by_slug(
+            organization_member_id=member_id,
+            slug=organization_id_or_slug,
+            user_id=user_id,
+        )
 
 
 @control_silo_endpoint

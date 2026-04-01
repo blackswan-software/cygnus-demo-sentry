@@ -107,21 +107,6 @@ class Cell:
 
         CELL_ID.validate(self.snowflake_id)
 
-    def is_historic_monolith_region(self) -> bool:
-        """Check whether this is a historic monolith region.
-
-        In a monolith environment, there exists only the one monolith "region",
-        which is a dummy object.
-
-        In a siloed environment whose data was migrated from a monolith environment,
-        all region-scoped entities that existed before the migration belong to the
-        historic monolith region by default. Unlike in the monolith environment,
-        this region is not a dummy object, but nonetheless is subject to special
-        cases to ensure that legacy data is handled correctly.
-        """
-
-        return self.name == settings.SENTRY_MONOLITH_REGION
-
 
 class CellResolutionError(Exception):
     """Indicate that a cell's identity could not be resolved."""
