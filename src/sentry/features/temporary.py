@@ -501,6 +501,9 @@ def register_temporary_features(manager: FeatureManager) -> None:
     manager.add("organizations:notification-platform.early-adopter", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=True)
     manager.add("organizations:notification-platform.general-access", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=True)
 
+    # Add a random trace ID to events missing one in Relay normalization.
+    manager.add("organizations:add-default-trace-id-relay", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=True)
+
     # NOTE: Don't add features down here! Add them to their specific group and sort
     #       them alphabetically! The order features are registered is not important.
 
