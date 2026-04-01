@@ -76,6 +76,17 @@ from sentry.utils.snuba import SnubaTSResult, process_value
 logger = logging.getLogger("sentry.snuba.spans_rpc")
 
 
+KNOWN_OPERATOR_LITERALS = {
+    "equals",
+    "notEquals",
+    "lessOrEquals",
+    "greaterOrEquals",
+    "less",
+    "greater",
+    "between",
+}
+
+
 def _extract_function_keys(aggregate_filter: AggregateFilter) -> list[str]:
     match = is_function(aggregate_filter.key.name)
     if match is None:
@@ -94,6 +105,9 @@ def _extract_function_keys(aggregate_filter: AggregateFilter) -> list[str]:
             continue
         except ValueError:
             pass
+
+        if arg in KNOWN_OPERATOR_LITERALS:
+            continue
 
         keys.append(arg)
 
