@@ -5,8 +5,9 @@ import {
   initializeTraceMetricsTest,
 } from 'sentry-fixture/tracemetrics';
 
-import {render, screen, waitFor} from 'sentry-test/reactTestingLibrary';
+import {render, screen, waitFor, within} from 'sentry-test/reactTestingLibrary';
 
+import {MetricsSamplesTable} from 'sentry/views/explore/metrics/metricInfoTabs/metricsSamplesTable';
 import {MetricPanel} from 'sentry/views/explore/metrics/metricPanel';
 import type {TraceMetric} from 'sentry/views/explore/metrics/metricQuery';
 import {MetricsQueryParamsProvider} from 'sentry/views/explore/metrics/metricsQueryParams';
@@ -165,6 +166,49 @@ describe('MetricPanel', () => {
       // The visualize label badge ("A") should NOT be present
       expect(screen.queryByText('A')).not.toBeInTheDocument();
     });
+
+    it('renders the refreshed samples column order', async () => {
+      const metricFixtures = createTraceMetricFixtures(organization, project, new Date());
+
+      render(
+        <MetricsSamplesTable overrideTableData={[metricFixtures.detailedFixtures[0]!]} />,
+        {
+          organization,
+          additionalWrapper: createWrapper({queryParams, traceMetric}),
+        }
+      );
+
+      await screen.findByText('Trace ID');
+      const samplesTable = screen.getByRole('table');
+
+      const columnHeaders = within(samplesTable).getAllByRole('columnheader');
+      expect(columnHeaders.map(header => header.textContent?.trim() ?? '')).toEqual([
+        '',
+        'Trace ID',
+        'Project',
+        'Value',
+        'Timestamp',
+      ]);
+
+      expect(screen.queryByText('Logs')).not.toBeInTheDocument();
+      expect(screen.queryByText('Spans')).not.toBeInTheDocument();
+      expect(screen.queryByText('Errors')).not.toBeInTheDocument();
+    });
+
+    it('renders refreshed project and relative timestamp cells', async () => {
+      const metricFixtures = createTraceMetricFixtures(organization, project, new Date());
+
+      render(
+        <MetricsSamplesTable overrideTableData={[metricFixtures.detailedFixtures[0]!]} />,
+        {
+          organization,
+          additionalWrapper: createWrapper({queryParams, traceMetric}),
+        }
+      );
+
+      expect(await screen.findByText(project.slug)).toBeInTheDocument();
+      expect(screen.getAllByText(/ago$/).length).toBeGreaterThan(0);
+    });
   });
 
   describe('flag ON (tracemetrics-enabled + tracemetrics-ui-refresh)', () => {
@@ -226,20 +270,6 @@ describe('MetricPanel', () => {
 
       // The visualize label badge "A" (from getVisualizeLabel(0)) should be present
       expect(await screen.findByText('A')).toBeInTheDocument();
-    });
-
-    it('does not render telemetry column headers in the samples table', async () => {
-      render(<MetricPanel traceMetric={traceMetric} queryIndex={0} />, {
-        organization,
-        additionalWrapper: createWrapper({queryParams, traceMetric}),
-      });
-
-      // Wait for the samples table to render
-      expect(await screen.findByText('Timestamp')).toBeInTheDocument();
-
-      expect(screen.queryByText('Logs')).not.toBeInTheDocument();
-      expect(screen.queryByText('Spans')).not.toBeInTheDocument();
-      expect(screen.queryByText('Errors')).not.toBeInTheDocument();
     });
 
     it('does not render orientation controls', async () => {
