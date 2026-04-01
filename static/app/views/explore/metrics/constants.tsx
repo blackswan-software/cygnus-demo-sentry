@@ -94,16 +94,11 @@ export const TraceSamplesTableEmbeddedColumns: Array<
   TraceMetricKnownFieldKey.METRIC_VALUE,
 ];
 
-export const NoPaddingColumns: VirtualTableSampleColumnKey[] = [
-  VirtualTableSampleColumnKey.EXPAND_ROW,
-  VirtualTableSampleColumnKey.PROJECT_BADGE,
-];
-
 const VIRTUAL_SAMPLE_COLUMNS = new Set<string>(
   Object.values(VirtualTableSampleColumnKey)
 );
 
-export function isVirtualSampleColumn(
+function isVirtualSampleColumn(
   column: SampleTableColumnKey
 ): column is VirtualTableSampleColumnKey {
   return VIRTUAL_SAMPLE_COLUMNS.has(column);
