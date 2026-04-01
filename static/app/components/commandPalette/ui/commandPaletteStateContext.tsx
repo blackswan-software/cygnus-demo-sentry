@@ -19,26 +19,29 @@ export type CommandPaletteState = {
   action: LinkedList | null;
   input: React.RefObject<HTMLInputElement | null>;
   open: boolean;
+  pendingPromises: Set<string>;
   query: string;
 };
 
-export type CommandPaletteDispatch = React.Dispatch<CommandPaletteAction>;
+export type CommandPaletteDispatch = React.Dispatch<CommandPaletteStateAction>;
 
-export type CommandPaletteAction =
+export type CommandPaletteStateAction =
   | {type: 'toggle modal'}
   | {type: 'reset'}
   | {query: string; type: 'set query'}
   | {action: CommandPaletteActionWithKey; type: 'push action'}
   | {type: 'trigger action'}
-  | {type: 'pop action'};
+  | {type: 'pop action'}
+  | {id: string; promise: Promise<unknown>; type: 'register promise'}
+  | {id: string; type: 'unregister promise'};
 
 const CommandPaletteStateContext = createContext<CommandPaletteState | null>(null);
 const CommandPaletteDispatchContext =
-  createContext<React.Dispatch<CommandPaletteAction> | null>(null);
+  createContext<React.Dispatch<CommandPaletteStateAction> | null>(null);
 
 function commandPaletteReducer(
   state: CommandPaletteState,
-  action: CommandPaletteAction
+  action: CommandPaletteStateAction
 ): CommandPaletteState {
   const type = action.type;
   switch (type) {
@@ -72,6 +75,19 @@ function commandPaletteReducer(
       };
     case 'trigger action':
       return {...state, action: null, query: ''};
+    case 'register promise': {
+      const next = new Set(state.pendingPromises);
+      next.add(action.id);
+      return {...state, pendingPromises: next};
+    }
+    case 'unregister promise': {
+      if (!state.pendingPromises.has(action.id)) {
+        return state;
+      }
+      const next = new Set(state.pendingPromises);
+      next.delete(action.id);
+      return {...state, pendingPromises: next};
+    }
     default:
       unreachable(type);
       return state;
@@ -109,6 +125,7 @@ export function CommandPaletteStateProvider({
     query: '',
     action: null,
     open: false,
+    pendingPromises: new Set<string>(),
   });
 
   return (

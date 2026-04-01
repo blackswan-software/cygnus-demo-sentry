@@ -3,11 +3,9 @@ import type {UseQueryOptions} from '@tanstack/react-query';
 import {keepPreviousData, useQueries} from '@tanstack/react-query';
 
 import {CmdKGroupContext} from 'sentry/components/commandPalette/cmdKActionProvider';
-import {
-  useCommandPaletteAsyncDispatch,
-  useCommandPaletteRegistration,
-} from 'sentry/components/commandPalette/context';
+import {useCommandPaletteRegistration} from 'sentry/components/commandPalette/context';
 import type {CommandPaletteAction} from 'sentry/components/commandPalette/types';
+import {useCommandPaletteDispatch} from 'sentry/components/commandPalette/ui/commandPaletteStateContext';
 import {addKeysToActions} from 'sentry/components/commandPalette/useCommandPaletteActions';
 
 export type CmdKQueryOption = UseQueryOptions<any, Error, CommandPaletteAction[], any>;
@@ -90,7 +88,7 @@ function useRegisterActions(id: string, actions: CommandPaletteAction[]) {
 
 function CmdKActionQuery({queryOptions}: {queryOptions: CmdKQueryOption[]}) {
   const id = useId();
-  const {trackPromise, untrackPromise} = useCommandPaletteAsyncDispatch();
+  const dispatch = useCommandPaletteDispatch();
 
   const {actions, isFetching} = useQueries({
     queries: queryOptions.map(opt => ({
@@ -107,15 +105,18 @@ function CmdKActionQuery({queryOptions}: {queryOptions: CmdKQueryOption[]}) {
 
   useEffect(() => {
     if (!isFetching) {
-      untrackPromise(id);
+      dispatch({type: 'unregister promise', id});
       return undefined;
     }
-    const promise = new Promise<void>(() => {});
-    trackPromise(id, promise);
+    dispatch({
+      type: 'register promise',
+      id,
+      promise: new Promise<void>(() => {}),
+    });
     return () => {
-      untrackPromise(id);
+      dispatch({type: 'unregister promise', id});
     };
-  }, [id, isFetching, trackPromise, untrackPromise]);
+  }, [dispatch, id, isFetching]);
 
   return null;
 }
@@ -128,7 +129,7 @@ function CmdKActionAsync({
   const id = useId();
   const groupingKey = useContext(CmdKGroupContext);
   const registerActions = useCommandPaletteRegistration();
-  const {trackPromise, untrackPromise} = useCommandPaletteAsyncDispatch();
+  const dispatch = useCommandPaletteDispatch();
 
   useEffect(() => {
     let cancelled = false;
@@ -149,23 +150,27 @@ function CmdKActionAsync({
     const result = actions();
 
     if (result instanceof Promise) {
-      const promise = result.then(handleResolved, err => {
-        if (!cancelled) {
-          // eslint-disable-next-line no-console
-          console.error('CmdKAction failed to resolve actions:', err);
-        }
-      });
-      trackPromise(id, promise);
+      dispatch({type: 'register promise', id, promise: result});
+      result
+        .then(handleResolved, err => {
+          if (!cancelled) {
+            // eslint-disable-next-line no-console
+            console.error('CmdKAction failed to resolve actions:', err);
+          }
+        })
+        .finally(() => {
+          dispatch({type: 'unregister promise', id});
+        });
     } else {
       handleResolved(result);
     }
 
     return () => {
       cancelled = true;
-      untrackPromise(id);
+      dispatch({type: 'unregister promise', id});
       unregister?.();
     };
-  }, [actions, groupingKey, id, registerActions, trackPromise, untrackPromise]);
+  }, [actions, dispatch, groupingKey, id, registerActions]);
 
   return null;
 }

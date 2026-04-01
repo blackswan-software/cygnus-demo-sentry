@@ -1,11 +1,13 @@
 import {Fragment, useCallback, useState} from 'react';
 import {SentryGlobalSearch} from '@sentry-internal/global-search';
 import {skipToken} from '@tanstack/react-query';
+import DOMPurify from 'dompurify';
 
 import {
   CmdKAction,
   type CmdKQueryOption,
 } from 'sentry/components/commandPalette/cmdKAction';
+import {CmdKActionProvider} from 'sentry/components/commandPalette/cmdKActionProvider';
 import type {CommandPaletteAction} from 'sentry/components/commandPalette/types';
 import {useCommandPaletteState} from 'sentry/components/commandPalette/ui/commandPaletteStateContext';
 import {
@@ -20,10 +22,6 @@ import {useOrganization} from 'sentry/utils/useOrganization';
 
 const MIN_QUERY_LENGTH = 3;
 const MAX_RESULTS = 5;
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '');
-}
 
 export function GlobalActions() {
   const {query} = useCommandPaletteState();
@@ -75,7 +73,7 @@ export function GlobalActions() {
           .map(
             (hit: any): CommandPaletteAction => ({
               display: {
-                label: stripHtml(hit.title ?? ''),
+                label: DOMPurify.sanitize(hit.title ?? ''),
                 details: hit.context?.context1,
                 icon: <IconDocs />,
               },
@@ -94,8 +92,10 @@ export function GlobalActions() {
 
   return (
     <Fragment>
-      {isDsn && hasDsnLookup && <CmdKAction queryOptions={dsnQueryOptions} />}
-      <CmdKAction queryOptions={docsQueryOptions} />
+      <CmdKActionProvider groupingKey="search-result">
+        {isDsn && hasDsnLookup && <CmdKAction queryOptions={dsnQueryOptions} />}
+        <CmdKAction queryOptions={docsQueryOptions} />
+      </CmdKActionProvider>
     </Fragment>
   );
 }

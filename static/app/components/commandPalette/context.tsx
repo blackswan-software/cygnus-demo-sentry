@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useReducer,
-  useState,
-} from 'react';
+import {createContext, useCallback, useContext, useReducer} from 'react';
 
 import {unreachable} from 'sentry/utils/unreachable';
 
@@ -28,26 +21,9 @@ type CommandPaletteActionReducerAction =
       type: 'unregister';
     };
 
-interface CommandPaletteAsyncState {
-  isLoading: boolean;
-}
-
-type TrackPromise = (id: string, promise: Promise<unknown>) => void;
-type UntrackPromise = (id: string) => void;
-
-interface CommandPaletteAsyncDispatch {
-  trackPromise: TrackPromise;
-  untrackPromise: UntrackPromise;
-}
-
 const CommandPaletteRegistrationContext =
   createContext<CommandPaletteRegistration | null>(null);
 const CommandPaletteActionsContext = createContext<CommandPaletteActions | null>(null);
-const CommandPaletteAsyncStateContext = createContext<CommandPaletteAsyncState | null>(
-  null
-);
-const CommandPaletteAsyncDispatchContext =
-  createContext<CommandPaletteAsyncDispatch | null>(null);
 
 export function useCommandPaletteRegistration(): CommandPaletteRegistration {
   const ctx = useContext(CommandPaletteRegistrationContext);
@@ -63,26 +39,6 @@ export function useCommandPaletteActions(): CommandPaletteActionWithKey[] {
   const ctx = useContext(CommandPaletteActionsContext);
   if (ctx === null) {
     throw new Error('useCommandPaletteActions must be wrapped in CommandPaletteProvider');
-  }
-  return ctx;
-}
-
-export function useCommandPaletteAsyncState(): CommandPaletteAsyncState {
-  const ctx = useContext(CommandPaletteAsyncStateContext);
-  if (ctx === null) {
-    throw new Error(
-      'useCommandPaletteAsyncState must be wrapped in CommandPaletteProvider'
-    );
-  }
-  return ctx;
-}
-
-export function useCommandPaletteAsyncDispatch(): CommandPaletteAsyncDispatch {
-  const ctx = useContext(CommandPaletteAsyncDispatchContext);
-  if (ctx === null) {
-    throw new Error(
-      'useCommandPaletteAsyncDispatch must be wrapped in CommandPaletteProvider'
-    );
   }
   return ctx;
 }
@@ -118,7 +74,6 @@ function actionsReducer(
 
 export function CommandPaletteProvider({children}: CommandPaletteProviderProps) {
   const [actions, dispatch] = useReducer(actionsReducer, []);
-  const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
 
   const registerActions = useCallback(
     (newActions: CommandPaletteActionWithKey[]) => {
@@ -130,45 +85,10 @@ export function CommandPaletteProvider({children}: CommandPaletteProviderProps) 
     [dispatch]
   );
 
-  const asyncState = useMemo<CommandPaletteAsyncState>(
-    () => ({isLoading: pendingIds.size > 0}),
-    [pendingIds]
-  );
-
-  const asyncDispatch = useMemo<CommandPaletteAsyncDispatch>(
-    () => ({
-      trackPromise: (id: string, promise: Promise<unknown>) => {
-        setPendingIds(prev => new Set(prev).add(id));
-        promise.finally(() => {
-          setPendingIds(prev => {
-            const next = new Set(prev);
-            next.delete(id);
-            return next;
-          });
-        });
-      },
-      untrackPromise: (id: string) => {
-        setPendingIds(prev => {
-          if (!prev.has(id)) {
-            return prev;
-          }
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      },
-    }),
-    []
-  );
-
   return (
     <CommandPaletteRegistrationContext.Provider value={registerActions}>
       <CommandPaletteActionsContext.Provider value={actions}>
-        <CommandPaletteAsyncStateContext.Provider value={asyncState}>
-          <CommandPaletteAsyncDispatchContext.Provider value={asyncDispatch}>
-            <CommandPaletteStateProvider>{children}</CommandPaletteStateProvider>
-          </CommandPaletteAsyncDispatchContext.Provider>
-        </CommandPaletteAsyncStateContext.Provider>
+        <CommandPaletteStateProvider>{children}</CommandPaletteStateProvider>
       </CommandPaletteActionsContext.Provider>
     </CommandPaletteRegistrationContext.Provider>
   );
