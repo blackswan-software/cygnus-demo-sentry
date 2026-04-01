@@ -89,8 +89,8 @@ export function SpanEvidencePreview({
   return (
     <GroupPreviewHovercard
       hide={!shouldShowLoadingState}
-      delay={delay}
-      displayTimeout={displayTimeout}
+      {...(delay !== undefined && {delay})}
+      {...(displayTimeout !== undefined && {displayTimeout})}
       body={
         <SpanEvidencePreviewBody
           onRequestBegin={onRequestBegin}
