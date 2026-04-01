@@ -194,7 +194,12 @@ def execute_via_metric_alert_handler(invocation: ActionInvocation) -> None:
     """
     if invocation.action.type == Action.Type.SLACK:
         organization = invocation.detector.project.organization
-        if NotificationService.has_access(organization, NotificationSource.METRIC_ALERT):
+        source = (
+            NotificationSource.ACTIVITY_METRIC_ALERT
+            if isinstance(invocation.event_data.event, Activity)
+            else NotificationSource.METRIC_ALERT
+        )
+        if NotificationService.has_access(organization, source):
             send_metric_alert_via_notification_platform(invocation)
             return
 
