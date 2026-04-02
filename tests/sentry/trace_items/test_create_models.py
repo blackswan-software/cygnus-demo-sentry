@@ -116,3 +116,29 @@ class TestCreateEnvironmentAndReleaseModels(TestCase):
         assert ReleaseProjectEnvironment.objects.filter(
             release_id=release.id, environment_id=env.id, project_id=self.project.id
         ).exists()
+
+    @mock.patch("sentry.trace_items.create_models.record_latest_release")
+    def test_record_latest_release_called_with_environment_name(self, mock_record):
+        create_environment_and_release_models(
+            project=self.project,
+            environment_name="production",
+            release_name="1.0.0",
+            dist_name=None,
+            date=self.date,
+        )
+
+        release = Release.objects.get(organization_id=self.project.organization_id, version="1.0.0")
+        mock_record.assert_called_once_with(self.project, release, "production")
+
+    @mock.patch("sentry.trace_items.create_models.record_release_received")
+    def test_record_release_received_called_with_version(self, mock_record):
+        create_environment_and_release_models(
+            project=self.project,
+            environment_name="production",
+            release_name="1.0.0",
+            dist_name=None,
+            date=self.date,
+        )
+
+        mock_record.assert_called_once_with(self.project, "1.0.0")
+        mock_record.assert_called_once_with(self.project, "1.0.0")

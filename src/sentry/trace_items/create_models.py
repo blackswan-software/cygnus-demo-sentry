@@ -53,7 +53,7 @@ def create_environment_and_release_models(
     )
 
     # Record the release for dynamic sampling
-    record_latest_release(project, release, environment)
+    record_latest_release(project, release, environment_name)
 
     # Record onboarding signals
     record_release_received(project, release.version)
