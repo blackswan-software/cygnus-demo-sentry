@@ -80,7 +80,7 @@ describe('useScmRepoSearch', () => {
       body: {
         repos: [
           {identifier: 'getsentry/sentry', name: 'sentry', isInstalled: false},
-          {identifier: 'getsentry/relay', name: 'relay', isInstalled: true},
+          {identifier: 'getsentry/relay', name: 'relay', isInstalled: false},
         ],
       },
     });

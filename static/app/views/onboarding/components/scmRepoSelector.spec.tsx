@@ -2,7 +2,7 @@ import {OrganizationFixture} from 'sentry-fixture/organization';
 import {OrganizationIntegrationsFixture} from 'sentry-fixture/organizationIntegrations';
 import {RepositoryFixture} from 'sentry-fixture/repository';
 
-import {render, screen, userEvent} from 'sentry-test/reactTestingLibrary';
+import {render, screen, userEvent, waitFor} from 'sentry-test/reactTestingLibrary';
 
 import {
   OnboardingContextProvider,
@@ -41,6 +41,7 @@ describe('ScmRepoSelector', () => {
 
   afterEach(() => {
     MockApiClient.clearMockResponses();
+    sessionStorage.clear();
   });
 
   it('renders search placeholder', () => {
@@ -125,5 +126,91 @@ describe('ScmRepoSelector', () => {
     });
 
     expect(screen.getByText('getsentry/old-repo')).toBeInTheDocument();
+  });
+
+  it('selects a repo from search results and triggers repo lookup', async () => {
+    MockApiClient.addMockResponse({
+      url: `/organizations/${organization.slug}/integrations/${mockIntegration.id}/repos/`,
+      body: {
+        repos: [{identifier: 'getsentry/sentry', name: 'sentry', isInstalled: false}],
+      },
+    });
+
+    const reposLookup = MockApiClient.addMockResponse({
+      url: `/organizations/${organization.slug}/repos/`,
+      body: [
+        RepositoryFixture({
+          name: 'getsentry/sentry',
+          externalSlug: 'getsentry/sentry',
+        }),
+      ],
+    });
+
+    render(<ScmRepoSelector integration={mockIntegration} />, {
+      organization,
+      wrapper: makeOnboardingWrapper(),
+    });
+
+    // Type a search term that differs from the option label to avoid
+    // matching both the hidden auto-sizer div and the menu option.
+    await userEvent.type(screen.getByRole('textbox'), 'get');
+    await userEvent.click(await screen.findByText('sentry'));
+
+    await waitFor(() => expect(reposLookup).toHaveBeenCalled());
+  });
+
+  it('clears the selected repo', async () => {
+    const selectedRepo = RepositoryFixture({
+      name: 'getsentry/old-repo',
+      externalSlug: 'getsentry/old-repo',
+    });
+
+    render(<ScmRepoSelector integration={mockIntegration} />, {
+      organization,
+      wrapper: makeOnboardingWrapper({selectedRepository: selectedRepo}),
+    });
+
+    expect(screen.getByText('getsentry/old-repo')).toBeInTheDocument();
+
+    // The clear indicator uses Sentry's IconClose which renders with
+    // role="img" rather than aria-hidden, so use the test-id directly.
+    await userEvent.click(screen.getByTestId('icon-close'));
+
+    await waitFor(() => {
+      expect(screen.queryByText('getsentry/old-repo')).not.toBeInTheDocument();
+    });
+  });
+
+  it('does not duplicate selected repo when it appears in search results', async () => {
+    const selectedRepo = RepositoryFixture({
+      name: 'getsentry/sentry',
+      externalSlug: 'getsentry/sentry',
+    });
+
+    MockApiClient.addMockResponse({
+      url: `/organizations/${organization.slug}/integrations/${mockIntegration.id}/repos/`,
+      body: {
+        repos: [
+          {identifier: 'getsentry/sentry', name: 'sentry', isInstalled: false},
+          {identifier: 'getsentry/relay', name: 'relay', isInstalled: false},
+        ],
+      },
+    });
+
+    render(<ScmRepoSelector integration={mockIntegration} />, {
+      organization,
+      wrapper: makeOnboardingWrapper({selectedRepository: selectedRepo}),
+    });
+
+    await userEvent.type(screen.getByRole('textbox'), 'get');
+
+    // Wait for search results to arrive
+    expect(await screen.findByText('relay')).toBeInTheDocument();
+    expect(screen.getByText('sentry')).toBeInTheDocument();
+
+    // If the options-prepend logic fires incorrectly, it adds an extra option
+    // with label 'getsentry/sentry' (selectedRepository.name) alongside the
+    // search result option with label 'sentry' (repo.name).
+    expect(screen.queryByText('getsentry/sentry')).not.toBeInTheDocument();
   });
 });
