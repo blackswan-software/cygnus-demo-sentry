@@ -508,6 +508,11 @@ KAFKA_CONSUMERS: Mapping[str, ConsumerDefinition] = {
             *multiprocessing_options(default_max_batch_size=100),
         ],
     },
+    "post-process-item-models": {
+        "topic": Topic.SNUBA_ITEMS,
+        "strategy_factory": "sentry.trace_items.consumers.process.factory.SnubaItemModelCreationStrategyFactory",
+        "click_options": multiprocessing_options(default_max_batch_size=100),
+    },
     **settings.SENTRY_KAFKA_CONSUMERS,
 }
 

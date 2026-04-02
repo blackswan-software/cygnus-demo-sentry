@@ -6,13 +6,11 @@ from typing import Any
 
 import sentry_sdk
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from sentry_conventions.attributes import ATTRIBUTE_NAMES
 from sentry_kafka_schemas.schema_types.ingest_spans_v1 import SpanEvent
 
 from sentry import features, options
 from sentry.constants import DataCategory
-from sentry.dynamic_sampling.rules.helpers.latest_releases import record_latest_release
 from sentry.event_manager import INSIGHT_MODULE_TO_PROJECT_FLAG_NAME
 from sentry.ingest.transaction_clusterer.datasource import TRANSACTION_SOURCE_URL
 from sentry.ingest.transaction_clusterer.datasource.redis import record_segment_name
@@ -24,19 +22,15 @@ from sentry.issues.grouptype import PerformanceStreamedSpansGroupTypeExperimenta
 from sentry.issues.issue_occurrence import IssueOccurrence
 from sentry.issues.producer import PayloadType, produce_occurrence_to_kafka
 from sentry.killswitches import killswitch_matches_context
-from sentry.models.environment import Environment
 from sentry.models.organization import Organization
 from sentry.models.project import Project
-from sentry.models.release import Release
-from sentry.models.releaseenvironment import ReleaseEnvironment
-from sentry.models.releaseprojectenvironment import ReleaseProjectEnvironment
 from sentry.receivers.features import record_generic_event_processed
-from sentry.receivers.onboarding import record_release_received
 from sentry.signals import first_insight_span_received, first_transaction_received
 from sentry.spans.consumers.process_segments.enrichment import TreeEnricher, compute_breakdowns
 from sentry.spans.consumers.process_segments.shim import build_shim_event_data, make_compatible
 from sentry.spans.consumers.process_segments.types import CompatibleSpan, attribute_value
 from sentry.spans.grouping.api import load_span_grouping_config
+from sentry.trace_items.create_models import create_environment_and_release_models
 from sentry.utils import metrics
 from sentry.utils.dates import to_datetime
 from sentry.utils.outcomes import Outcome, OutcomeAggregator
@@ -103,9 +97,10 @@ def _process_segment(
     safe_execute(_normalize_segment_name, segment_span, project)
     _add_segment_name(segment_span, spans)
     _compute_breakdowns(segment_span, spans, project)
-    _create_models(segment_span, project)
+    if not features.has("organizations:trace-items-consumer-model-creation", project.organization):
+        _create_models(segment_span, project)
+        _record_signals(segment_span, spans, project)
     _detect_performance_problems(segment_span, spans, project)
-    _record_signals(segment_span, spans, project)
 
     # XXX: This is disabled until the outcomes consumer can be scaled.
     # Only track outcomes if we're actually producing the spans
@@ -239,39 +234,13 @@ def _create_models(segment: CompatibleSpan, project: Project) -> None:
     release_name = attribute_value(segment, ATTRIBUTE_NAMES.SENTRY_RELEASE)
     dist_name = attribute_value(segment, ATTRIBUTE_NAMES.SENTRY_DIST)
     date = to_datetime(segment["end_timestamp"])
-
-    environment = Environment.get_or_create(project=project, name=environment_name)
-
-    if not release_name:
-        return
-
-    try:
-        release = Release.get_or_create(project=project, version=release_name, date_added=date)
-    except ValidationError:
-        # Avoid catching a stacktrace here, the codepath is very hot
-        logger.warning(
-            "Failed creating Release due to ValidationError",
-            extra={"project": project, "version": release_name},
-        )
-        return
-
-    if dist_name:
-        release.add_dist(dist_name)
-
-    ReleaseEnvironment.get_or_create(
-        project=project, release=release, environment=environment, datetime=date
+    create_environment_and_release_models(
+        project=project,
+        environment_name=environment_name,
+        release_name=release_name,
+        dist_name=dist_name,
+        date=date,
     )
-
-    ReleaseProjectEnvironment.get_or_create(
-        project=project, release=release, environment=environment, datetime=date
-    )
-
-    with metrics.timer("spans.consumers.process_segments.create_models.record_release"):
-        # Record the release for dynamic sampling
-        record_latest_release(project, release, environment)
-
-        # Record onboarding signals
-        record_release_received(project, release.version)
 
 
 @metrics.wraps("spans.consumers.process_segments.detect_performance_problems")

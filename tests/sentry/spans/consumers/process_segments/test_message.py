@@ -130,6 +130,15 @@ class TestSpansTask(TestCase):
         )
         assert release.date_added.timestamp() == spans[0]["end_timestamp"]
 
+    @mock.patch("sentry.spans.consumers.process_segments.message._create_models")
+    @mock.patch("sentry.spans.consumers.process_segments.message._record_signals")
+    def test_create_models_skipped_when_flag_on(self, mock_signals, mock_create) -> None:
+        spans = self.generate_basic_spans()
+        with Feature({"organizations:trace-items-consumer-model-creation": True}):
+            assert process_segment(spans)
+        mock_create.assert_not_called()
+        mock_signals.assert_not_called()
+
     @override_options({"spans.process-segments.detect-performance-problems.enable": True})
     @mock.patch("sentry.issues.ingest.send_issue_occurrence_to_eventstream")
     def test_n_plus_one_issue_detection(self, mock_eventstream: mock.MagicMock) -> None:
