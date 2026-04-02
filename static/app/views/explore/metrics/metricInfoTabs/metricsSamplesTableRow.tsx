@@ -73,9 +73,7 @@ function FieldCellWrapper({
   embedded?: boolean;
 }) {
   const columnType = getMetricTableColumnType(field);
-  const hasPadding =
-    field !== VirtualTableSampleColumnKey.EXPAND_ROW &&
-    !(embedded && field === VirtualTableSampleColumnKey.PROJECT_BADGE);
+  const hasPadding = field !== VirtualTableSampleColumnKey.EXPAND_ROW;
   if (columnType === 'metric_value') {
     return (
       <NumericSimpleTableRowCell

@@ -62,9 +62,7 @@ function FieldHeaderCellWrapper({
 }) {
   const columnType = getMetricTableColumnType(field);
   const label = getFieldLabel(field);
-  const hasPadding =
-    field !== VirtualTableSampleColumnKey.EXPAND_ROW &&
-    !(embedded && field === VirtualTableSampleColumnKey.PROJECT_BADGE);
+  const hasPadding = field !== VirtualTableSampleColumnKey.EXPAND_ROW;
 
   if (columnType === 'metric_value') {
     return (
