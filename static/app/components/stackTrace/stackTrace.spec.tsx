@@ -902,10 +902,10 @@ describe('Core StackTrace', () => {
     );
 
     await userEvent.hover(screen.getByText('app.js'), {delay: null});
-    act(() => jest.advanceTimersByTime(2000));
+    await act(() => jest.advanceTimersByTime(2000));
 
     expect(
-      await screen.findByRole('link', {name: 'https://example.com/static/app.js'})
+      screen.getByRole('link', {name: 'https://example.com/static/app.js'})
     ).toBeInTheDocument();
     jest.useRealTimers();
   });
