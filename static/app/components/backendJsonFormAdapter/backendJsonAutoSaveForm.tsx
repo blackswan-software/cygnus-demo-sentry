@@ -23,7 +23,7 @@ interface BackendJsonFormAdapterProps<
   initialValue?: FieldValue<TField>;
 }
 
-export function BackendJsonFormAdapter<
+export function BackendJsonAutoSaveForm<
   TField extends JsonFormAdapterFieldConfig,
   TData,
   TContext,

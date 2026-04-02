@@ -7,7 +7,7 @@ import {ExternalLink} from '@sentry/scraps/link';
 import {addSuccessMessage} from 'sentry/actionCreators/indicator';
 import type {ModalRenderProps} from 'sentry/actionCreators/modal';
 import type {RequestOptions, ResponseMeta} from 'sentry/api';
-import {BackendJsonSubmitForm} from 'sentry/components/backendJsonFormAdapter/submitForm';
+import {BackendJsonSubmitForm} from 'sentry/components/backendJsonFormAdapter/backendJsonSubmitForm';
 import type {JsonFormAdapterFieldConfig} from 'sentry/components/backendJsonFormAdapter/types';
 import {useDynamicFields} from 'sentry/components/externalIssues/useDynamicFields';
 import {getConfigName} from 'sentry/components/externalIssues/utils';
