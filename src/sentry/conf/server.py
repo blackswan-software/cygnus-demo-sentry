@@ -948,6 +948,7 @@ TASKWORKER_IMPORTS: tuple[str, ...] = (
     "sentry.tasks.collect_project_platforms",
     "sentry.tasks.commit_context",
     "sentry.tasks.commits",
+    "sentry.tasks.console_platform_cleanup",
     "sentry.tasks.delete_pending_groups",
     "sentry.tasks.seer.delete_seer_grouping_records",
     "sentry.tasks.digests",
@@ -2239,6 +2240,7 @@ SENTRY_DEFAULT_INTEGRATIONS = (
     "sentry.integrations.opsgenie.OpsgenieIntegrationProvider",
     "sentry.integrations.cursor.integration.CursorAgentIntegrationProvider",
     "sentry.integrations.claude_code.integration.ClaudeCodeAgentIntegrationProvider",
+    "sentry.integrations.github_copilot.integration.GithubCopilotIntegrationProvider",
     "sentry.integrations.perforce.integration.PerforceIntegrationProvider",
 )
 

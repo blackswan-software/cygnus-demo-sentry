@@ -1,12 +1,6 @@
 import {OrganizationFixture} from 'sentry-fixture/organization';
 
-import {
-  render,
-  screen,
-  userEvent,
-  waitFor,
-  waitForElementToBeRemoved,
-} from 'sentry-test/reactTestingLibrary';
+import {render, screen, userEvent, waitFor} from 'sentry-test/reactTestingLibrary';
 import {selectEvent} from 'sentry-test/selectEvent';
 
 import {addSuccessMessage} from 'sentry/actionCreators/indicator';
@@ -109,7 +103,7 @@ describe('ProjectAlerts -> TicketRuleModal', () => {
         organization,
       }
     );
-    await waitForElementToBeRemoved(() => screen.queryByTestId('loading-indicator'));
+    await screen.findByRole('button', {name: 'Apply Changes'});
     return wrapper;
   };
 

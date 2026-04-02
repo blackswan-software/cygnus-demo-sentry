@@ -61,8 +61,7 @@ describe('ExternalIssueForm', () => {
       />,
       {organization}
     );
-    await waitForElementToBeRemoved(() => screen.queryByTestId('loading-indicator'));
-    await userEvent.click(screen.getByText(action));
+    await userEvent.click(await screen.findByText(action));
     return wrapper;
   };
 
@@ -397,7 +396,7 @@ describe('ExternalIssueForm', () => {
         />,
         {organization}
       );
-      await waitForElementToBeRemoved(() => screen.queryByTestId('loading-indicator'));
+      await screen.findByRole('textbox', {name: 'Project'});
       expect(initialQuery).toHaveBeenCalled();
 
       // Initial query may only have a few fields
