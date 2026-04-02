@@ -46,7 +46,6 @@ export function MetricsSamplesTable({
   isMetricOptionsEmpty,
   overrideTableData,
 }: MetricsSamplesTableProps) {
-  const hasRefreshedMainLayout = !embedded;
   const columns = embedded ? TraceSamplesTableEmbeddedColumns : TraceSamplesTableColumns;
   const fields = getTraceSamplesTableFields(columns);
 
@@ -79,11 +78,7 @@ export function MetricsSamplesTable({
   }, [meta, traceMetric?.unit]);
 
   return (
-    <SimpleTableGrid
-      numColumns={columns.length - 1}
-      embedded={embedded}
-      hasRefreshedMainLayout={hasRefreshedMainLayout}
-    >
+    <SimpleTableGrid embedded={embedded}>
       {isFetching && <TransparentLoadingMask />}
       <MetricsSamplesTableHeader columns={columns} embedded={embedded} />
       <StyledSimpleTableBody>
@@ -117,14 +112,10 @@ export function MetricsSamplesTable({
 
 const SimpleTableGrid = styled(StyledSimpleTable)<{
   embedded: boolean;
-  hasRefreshedMainLayout: boolean;
-  numColumns: number;
 }>`
   grid-template-columns: ${p =>
-    p.hasRefreshedMainLayout
-      ? 'min-content min-content minmax(0, 1fr) min-content min-content'
-      : p.embedded
-        ? 'min-content min-content min-content minmax(0, 1fr) min-content min-content'
-        : `repeat(${p.numColumns}, min-content) 1fr`};
+    p.embedded
+      ? 'min-content min-content min-content minmax(0, 1fr) min-content min-content'
+      : 'min-content min-content minmax(0, 1fr) min-content min-content'};
   grid-column: 1 / -1;
 `;
