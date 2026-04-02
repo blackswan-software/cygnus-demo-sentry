@@ -1,4 +1,5 @@
 import {useMemo} from 'react';
+import {queryOptions} from '@tanstack/react-query';
 import {z} from 'zod';
 
 import {defaultFormOptions, useScrapsForm} from '@sentry/scraps/form';
@@ -178,223 +179,201 @@ export function BackendJsonSubmitForm({
           {fields
             .filter(field => field.hasOwnProperty('name') && field.type !== 'blank')
             .map(field => (
-              <SubmitFormField
-                key={field.name}
-                form={form}
-                field={field}
-                dynamicFieldValues={dynamicFieldValues}
-                onFieldChange={onFieldChange}
-              />
+              <form.AppField key={field.name} name={field.name}>
+                {fieldApi => {
+                  const handleChange = (value: unknown) => {
+                    fieldApi.handleChange(value);
+                    if (field.updatesForm && onFieldChange) {
+                      onFieldChange(field.name, value);
+                    }
+                  };
+
+                  switch (field.type) {
+                    case 'boolean':
+                      return (
+                        <fieldApi.Layout.Stack
+                          label={field.label}
+                          hintText={field.help}
+                          required={field.required}
+                        >
+                          <fieldApi.Switch
+                            checked={fieldApi.state.value as boolean}
+                            onChange={handleChange}
+                            disabled={field.disabled}
+                          />
+                        </fieldApi.Layout.Stack>
+                      );
+                    case 'textarea':
+                      return (
+                        <fieldApi.Layout.Stack
+                          label={field.label}
+                          hintText={field.help}
+                          required={field.required}
+                        >
+                          <fieldApi.TextArea
+                            autosize
+                            value={(fieldApi.state.value as string) ?? ''}
+                            onChange={handleChange}
+                            placeholder={field.placeholder}
+                            disabled={field.disabled}
+                          />
+                        </fieldApi.Layout.Stack>
+                      );
+                    case 'number':
+                      return (
+                        <fieldApi.Layout.Stack
+                          label={field.label}
+                          hintText={field.help}
+                          required={field.required}
+                        >
+                          <fieldApi.Number
+                            value={fieldApi.state.value as number}
+                            onChange={handleChange}
+                            placeholder={field.placeholder}
+                            disabled={field.disabled}
+                          />
+                        </fieldApi.Layout.Stack>
+                      );
+                    case 'select':
+                    case 'choice':
+                      if (field.url) {
+                        // Async select: fetch options from URL as user types.
+                        // Show static choices as initial options before any search.
+                        const staticOptions = transformChoices(field.choices);
+                        const asyncQueryOptions = (debouncedInput: string) =>
+                          queryOptions({
+                            queryKey: [
+                              'backend-json-async-select',
+                              field.name,
+                              field.url,
+                              debouncedInput,
+                              dynamicFieldValues,
+                            ],
+                            queryFn: async (): Promise<
+                              Array<SelectValue<string | number>>
+                            > => {
+                              if (!debouncedInput) {
+                                return staticOptions;
+                              }
+                              return API_CLIENT.requestPromise(field.url!, {
+                                query: buildAsyncSelectQuery(
+                                  field.name,
+                                  debouncedInput,
+                                  dynamicFieldValues
+                                ),
+                              });
+                            },
+                          });
+                        if (field.multiple) {
+                          return (
+                            <fieldApi.Layout.Stack
+                              label={field.label}
+                              hintText={field.help}
+                              required={field.required}
+                            >
+                              <fieldApi.SelectAsync
+                                multiple
+                                value={(fieldApi.state.value as string[]) ?? []}
+                                onChange={handleChange}
+                                disabled={field.disabled}
+                                queryOptions={asyncQueryOptions}
+                              />
+                            </fieldApi.Layout.Stack>
+                          );
+                        }
+                        return (
+                          <fieldApi.Layout.Stack
+                            label={field.label}
+                            hintText={field.help}
+                            required={field.required}
+                          >
+                            <fieldApi.SelectAsync
+                              value={fieldApi.state.value as string | null}
+                              onChange={handleChange}
+                              disabled={field.disabled}
+                              queryOptions={asyncQueryOptions}
+                            />
+                          </fieldApi.Layout.Stack>
+                        );
+                      }
+                      if (field.multiple) {
+                        return (
+                          <fieldApi.Layout.Stack
+                            label={field.label}
+                            hintText={field.help}
+                            required={field.required}
+                          >
+                            <fieldApi.Select
+                              multiple
+                              value={(fieldApi.state.value as string[]) ?? []}
+                              onChange={handleChange}
+                              options={transformChoices(field.choices)}
+                              disabled={field.disabled}
+                            />
+                          </fieldApi.Layout.Stack>
+                        );
+                      }
+                      return (
+                        <fieldApi.Layout.Stack
+                          label={field.label}
+                          hintText={field.help}
+                          required={field.required}
+                        >
+                          <fieldApi.Select
+                            value={fieldApi.state.value as string | null}
+                            onChange={handleChange}
+                            options={transformChoices(field.choices)}
+                            disabled={field.disabled}
+                          />
+                        </fieldApi.Layout.Stack>
+                      );
+                    case 'secret':
+                      return (
+                        <fieldApi.Layout.Stack
+                          label={field.label}
+                          hintText={field.help}
+                          required={field.required}
+                        >
+                          <fieldApi.Password
+                            value={(fieldApi.state.value as string) ?? ''}
+                            onChange={handleChange}
+                            placeholder={field.placeholder}
+                            disabled={field.disabled}
+                          />
+                        </fieldApi.Layout.Stack>
+                      );
+                    case 'string':
+                    case 'text':
+                    case 'url':
+                    case 'email':
+                      return (
+                        <fieldApi.Layout.Stack
+                          label={field.label}
+                          hintText={field.help}
+                          required={field.required}
+                        >
+                          <fieldApi.Input
+                            value={(fieldApi.state.value as string) ?? ''}
+                            onChange={handleChange}
+                            placeholder={field.placeholder}
+                            disabled={field.disabled}
+                            type={
+                              field.type === 'string' || field.type === 'text'
+                                ? 'text'
+                                : field.type
+                            }
+                          />
+                        </fieldApi.Layout.Stack>
+                      );
+                    default:
+                      return null;
+                  }
+                }}
+              </form.AppField>
             ))}
         </Stack>
       )}
       {submitButton}
     </form.AppForm>
-  );
-}
-
-/**
- * Renders a single field within the submit form.
- */
-function SubmitFormField({
-  form,
-  field,
-  dynamicFieldValues,
-  onFieldChange,
-}: {
-  field: JsonFormAdapterFieldConfig;
-  form: any;
-  dynamicFieldValues?: Record<string, unknown>;
-  onFieldChange?: (fieldName: string, value: unknown) => void;
-}) {
-  return (
-    <form.AppField name={field.name as never}>
-      {(fieldApi: any) => {
-        const handleChange = (value: unknown) => {
-          fieldApi.handleChange(value as never);
-          if (field.updatesForm && onFieldChange) {
-            onFieldChange(field.name, value);
-          }
-        };
-
-        switch (field.type) {
-          case 'boolean':
-            return (
-              <fieldApi.Layout.Stack
-                label={field.label}
-                hintText={field.help}
-                required={field.required}
-              >
-                <fieldApi.Switch
-                  checked={fieldApi.state.value as boolean}
-                  onChange={handleChange}
-                  disabled={field.disabled}
-                />
-              </fieldApi.Layout.Stack>
-            );
-          case 'textarea':
-            return (
-              <fieldApi.Layout.Stack
-                label={field.label}
-                hintText={field.help}
-                required={field.required}
-              >
-                <fieldApi.TextArea
-                  autosize
-                  value={(fieldApi.state.value as string) ?? ''}
-                  onChange={handleChange}
-                  placeholder={field.placeholder}
-                  disabled={field.disabled}
-                />
-              </fieldApi.Layout.Stack>
-            );
-          case 'number':
-            return (
-              <fieldApi.Layout.Stack
-                label={field.label}
-                hintText={field.help}
-                required={field.required}
-              >
-                <fieldApi.Number
-                  value={fieldApi.state.value as number}
-                  onChange={handleChange}
-                  placeholder={field.placeholder}
-                  disabled={field.disabled}
-                />
-              </fieldApi.Layout.Stack>
-            );
-          case 'select':
-          case 'choice':
-            if (field.url) {
-              // Async select: fetch options from URL as user types.
-              // Show static choices as initial options before any search.
-              const staticOptions = transformChoices(field.choices);
-              const asyncQueryOptions = (debouncedInput: string) => ({
-                queryKey: [
-                  'backend-json-async-select',
-                  field.name,
-                  field.url,
-                  debouncedInput,
-                  dynamicFieldValues,
-                ],
-                queryFn: async (): Promise<Array<SelectValue<string | number>>> => {
-                  if (!debouncedInput) {
-                    return staticOptions;
-                  }
-                  return API_CLIENT.requestPromise(field.url!, {
-                    query: buildAsyncSelectQuery(
-                      field.name,
-                      debouncedInput,
-                      dynamicFieldValues
-                    ),
-                  });
-                },
-                // Always enabled so static choices show immediately
-                enabled: true,
-              });
-              if (field.multiple) {
-                return (
-                  <fieldApi.Layout.Stack
-                    label={field.label}
-                    hintText={field.help}
-                    required={field.required}
-                  >
-                    <fieldApi.SelectAsync
-                      multiple
-                      value={(fieldApi.state.value as string[]) ?? []}
-                      onChange={handleChange}
-                      disabled={field.disabled}
-                      queryOptions={asyncQueryOptions}
-                    />
-                  </fieldApi.Layout.Stack>
-                );
-              }
-              return (
-                <fieldApi.Layout.Stack
-                  label={field.label}
-                  hintText={field.help}
-                  required={field.required}
-                >
-                  <fieldApi.SelectAsync
-                    value={fieldApi.state.value as string | null}
-                    onChange={handleChange}
-                    disabled={field.disabled}
-                    queryOptions={asyncQueryOptions}
-                  />
-                </fieldApi.Layout.Stack>
-              );
-            }
-            if (field.multiple) {
-              return (
-                <fieldApi.Layout.Stack
-                  label={field.label}
-                  hintText={field.help}
-                  required={field.required}
-                >
-                  <fieldApi.Select
-                    multiple
-                    value={(fieldApi.state.value as string[]) ?? []}
-                    onChange={handleChange}
-                    options={transformChoices(field.choices)}
-                    disabled={field.disabled}
-                  />
-                </fieldApi.Layout.Stack>
-              );
-            }
-            return (
-              <fieldApi.Layout.Stack
-                label={field.label}
-                hintText={field.help}
-                required={field.required}
-              >
-                <fieldApi.Select
-                  value={fieldApi.state.value as string | null}
-                  onChange={handleChange}
-                  options={transformChoices(field.choices)}
-                  disabled={field.disabled}
-                />
-              </fieldApi.Layout.Stack>
-            );
-          case 'secret':
-            return (
-              <fieldApi.Layout.Stack
-                label={field.label}
-                hintText={field.help}
-                required={field.required}
-              >
-                <fieldApi.Password
-                  value={(fieldApi.state.value as string) ?? ''}
-                  onChange={handleChange}
-                  placeholder={field.placeholder}
-                  disabled={field.disabled}
-                />
-              </fieldApi.Layout.Stack>
-            );
-          case 'string':
-          case 'text':
-          case 'url':
-          case 'email':
-            return (
-              <fieldApi.Layout.Stack
-                label={field.label}
-                hintText={field.help}
-                required={field.required}
-              >
-                <fieldApi.Input
-                  value={(fieldApi.state.value as string) ?? ''}
-                  onChange={handleChange}
-                  placeholder={field.placeholder}
-                  disabled={field.disabled}
-                  type={
-                    field.type === 'string' || field.type === 'text' ? 'text' : field.type
-                  }
-                />
-              </fieldApi.Layout.Stack>
-            );
-          default:
-            return null;
-        }
-      }}
-    </form.AppField>
   );
 }
