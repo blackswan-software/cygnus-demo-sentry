@@ -416,6 +416,41 @@ describe('BackendJsonSubmitForm', () => {
       await waitFor(() => expect(searchResponse).toHaveBeenCalled());
       expect(await screen.findByText('test-repo')).toBeInTheDocument();
     });
+
+    it('async select gracefully handles non-array API response', async () => {
+      // Simulate backend returning HTML error page or non-array response
+      MockApiClient.addMockResponse({
+        url: '/search',
+        body: '<html>502 Bad Gateway</html>' as any,
+      });
+
+      render(
+        <BackendJsonSubmitForm
+          fields={[
+            {
+              name: 'repo',
+              type: 'select',
+              label: 'Repository',
+              url: '/search',
+              choices: [['fallback', 'Fallback Repo']],
+            },
+          ]}
+          onSubmit={onSubmit}
+          submitLabel="Create"
+        />,
+        {organization: org}
+      );
+
+      const textbox = screen.getByRole('textbox', {name: 'Repository'});
+      await userEvent.click(textbox);
+      await userEvent.type(textbox, '123');
+
+      // Should not crash — falls back to empty options
+      await waitFor(() => {
+        // The select should still be interactive (no crash)
+        expect(screen.getByRole('textbox', {name: 'Repository'})).toBeInTheDocument();
+      });
+    });
   });
 
   describe('dynamic fields', () => {

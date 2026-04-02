@@ -263,13 +263,18 @@ export function BackendJsonSubmitForm({
                               if (!debouncedInput) {
                                 return staticOptions;
                               }
-                              return API_CLIENT.requestPromise(field.url!, {
-                                query: buildAsyncSelectQuery(
-                                  field.name,
-                                  debouncedInput,
-                                  dynamicFieldValues
-                                ),
-                              });
+                              const response = await API_CLIENT.requestPromise(
+                                field.url!,
+                                {
+                                  query: buildAsyncSelectQuery(
+                                    field.name,
+                                    debouncedInput,
+                                    dynamicFieldValues
+                                  ),
+                                }
+                              );
+                              // API may return non-array responses (e.g. error objects)
+                              return Array.isArray(response) ? response : [];
                             },
                           });
                         if (field.multiple) {
