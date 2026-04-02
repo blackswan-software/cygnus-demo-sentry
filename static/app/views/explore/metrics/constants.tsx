@@ -87,11 +87,11 @@ export const TraceSamplesTableEmbeddedColumns: Array<
   TraceMetricFieldKey | VirtualTableSampleColumnKey
 > = [
   VirtualTableSampleColumnKey.EXPAND_ROW,
-  TraceMetricKnownFieldKey.TIMESTAMP,
-  VirtualTableSampleColumnKey.PROJECT_BADGE,
   TraceMetricKnownFieldKey.METRIC_NAME,
   TraceMetricKnownFieldKey.METRIC_TYPE,
+  VirtualTableSampleColumnKey.PROJECT_BADGE,
   TraceMetricKnownFieldKey.METRIC_VALUE,
+  TraceMetricKnownFieldKey.TIMESTAMP,
 ];
 
 const VIRTUAL_SAMPLE_COLUMNS = new Set<string>(

@@ -123,6 +123,8 @@ const SimpleTableGrid = styled(StyledSimpleTable)<{
   grid-template-columns: ${p =>
     p.hasRefreshedMainLayout
       ? 'min-content min-content minmax(0, 1fr) min-content min-content'
-      : `repeat(${p.numColumns}, min-content) 1fr`};
+      : p.embedded
+        ? 'min-content min-content min-content minmax(0, 1fr) min-content min-content'
+        : `repeat(${p.numColumns}, min-content) 1fr`};
   grid-column: 1 / -1;
 `;
