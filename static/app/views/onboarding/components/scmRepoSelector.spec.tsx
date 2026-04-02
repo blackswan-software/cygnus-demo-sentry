@@ -54,7 +54,7 @@ describe('ScmRepoSelector', () => {
 
   it('shows empty state message when search returns no results', async () => {
     MockApiClient.addMockResponse({
-      url: `/organizations/${organization.slug}/integrations/1/repos/`,
+      url: `/organizations/${organization.slug}/integrations/${mockIntegration.id}/repos/`,
       body: {repos: []},
     });
 
@@ -74,7 +74,7 @@ describe('ScmRepoSelector', () => {
 
   it('shows error message on API failure', async () => {
     MockApiClient.addMockResponse({
-      url: `/organizations/${organization.slug}/integrations/1/repos/`,
+      url: `/organizations/${organization.slug}/integrations/${mockIntegration.id}/repos/`,
       statusCode: 500,
       body: {detail: 'Internal Error'},
     });
@@ -93,7 +93,7 @@ describe('ScmRepoSelector', () => {
 
   it('displays repos returned by search', async () => {
     MockApiClient.addMockResponse({
-      url: `/organizations/${organization.slug}/integrations/1/repos/`,
+      url: `/organizations/${organization.slug}/integrations/${mockIntegration.id}/repos/`,
       body: {
         repos: [
           {identifier: 'getsentry/sentry', name: 'sentry', isInstalled: false},
