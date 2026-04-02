@@ -414,6 +414,34 @@ class OrganizationEventsTraceEndpointTest(
         assert error_event_2["event_id"] in [error.event_id, error_2.event_id]
         assert error_event_1["event_id"] != error_event_2["event_id"]
 
+    @mock.patch("sentry.snuba.trace.metrics")
+    def test_emits_metric_for_error_on_ok_span(self, mock_metrics) -> None:
+        self.load_trace()
+        _, start = self.get_start_end_from_day_ago(123)
+        error_data = load_data(
+            "javascript",
+            timestamp=start,
+        )
+        error_data["contexts"]["trace"] = {
+            "type": "trace",
+            "trace_id": self.trace_id,
+            "span_id": self.root_event.data["contexts"]["trace"]["span_id"],
+        }
+        error_data["tags"] = [["transaction", "/transaction/gen1-0"]]
+        self.store_event(error_data, project_id=self.gen1_project.id)
+
+        with self.feature(self.FEATURES):
+            response = self.client_get(
+                data={"timestamp": self.day_ago},
+            )
+        assert response.status_code == 200, response.content
+
+        mock_metrics.incr.assert_any_call(
+            "performance.trace.span_with_errors_ok_status",
+            sample_rate=mock.ANY,
+            tags=mock.ANY,
+        )
+
     def test_with_performance_issues(self) -> None:
         self.load_trace()
         with self.feature(self.FEATURES):
