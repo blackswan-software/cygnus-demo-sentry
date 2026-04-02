@@ -32,11 +32,10 @@ def _make_notification_data(**overrides: Any) -> MetricAlertNotificationData:
             id=1,
             date_started=datetime(2024, 1, 1, tzinfo=timezone.utc),
         ),
-        new_status=2,  # IncidentStatus.CRITICAL
+        new_status=20,  # IncidentStatus.CRITICAL
         title="Critical: Test Alert",
         title_link="https://sentry.io/alerts/1/",
         text="123 events in the last 5 minutes",
-        status="Critical",
     )
     defaults.update(overrides)
     return MetricAlertNotificationData(**defaults)
@@ -87,7 +86,6 @@ class SlackMetricAlertRendererTest(MetricAlertHandlerBase):
             title_link="https://sentry.io/alerts/1/",
             # matches evidence_data value used in MetricAlertHandlerBase
             text="123.45 events in the last minute",
-            status="Critical",
         )
         self.rendered_template = NotificationRenderedTemplate(subject="Metric Alert", body=[])
 
@@ -114,7 +112,6 @@ class SlackMetricAlertRendererTest(MetricAlertHandlerBase):
             title=f"Critical: {self.detector.name}",
             title_link="https://sentry.io/alerts/1/",
             text="123.45 events in the last minute",
-            status="Critical",
             chart_url=MOCK_CHART_URL,
         )
 
@@ -150,8 +147,7 @@ class SlackMetricAlertRendererTest(MetricAlertHandlerBase):
             title=f"Resolved: {self.detector.name}",
             title_link="https://sentry.io/alerts/1/",
             text="",
-            status="Resolved",
-            new_status=0,  # IncidentStatus.CLOSED
+            new_status=2,  # IncidentStatus.CLOSED
         )
 
         result = SlackMetricAlertRenderer.render(

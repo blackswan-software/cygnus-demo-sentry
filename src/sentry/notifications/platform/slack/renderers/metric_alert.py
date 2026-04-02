@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from sentry.incidents.models.incident import IncidentStatus
 from sentry.integrations.messaging.types import LEVEL_TO_COLOR
+from sentry.integrations.metric_alerts import get_status_text
 from sentry.integrations.slack.message_builder.base.block import BlockSlackMessageBuilder
 from sentry.integrations.slack.message_builder.incidents import get_started_at
 from sentry.integrations.slack.message_builder.types import INCIDENT_COLOR_MAPPING
@@ -25,6 +27,8 @@ class SlackMetricAlertRenderer(NotificationRenderer[SlackRenderable]):
         if not isinstance(data, MetricAlertNotificationData):
             raise ValueError(f"SlackMetricAlertRenderer does not support {data.__class__.__name__}")
 
+        status = get_status_text(IncidentStatus(data.new_status))
+
         incident_text = f"{data.text}\n{get_started_at(data.open_period_context.date_started)}"
         blocks = [BlockSlackMessageBuilder.get_markdown_block(text=incident_text)]
 
@@ -33,7 +37,7 @@ class SlackMetricAlertRenderer(NotificationRenderer[SlackRenderable]):
                 BlockSlackMessageBuilder.get_image_block(data.chart_url, alt="Metric Alert Chart")
             )
 
-        color = LEVEL_TO_COLOR.get(INCIDENT_COLOR_MAPPING.get(data.status, ""))
+        color = LEVEL_TO_COLOR.get(INCIDENT_COLOR_MAPPING.get(status, ""))
         fallback_text = f"<{data.title_link}|*{escape_slack_text(data.title)}*>"
         slack_body = BlockSlackMessageBuilder._build_blocks(
             *blocks, fallback_text=fallback_text, color=color

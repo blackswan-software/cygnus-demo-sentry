@@ -22,13 +22,12 @@ class MetricAlertNotificationData(NotificationData):
     notification_uuid: str
     action_id: int  # for ThreadKey key_data (used in PR 2 hookup)
     open_period_context: OpenPeriodContext  # id + date_started used in renderer and threading
-    new_status: int  # IncidentStatus value; determines reply_broadcast
+    new_status: int  # IncidentStatus value; used for color mapping and reply_broadcast
 
     # Pre-computed from incident_attachment_info() — all serializable strings
     title: str
     title_link: str
     text: str
-    status: str  # e.g. "Resolved", "Warning", "Critical"
 
     # Pre-computed chart URL (None if feature disabled or build failed)
     chart_url: str | None = None
@@ -50,11 +49,10 @@ class MetricAlertNotificationTemplate(NotificationTemplate[MetricAlertNotificati
         notification_uuid="test-uuid",
         action_id=1,
         open_period_context=_EXAMPLE_OPEN_PERIOD_CONTEXT,
-        new_status=2,  # IncidentStatus.CRITICAL
+        new_status=20,  # IncidentStatus.CRITICAL
         title="Critical: Example Alert",
         title_link="https://sentry.io/organizations/example/alerts/rules/details/1/",
         text="123 events in the last 5 minutes",
-        status="Critical",
     )
 
     def render(self, data: MetricAlertNotificationData) -> NotificationRenderedTemplate:
