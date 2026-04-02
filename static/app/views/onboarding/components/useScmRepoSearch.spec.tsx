@@ -69,7 +69,7 @@ describe('useScmRepoSearch', () => {
     expect(request).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        query: expect.objectContaining({search: 'sentry'}),
+        query: expect.objectContaining({search: 'sentry', accessibleOnly: true}),
       })
     );
   });

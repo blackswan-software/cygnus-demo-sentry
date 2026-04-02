@@ -65,7 +65,11 @@ describe('ScmRepoSelector', () => {
 
     await userEvent.type(screen.getByRole('textbox'), 'nonexistent');
 
-    expect(await screen.findByText('No repositories found.')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'No repositories found. Check your installation permissions to ensure your integration has access.'
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows error message on API failure', async () => {
