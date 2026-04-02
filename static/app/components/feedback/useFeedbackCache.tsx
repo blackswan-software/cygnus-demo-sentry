@@ -109,11 +109,11 @@ export function useFeedbackCache() {
           queryKey: listQueryKey,
           predicate: query => {
             // Check if any of the pages contain the items we want to invalidate
-            return Boolean(
-              (
-                query.state.data as QueryState<InfiniteData<FeedbackIssueListItem[]>>
-              ).data?.pages.some(items => items.some(item => ids.includes(item.id)))
-            );
+            const data = query.state.data as QueryState<InfiniteData<FeedbackIssueListItem[]>>;
+            if (!data?.data?.pages) {
+              return false;
+            }
+            return data.data.pages.some(items => items.some(item => ids.includes(item.id)));
           },
         });
       }
