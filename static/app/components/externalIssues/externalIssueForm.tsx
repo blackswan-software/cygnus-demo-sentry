@@ -4,6 +4,7 @@ import type {Span} from '@sentry/core';
 import * as Sentry from '@sentry/react';
 
 import {TabList, Tabs} from '@sentry/scraps/tabs';
+import {Heading} from '@sentry/scraps/text';
 
 import {addSuccessMessage} from 'sentry/actionCreators/indicator';
 import {openModal, type ModalRenderProps} from 'sentry/actionCreators/modal';
@@ -340,7 +341,7 @@ export function ExternalIssueForm({
     return (
       <Fragment>
         <Header closeButton>
-          <h4>{title}</h4>
+          <Heading as="h4">{title}</Heading>
         </Header>
         <Body>
           <LoadingIndicator />
@@ -358,7 +359,7 @@ export function ExternalIssueForm({
     return (
       <Fragment>
         <Header closeButton>
-          <h4>{title}</h4>
+          <Heading as="h4">{title}</Heading>
         </Header>
         <Body>
           <LoadingError message={errorMessage} />
@@ -370,7 +371,7 @@ export function ExternalIssueForm({
   return (
     <Fragment>
       <Header closeButton>
-        <h4>{title}</h4>
+        <Heading as="h4">{title}</Heading>
       </Header>
       <TabsContainer>
         <Tabs value={action} onChange={handleClick}>
