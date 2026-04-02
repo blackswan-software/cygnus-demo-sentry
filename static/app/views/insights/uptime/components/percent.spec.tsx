@@ -1,6 +1,6 @@
 import {UptimeSummaryFixture} from 'sentry-fixture/uptimeSummary';
 
-import {render, screen, userEvent} from 'sentry-test/reactTestingLibrary';
+import {render, screen, userEvent, waitFor} from 'sentry-test/reactTestingLibrary';
 
 import {UptimePercent} from './percent';
 
@@ -86,11 +86,12 @@ describe('UptimePercent', () => {
   it('shows tooltip with detailed breakdown on hover', async () => {
     render(<UptimePercent summary={mockSummary} note="This is a test" />);
 
-    const percentageText = screen.getByText('94.736%');
-    await userEvent.hover(percentageText);
+    await userEvent.hover(screen.getByText('94.736%'));
 
-    expect(await screen.findByText('This is a test')).toBeInTheDocument();
-    expect(screen.getByText('Up Checks')).toBeInTheDocument();
-    expect(screen.getByText('Down Checks')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('This is a test')).toBeInTheDocument();
+      expect(screen.getByText('Up Checks')).toBeInTheDocument();
+      expect(screen.getByText('Down Checks')).toBeInTheDocument();
+    });
   });
 });
