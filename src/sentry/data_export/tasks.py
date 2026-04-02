@@ -369,9 +369,11 @@ def merge_export_blobs(data_export_id: int, **kwargs: Any) -> None:
             ):
                 file = File.objects.create(
                     name=data_export.file_name,
-                    type=get_file_type(OutputMode(data_export.export_format)),
+                    type=get_file_type(OutputMode.from_value(data_export.export_format)),
                     headers={
-                        "Content-Type": get_content_type(OutputMode(data_export.export_format))
+                        "Content-Type": get_content_type(
+                            OutputMode.from_value(data_export.export_format)
+                        )
                     },
                 )
                 size = 0

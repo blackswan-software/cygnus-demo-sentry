@@ -507,11 +507,12 @@ class DataExportTest(APITestCase):
         assert query_info["dataset"] == "logs"
 
     def test_explore_valid_jsonl_format(self) -> None:
-        payload = self.make_payload("explore", {"format": "jsonl"})
+        payload = self.make_payload("explore")
+        payload["format"] = "jsonl"
         with self.feature("organizations:discover-query"):
             response = self.get_success_response(self.org.slug, status_code=201, **payload)
         data_export = ExportedData.objects.get(id=response.data["id"])
-        assert data_export.query_info["format"] == "jsonl"
+        assert data_export.export_format == "jsonl"
 
     @freeze_time("2020-02-27 12:07:37")
     def test_explore_export_invalid_date_params(self) -> None:
