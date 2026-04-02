@@ -76,7 +76,7 @@ const SUBMIT_LABEL_BY_ACTION = {
 interface ExternalIssueFormProps extends ModalRenderProps {
   group: Group;
   integration: Integration;
-  onChange: (onSuccess?: () => void, onError?: () => void) => void;
+  onChange: () => void;
 }
 
 function makeIntegrationIssueConfigQueryKey({
@@ -275,7 +275,8 @@ export function ExternalIssueForm({
           external_issue_provider: integration.provider.key,
           external_issue_type: 'first_party',
         });
-        onChange(() => addSuccessMessage(MESSAGES_BY_ACTION[action]));
+        addSuccessMessage(MESSAGES_BY_ACTION[action]);
+        onChange();
         closeModal();
         submitSpan?.end();
         return data;
