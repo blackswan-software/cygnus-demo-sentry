@@ -902,7 +902,7 @@ describe('Core StackTrace', () => {
     );
 
     await userEvent.hover(screen.getByText('app.js'), {delay: null});
-    await act(async () => jest.advanceTimersByTime(2000));
+    act(() => jest.advanceTimersByTime(2000));
 
     expect(
       screen.getByRole('link', {name: 'https://example.com/static/app.js'})
