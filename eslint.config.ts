@@ -24,6 +24,7 @@
  *    - Controls which internal modules can import from each other
  *    - Examples: preventing sentry from importing getsentry, core isolation, test boundaries
  */
+// eslint-disable-next-line no-restricted-syntax
 import * as emotion from '@emotion/eslint-plugin';
 import eslint from '@eslint/js';
 import pluginQuery from '@tanstack/eslint-plugin-query';
@@ -32,6 +33,7 @@ import boundaries from 'eslint-plugin-boundaries';
 import importPlugin from 'eslint-plugin-import';
 import jest from 'eslint-plugin-jest';
 import jestDom from 'eslint-plugin-jest-dom';
+// eslint-disable-next-line no-restricted-syntax
 import * as mdx from 'eslint-plugin-mdx';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import react from 'eslint-plugin-react';
@@ -49,9 +51,9 @@ import globals from 'globals';
 import invariant from 'invariant';
 import typescript from 'typescript-eslint';
 
-// eslint-disable-next-line boundaries/dependencies
+// eslint-disable-next-line no-restricted-syntax,boundaries/dependencies
 import * as sentryScrapsPlugin from './static/eslint/eslintPluginScraps/index';
-// eslint-disable-next-line boundaries/dependencies
+// eslint-disable-next-line no-restricted-syntax,boundaries/dependencies
 import * as sentryPlugin from './static/eslint/eslintPluginSentry/index';
 
 invariant(react.configs.flat, 'For typescript');
@@ -397,6 +399,11 @@ export default typescript.config([
           selector:
             "JSXOpeningElement[name.name='Link'] JSXAttribute[name.name='to'] Literal[value=/^https?:/i]",
           message: "Do not pass an absolute URL to Link's to=. Use ExternalLink instead.",
+        },
+        {
+          selector: 'ImportNamespaceSpecifier',
+          message:
+            'Namespace imports (import * as ...) are not allowed. Use named imports instead to support better tree-shaking.',
         },
       ],
       'no-return-assign': 'error',
