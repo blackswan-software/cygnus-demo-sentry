@@ -276,7 +276,7 @@ function getButtonTheme(type: ButtonType, theme: Theme) {
       };
     case 'warning':
       return {
-        surface: theme.tokens.interactive.chonky.embossed.warning.background,
+        surface: theme.tokens.interactive.chonky.embossed.danger.background,
         background: theme.tokens.interactive.chonky.embossed.warning.chonk,
         color: theme.tokens.interactive.chonky.embossed.warning.content,
       };

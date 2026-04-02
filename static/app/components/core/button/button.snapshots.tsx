@@ -25,11 +25,23 @@ describe('Button', () => {
             extending outside #root get cut off. */}
 
           <div style={{padding: 8}}>
-            zzzz<Button priority={priority}>{priority}</Button>
+            <Button priority={priority}>{priority}</Button>
           </div>
         </ThemeProvider>
       ),
       priority => ({theme: themeName, priority: String(priority)})
+    );
+
+    it.snapshot.each<NonNullable<ButtonProps['size']>>(['zero', 'xs', 'sm', 'md'])(
+      'size-%s',
+      size => (
+        <ThemeProvider theme={themes[themeName]}>
+          <div style={{padding: 8}}>
+            <Button size={size}>{size}</Button>
+          </div>
+        </ThemeProvider>
+      ),
+      size => ({theme: themeName, size: String(size)})
     );
   });
 });
