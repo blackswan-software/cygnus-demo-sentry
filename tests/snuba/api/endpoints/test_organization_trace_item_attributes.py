@@ -2,7 +2,6 @@ from operator import itemgetter
 from unittest import mock
 from uuid import uuid4
 
-import pytest
 from django.urls import reverse
 from rest_framework.exceptions import ErrorDetail
 
@@ -2513,8 +2512,11 @@ class OrganizationTraceItemAttributeValidateEndpointTest(
         assert attrs["nonexistent.tag"]["valid"] is False
         assert "error" in attrs["nonexistent.tag"]
 
-    @pytest.mark.xfail(reason="Flaky test - PR #111993")  # noqa: F821
     def test_stats_period_limits_time_range(self):
+        # Store a span well outside the narrow query window.  Use a large gap
+        # (30 days) so that even if Snuba rounds time ranges to coarse buckets
+        # (e.g. daily), the span cannot bleed into a 1h window anchored at
+        # "now".
         self.store_segment(
             self.project.id,
             uuid4().hex,
@@ -2522,7 +2524,7 @@ class OrganizationTraceItemAttributeValidateEndpointTest(
             span_id=uuid4().hex[:16],
             organization_id=self.organization.id,
             parent_span_id=None,
-            timestamp=before_now(days=2).replace(microsecond=0),
+            timestamp=before_now(days=30).replace(microsecond=0),
             transaction="foo",
             duration=100,
             exclusive_time=100,
@@ -2532,7 +2534,7 @@ class OrganizationTraceItemAttributeValidateEndpointTest(
         # Wide time range should find the tag
         response = self.do_request(
             payload={"attributes": ["old.tag"]},
-            query_params={"itemType": "spans", "statsPeriod": "7d"},
+            query_params={"itemType": "spans", "statsPeriod": "90d"},
         )
         assert response.status_code == 200
         assert response.data["attributes"]["old.tag"]["valid"] is True
