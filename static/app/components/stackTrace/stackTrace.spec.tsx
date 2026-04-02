@@ -878,6 +878,7 @@ describe('Core StackTrace', () => {
   });
 
   it('shows URL link in tooltip when absPath is an http URL', async () => {
+    jest.useFakeTimers();
     const {event, stacktrace} = makeStackTraceData();
     const frame = stacktrace.frames[stacktrace.frames.length - 1]!;
 
@@ -900,10 +901,16 @@ describe('Core StackTrace', () => {
       </TestStackTraceProvider>
     );
 
-    await userEvent.hover(screen.getByText('app.js'));
+    await userEvent.hover(screen.getByText('app.js'), {delay: null});
+    act(() => jest.advanceTimersByTime(2000));
 
     expect(
-      await screen.findByRole('link', {name: 'https://example.com/static/app.js'})
+      screen.getByRole('link', {name: 'https://example.com/static/app.js'})
     ).toBeInTheDocument();
+
+    // Flush any remaining timers (e.g. AnimatePresence) inside act
+    // before restoring real timers to avoid state updates outside act
+    act(() => jest.runOnlyPendingTimers());
+    jest.useRealTimers();
   });
 });
