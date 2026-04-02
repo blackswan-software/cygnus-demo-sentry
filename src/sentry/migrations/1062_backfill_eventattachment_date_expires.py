@@ -3,8 +3,6 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from datetime import timezone as dt_timezone
 
-import itertools
-
 import click
 from django.db import migrations
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
@@ -14,9 +12,14 @@ from django.db.models.fields import DateTimeField
 
 from sentry.new_migrations.migrations import CheckedMigration
 
-BATCH_SIZE = 10_000
+BATCH_SIZE = 100_000
 SENTINEL = datetime(1970, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc)
 DEFAULT_RETENTION_DAYS = 30
+
+DATE_EXPIRES_EXPR = ExpressionWrapper(
+    F("date_added") + timedelta(days=DEFAULT_RETENTION_DAYS),
+    output_field=DateTimeField(),
+)
 
 
 def backfill_eventattachment_date_expires(
@@ -25,19 +28,35 @@ def backfill_eventattachment_date_expires(
     EventAttachment = apps.get_model("sentry", "EventAttachment")
 
     total_updated = 0
-    for i in itertools.count():
-        batch = EventAttachment.objects.filter(date_expires=SENTINEL).values("id")[:BATCH_SIZE]
-        updated = EventAttachment.objects.filter(id__in=batch).update(
-            date_expires=ExpressionWrapper(
-                F("date_added") + timedelta(days=DEFAULT_RETENTION_DAYS),
-                output_field=DateTimeField(),
-            )
+    last_id = 0
+    batch_num = 0
+
+    while True:
+        # Index-only PK scan to find the upper boundary of the next batch.
+        boundary_list = list(
+            EventAttachment.objects.filter(id__gt=last_id)
+            .order_by("id")
+            .values_list("id", flat=True)[BATCH_SIZE - 1 : BATCH_SIZE]
         )
-        if not updated:
+
+        if not boundary_list:
+            # Fewer rows remain than BATCH_SIZE — update the tail and stop.
+            updated = EventAttachment.objects.filter(id__gt=last_id, date_expires=SENTINEL).update(
+                date_expires=DATE_EXPIRES_EXPR
+            )
+            total_updated += updated
             break
 
+        boundary = boundary_list[0]
+        updated = EventAttachment.objects.filter(
+            id__gt=last_id, id__lte=boundary, date_expires=SENTINEL
+        ).update(date_expires=DATE_EXPIRES_EXPR)
+
         total_updated += updated
-        if i % 100 == 0:
+        last_id = boundary
+        batch_num += 1
+
+        if batch_num % 100 == 0:
             click.echo(f"Backfilled {total_updated} rows so far...")
 
     click.echo(f"Done. Backfilled {total_updated} rows total.")
