@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from sentry.backup.dependencies import dependencies, get_exportable_sentry_models, get_model_name
+from sentry.backup.dependencies import (
+    dependencies,
+    get_exportable_sentry_models,
+    get_model_name,
+    get_org_scope_models_with_user_fk,
+)
 from sentry.backup.scopes import RelocationScope
-from sentry.models.activity import Activity
-from sentry.models.groupassignee import GroupAssignee
-from sentry.models.groupbookmark import GroupBookmark
-from sentry.models.groupseen import GroupSeen
-from sentry.models.groupshare import GroupShare
-from sentry.models.groupsubscription import GroupSubscription
-from sentry.users.models.user import User
 from tests.sentry.backup.test_exhaustive import EXHAUSTIVELY_TESTED, UNIQUENESS_TESTED
 from tests.sentry.backup.test_imports import COLLISION_TESTED
 from tests.sentry.backup.test_models import DYNAMIC_RELOCATION_SCOPE_TESTED
@@ -105,33 +103,7 @@ def test_exportable_final_derivations_of_sentry_model_are_uniqueness_tested() ->
 
 
 def test_all_eligible_organization_scoped_models_tested_for_user_merge() -> None:
-    all_org_scope_models_that_reference_user = set()
-    for model in get_exportable_sentry_models():
-        model_name = get_model_name(model)
-        model_relations = dependencies()[model_name]
-        possible_relocation_scopes = model_relations.get_possible_relocation_scopes()
-        if RelocationScope.Organization not in possible_relocation_scopes:
-            continue
-        for foreign_field in model_relations.foreign_keys.values():
-            if foreign_field.model == User:
-                all_org_scope_models_that_reference_user.add(model_name)
-                break
-
-    # Manually add some models that are currently excluded from exports, but still included in user
-    # merging.
-    all_org_scope_models_that_reference_user |= {
-        get_model_name(m)
-        for m in {
-            Activity,
-            GroupAssignee,
-            GroupBookmark,
-            GroupSeen,
-            GroupShare,
-            GroupSubscription,
-        }
-    }
-
-    untested = all_org_scope_models_that_reference_user - ORG_MEMBER_MERGE_TESTED
+    untested = get_org_scope_models_with_user_fk() - ORG_MEMBER_MERGE_TESTED
     assert not {str(u) for u in untested}, (
         "The aforementioned models are not covered in the `ORG_MEMBER_MERGE` backup tests; please go to `tests/sentry/models/test_user.py::UserMergeToTest` and make sure at least one test in the suite contains covers each of the missing models."
     )

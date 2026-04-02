@@ -667,6 +667,42 @@ def get_exportable_sentry_models() -> set[type[models.base.Model]]:
     )
 
 
+def get_org_scope_models_with_user_fk() -> set[NormalizedModelName]:
+    """
+    Returns the set of all Organization-scoped model names that have a foreign key to User,
+    plus models that are excluded from exports but still included in user merging.
+
+    This is the single source of truth used by the coverage test in
+    ``test_coverage.py::test_all_eligible_organization_scoped_models_tested_for_user_merge``.
+    """
+    from sentry.models.activity import Activity
+    from sentry.models.groupassignee import GroupAssignee
+    from sentry.models.groupbookmark import GroupBookmark
+    from sentry.models.groupseen import GroupSeen
+    from sentry.models.groupshare import GroupShare
+    from sentry.models.groupsubscription import GroupSubscription
+    from sentry.users.models.user import User
+
+    all_deps = dependencies()
+    result: set[NormalizedModelName] = set()
+    for model in get_exportable_sentry_models():
+        model_name = get_model_name(model)
+        model_relations = all_deps[model_name]
+        if RelocationScope.Organization not in model_relations.get_possible_relocation_scopes():
+            continue
+        for foreign_field in model_relations.foreign_keys.values():
+            if foreign_field.model == User:
+                result.add(model_name)
+                break
+
+    # Models excluded from exports but still included in user merging.
+    result |= {
+        get_model_name(m)
+        for m in {Activity, GroupAssignee, GroupBookmark, GroupSeen, GroupShare, GroupSubscription}
+    }
+    return result
+
+
 def _get_org_scope_condition(model_relations: ModelRelations, organization_id: int) -> Q:
     """
     Finds a path from this model to Organization through FK relationships and returns a Q object
