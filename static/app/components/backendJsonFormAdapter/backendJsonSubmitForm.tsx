@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import {useMemo, useState, type ReactNode} from 'react';
 import {queryOptions} from '@tanstack/react-query';
 import {z} from 'zod';
 
@@ -12,6 +12,9 @@ import {t} from 'sentry/locale';
 import type {SelectValue} from 'sentry/types/core';
 import {RequestError} from 'sentry/utils/requestError/requestError';
 
+import {ChoiceMapperDropdown, ChoiceMapperTable} from './choiceMapperAdapter';
+import {ProjectMapperAddRow, ProjectMapperTable} from './projectMapperAdapter';
+import {TableBody, TableHeaderRow} from './tableAdapter';
 import type {JsonFormAdapterFieldConfig} from './types';
 import {getDefaultForField, transformChoices} from './utils';
 
@@ -133,6 +136,11 @@ export function BackendJsonSubmitForm({
   onFieldChange,
   footer,
 }: BackendJsonSubmitFormProps) {
+  // Labels for choice_mapper rows (maps key to display label)
+  const [choiceMapperLabels, setChoiceMapperLabels] = useState<
+    Record<string, Record<string, ReactNode>>
+  >({});
+
   const defaultValues = useMemo(
     () => computeDefaultValues(fields, initialValues),
     [fields, initialValues]
@@ -365,6 +373,85 @@ export function BackendJsonSubmitForm({
                           />
                         </fieldApi.Layout.Stack>
                       );
+                    case 'table': {
+                      const tableValue = fieldApi.state.value as Array<
+                        Record<string, unknown>
+                      >;
+                      return (
+                        <Stack flexGrow={1} gap="xl">
+                          <fieldApi.Layout.Row label={field.label} hintText={field.help}>
+                            <TableHeaderRow
+                              config={field}
+                              value={tableValue}
+                              onAdd={handleChange}
+                              disabled={field.disabled}
+                            />
+                          </fieldApi.Layout.Row>
+                          <TableBody
+                            config={field}
+                            value={tableValue}
+                            onUpdate={handleChange}
+                            onSave={() => {}}
+                            disabled={field.disabled}
+                          />
+                        </Stack>
+                      );
+                    }
+                    case 'project_mapper': {
+                      const mapperValue = fieldApi.state.value as Array<[number, string]>;
+                      return (
+                        <Stack flexGrow={1} gap="xl">
+                          <ProjectMapperTable
+                            config={field}
+                            value={mapperValue}
+                            onDelete={handleChange}
+                            disabled={field.disabled}
+                          />
+                          <ProjectMapperAddRow
+                            config={field}
+                            value={mapperValue}
+                            onAdd={handleChange}
+                            disabled={field.disabled}
+                          />
+                        </Stack>
+                      );
+                    }
+                    case 'choice_mapper': {
+                      const choiceValue = fieldApi.state.value as Record<
+                        string,
+                        Record<string, unknown>
+                      >;
+                      const fieldLabels = choiceMapperLabels[field.name] ?? {};
+                      return (
+                        <Stack flexGrow={1} gap="xl">
+                          <fieldApi.Layout.Row label={field.label} hintText={field.help}>
+                            <ChoiceMapperDropdown
+                              config={field}
+                              value={choiceValue}
+                              onLabelAdd={(key, label) => {
+                                setChoiceMapperLabels(prev => ({
+                                  ...prev,
+                                  [field.name]: {
+                                    ...prev[field.name],
+                                    [key]: label,
+                                  },
+                                }));
+                              }}
+                              onChange={handleChange}
+                              disabled={field.disabled}
+                            />
+                          </fieldApi.Layout.Row>
+                          <ChoiceMapperTable
+                            config={field}
+                            value={choiceValue}
+                            labels={fieldLabels}
+                            onUpdate={handleChange}
+                            onSave={() => {}}
+                            disabled={field.disabled}
+                          />
+                        </Stack>
+                      );
+                    }
                     default:
                       return null;
                   }
