@@ -9,6 +9,7 @@ import {
   AggregationKey,
   ALLOWED_EXPLORE_VISUALIZE_AGGREGATES,
   ALLOWED_EXPLORE_VISUALIZE_FIELDS,
+  FieldValueType,
   getFieldDefinition,
   NO_ARGUMENT_SPAN_AGGREGATES,
 } from 'sentry/utils/fields';
@@ -123,6 +124,21 @@ export function updateVisualizeAggregate({
     NO_ARGUMENT_SPAN_AGGREGATES.includes(oldAggregate as AggregationKey)
   ) {
     return `${newAggregate}(${DEFAULT_VISUALIZATION_FIELD})`;
+  }
+
+  // Check if old arguments are valid for the new function's column restrictions
+  if (oldArguments?.length && newFieldDefinition?.parameters?.length) {
+    const param = newFieldDefinition.parameters[0];
+    if (param?.kind === 'column' && typeof param.columnTypes === 'function') {
+      const isValid = param.columnTypes({
+        key: oldArguments[0]!,
+        valueType: FieldValueType.NUMBER,
+      });
+      if (!isValid) {
+        const params = newFieldDefinition.parameters.map(p => p.defaultValue || '');
+        return `${newAggregate}(${params.join(',')})`;
+      }
+    }
   }
 
   return oldArguments
