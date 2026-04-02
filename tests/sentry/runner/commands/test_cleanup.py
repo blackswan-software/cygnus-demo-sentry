@@ -377,7 +377,7 @@ class ExpiryDeletionsCodePathTest(TestCase):
 
         queue = SynchronousTaskQueue()
         run_bulk_deletes_in_deletes(
-            queue,
+            queue,  # type: ignore[arg-type]  # It partially implements the queue protocol
             models_which_use_expiry_deletions(),
             lambda model: False,  # nothing filtered
             0,  # days=0: delete anything with date_expires < now()
