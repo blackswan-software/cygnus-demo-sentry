@@ -56,7 +56,7 @@ def backfill_eventattachment_date_expires(
         last_id = boundary
         batch_num += 1
 
-        if batch_num % 100 == 0:
+        if batch_num % 10 == 0:
             click.echo(f"Backfilled {total_updated} rows so far...")
 
     click.echo(f"Done. Backfilled {total_updated} rows total.")
