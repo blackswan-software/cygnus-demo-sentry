@@ -789,6 +789,8 @@ tests/sentry/api/endpoints/test_organization_attribute_mappings.py          @get
 /src/sentry/spans/                                @getsentry/data-browsing @getsentry/streaming-platform
 /src/sentry/scripts/spans/                        @getsentry/data-browsing @getsentry/streaming-platform
 /tests/sentry/spans/                              @getsentry/data-browsing @getsentry/streaming-platform
+/src/sentry/trace_items/                          @getsentry/data-browsing @getsentry/streaming-platform
+/tests/sentry/trace_items/                        @getsentry/data-browsing @getsentry/streaming-platform
 
 # Streaming platform
 /src/sentry/utils/arroyo.py                              @getsentry/streaming-platform
