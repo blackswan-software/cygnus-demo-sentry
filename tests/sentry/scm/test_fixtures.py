@@ -1097,6 +1097,29 @@ class BaseTestProvider(Provider):
             meta={},
         )
 
+    def create_review_comment_multiline(
+        self,
+        pull_request_id: str,
+        commit_id: str,
+        body: str,
+        path: str,
+        side: ReviewSide,
+        start_line: int,
+        end_line: int,
+    ) -> ActionResult[ReviewComment]:
+        raw = make_github_review_comment(body=body, path=path)
+        return ActionResult(
+            data=ReviewComment(
+                id=str(raw["id"]),
+                html_url=raw["html_url"],
+                path=raw["path"],
+                body=raw["body"],
+            ),
+            type="github",
+            raw={"headers": None, "data": raw},
+            meta={},
+        )
+
     def create_review_comment_reply(
         self,
         pull_request_id: str,

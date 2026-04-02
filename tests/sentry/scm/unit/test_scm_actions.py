@@ -22,6 +22,7 @@ from sentry.scm.actions import (
     create_pull_request_reaction,
     create_review,
     create_review_comment_file,
+    create_review_comment_multiline,
     create_review_comment_reply,
     delete_issue_comment,
     delete_issue_comment_reaction,
@@ -157,6 +158,18 @@ ALL_ACTIONS: tuple[tuple[Callable[..., Any], dict[str, Any]], ...] = (
             "body": "comment",
             "path": "f.py",
             "side": "RIGHT",
+        },
+    ),
+    (
+        create_review_comment_multiline,
+        {
+            "pull_request_id": "1",
+            "commit_id": "abc",
+            "body": "comment",
+            "path": "f.py",
+            "side": "RIGHT",
+            "start_line": 1,
+            "end_line": 5,
         },
     ),
     (
@@ -620,6 +633,19 @@ ACTION_TESTS: tuple[tuple[Callable[..., Any], dict[str, Any], Callable[..., Any]
         _check_review_comment,
     ),
     (
+        create_review_comment_multiline,
+        {
+            "pull_request_id": "1",
+            "commit_id": "abc",
+            "body": "comment",
+            "path": "f.py",
+            "side": "RIGHT",
+            "start_line": 1,
+            "end_line": 5,
+        },
+        _check_review_comment,
+    ),
+    (
         create_review_comment_reply,
         {
             "pull_request_id": "1",
@@ -812,6 +838,7 @@ def test_get_capabilities() -> None:
         "CreatePullRequestProtocol",
         "CreatePullRequestReactionProtocol",
         "CreateReviewCommentFileProtocol",
+        "CreateReviewCommentMultilineProtocol",
         "CreateReviewCommentReplyProtocol",
         "CreateReviewProtocol",
         "DeleteIssueCommentProtocol",
