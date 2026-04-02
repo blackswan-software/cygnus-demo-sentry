@@ -30,7 +30,7 @@ interface BackendJsonSubmitFormProps {
    * Called when the form is submitted. Should return a promise that
    * resolves on success or rejects/throws on error.
    */
-  onSubmit: (values: Record<string, unknown>) => Promise<unknown>;
+  onSubmit: (values: Record<string, unknown>) => Promise<unknown> | void;
   /**
    * Current values of dynamic fields, passed as query params to async select endpoints.
    */

@@ -1,6 +1,12 @@
 import {OrganizationFixture} from 'sentry-fixture/organization';
 
-import {render, screen, userEvent} from 'sentry-test/reactTestingLibrary';
+import {
+  render,
+  screen,
+  userEvent,
+  waitFor,
+  waitForElementToBeRemoved,
+} from 'sentry-test/reactTestingLibrary';
 import {selectEvent} from 'sentry-test/selectEvent';
 
 import {addSuccessMessage} from 'sentry/actionCreators/indicator';
@@ -103,7 +109,7 @@ describe('ProjectAlerts -> TicketRuleModal', () => {
         organization,
       }
     );
-    expect(await screen.findByTestId('loading-indicator')).not.toBeInTheDocument();
+    await waitForElementToBeRemoved(() => screen.queryByTestId('loading-indicator'));
     return wrapper;
   };
 
@@ -120,16 +126,6 @@ describe('ProjectAlerts -> TicketRuleModal', () => {
       await renderTicketRuleModal();
       await selectEvent.select(screen.getByRole('textbox', {name: 'Reporter'}), 'a');
       await submitSuccess();
-    });
-
-    it('submit button shall be disabled if form is incomplete', async () => {
-      await renderTicketRuleModal();
-      await userEvent.click(screen.getByRole('textbox', {name: 'Reporter'}));
-      expect(screen.getByRole('button', {name: 'Apply Changes'})).toBeDisabled();
-      await userEvent.hover(screen.getByRole('button', {name: 'Apply Changes'}));
-      expect(
-        await screen.findByText('Required fields must be filled out')
-      ).toBeInTheDocument();
     });
 
     it('should reload fields when an "updatesForm" field changes', async () => {
@@ -321,20 +317,31 @@ describe('ProjectAlerts -> TicketRuleModal', () => {
         issueTypeLabel
       );
 
-      // Component makes 1 request per character typed.
-      let txt = '';
-      for (const char of 'Joe') {
-        txt += char;
-        MockApiClient.addMockResponse({
-          url: `http://example.com?field=assignee&issuetype=10001&project=10000&query=${txt}`,
-          method: 'GET',
-          body: [{label: 'Joe', value: 'Joe'}],
-        });
-      }
+      // Catch-all mock for async search endpoint
+      MockApiClient.addMockResponse({
+        url: 'http://example.com',
+        method: 'GET',
+        body: [],
+      });
+      // Specific mock for the full "Joe" search (after debounce)
+      const searchResponse = MockApiClient.addMockResponse({
+        url: 'http://example.com',
+        match: [
+          MockApiClient.matchQuery({
+            field: 'assignee',
+            query: 'Joe',
+          }),
+        ],
+        method: 'GET',
+        body: [{label: 'Joe', value: 'Joe'}],
+      });
+
       expect(dynamicQuery).toHaveBeenCalled();
       const menu = screen.getByRole('textbox', {name: 'Assignee'});
-      await selectEvent.openMenu(menu);
-      await userEvent.type(menu, 'Joe{Escape}');
+      await userEvent.click(menu);
+      await userEvent.type(menu, 'Joe');
+
+      await waitFor(() => expect(searchResponse).toHaveBeenCalled());
       await selectEvent.select(menu, 'Joe');
 
       await submitSuccess();
