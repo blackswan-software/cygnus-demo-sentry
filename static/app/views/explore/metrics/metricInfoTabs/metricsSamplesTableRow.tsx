@@ -1,5 +1,4 @@
 import {useRef, useState, type ReactNode} from 'react';
-import styled from '@emotion/styled';
 
 import {Button} from '@sentry/scraps/button';
 import {Flex} from '@sentry/scraps/layout';
@@ -46,10 +45,6 @@ import {TraceLayoutTabKeys} from 'sentry/views/performance/newTraceDetails/useTr
 import {getTraceDetailsUrl} from 'sentry/views/performance/traceDetails/utils';
 
 const VALUE_COLUMN_MIN_WIDTH = '50px';
-const StyledProjectBadge = styled(ProjectBadge)`
-  min-width: 0;
-  max-width: 100%;
-`;
 
 interface SampleTableRowProps {
   columns: SampleTableColumnKey[];
@@ -210,7 +205,7 @@ export function SampleTableRow({
   const renderProjectCell = () => {
     return (
       <Flex align="center" minWidth="0" width="100%">
-        <StyledProjectBadge
+        <ProjectBadge
           avatarSize={14}
           project={project ?? {slug: projectSlug}}
           disableLink
