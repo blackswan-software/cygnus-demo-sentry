@@ -12,6 +12,7 @@ from sentry.scm.private.providers.github import (
     GitHubProviderApiClient,
 )
 from sentry.scm.types import Referrer, Repository
+from sentry.utils import json
 from tests.sentry.scm.test_fixtures import (
     make_github_branch,
     make_github_check_run,
@@ -23,7 +24,6 @@ from tests.sentry.scm.test_fixtures import (
     make_github_git_commit_object,
     make_github_git_ref,
     make_github_git_tree,
-    make_github_multiline_review_comment,
     make_github_pull_request,
     make_github_pull_request_commit,
     make_github_pull_request_file,
@@ -54,6 +54,7 @@ class FakeResponse:
         url: str = "",
     ) -> None:
         self._payload = payload
+        self.content = json.dumps(payload).encode()
         self.headers = headers or {}
         self.status_code = status_code
         self.text = text if text is not None else ""
@@ -300,28 +301,19 @@ def expected_pull_request_commit(raw: dict[str, Any]) -> dict[str, Any]:
 def expected_review_comment(raw: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": str(raw["id"]),
-        "html_url": raw["html_url"],
-        "path": raw["path"],
+        "unique_id": raw["node_id"],
+        "url": raw["html_url"],
+        "file_path": raw["path"],
         "body": raw["body"],
-    }
-
-
-def expected_multiline_review_comment(raw: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "id": str(raw["id"]),
-        "node_id": raw.get("node_id"),
-        "html_url": raw["html_url"],
-        "path": raw["path"],
-        "body": raw["body"],
-        "author": None,
-        "created_at": raw.get("created_at"),
-        "diff_hunk": raw.get("diff_hunk"),
-        "pull_request_review_id": str(raw["pull_request_review_id"])
-        if raw.get("pull_request_review_id")
+        "author": {"id": str(raw["user"]["id"]), "username": raw["user"]["login"]}
+        if raw.get("user")
         else None,
-        "author_association": raw.get("author_association"),
-        "original_commit_id": raw.get("original_commit_id"),
-        "commit_id": raw.get("commit_id"),
+        "created_at": "2025-01-01T00:00:00+00:00",
+        "diff_hunk": raw["diff_hunk"],
+        "review_id": str(raw["pull_request_review_id"]),
+        "author_association": raw["author_association"],
+        "commit_sha": raw["original_commit_id"],
+        "head": raw["commit_id"],
     }
 
 
@@ -352,8 +344,7 @@ TREE_RAW = make_github_git_tree()
 GIT_COMMIT_OBJECT_RAW = make_github_git_commit_object()
 PULL_REQUEST_FILE_RAW = make_github_pull_request_file(previous_filename="src/old.py")
 PULL_REQUEST_COMMIT_RAW = make_github_pull_request_commit()
-REVIEW_COMMENT_RAW = make_github_review_comment()
-MULTILINE_REVIEW_COMMENT_RAW = make_github_multiline_review_comment()
+REVIEW_COMMENT_RAW = make_github_review_comment(user={"id": 42, "login": "testuser"})
 REVIEW_RAW = make_github_review()
 CHECK_RUN_RAW = make_github_check_run()
 
@@ -673,8 +664,8 @@ ACTION_CASES: list[dict[str, Any]] = [
             "side": "RIGHT",
             "start_line": 1,
         },
-        "raw": MULTILINE_REVIEW_COMMENT_RAW,
-        "expected_data": expected_multiline_review_comment(MULTILINE_REVIEW_COMMENT_RAW),
+        "raw": REVIEW_COMMENT_RAW,
+        "expected_data": expected_review_comment(REVIEW_COMMENT_RAW),
     },
     {
         "name": "create_review_comment_reply",

@@ -368,26 +368,17 @@ class ReviewComment(TypedDict):
     """Provider-agnostic representation of a review comment."""
 
     id: ResourceId
-    html_url: str | None
-    path: str
-    body: str
-
-
-class MultilineReviewComment(TypedDict):
-    """Provider-agnostic representation of a multiline review comment."""
-
-    id: ResourceId
-    node_id: str | None
-    html_url: str | None
-    path: str
+    unique_id: str | None
+    url: str | None
+    file_path: str
     body: str
     author: Author | None
     created_at: str | None
     diff_hunk: str | None
-    pull_request_review_id: ResourceId | None
+    review_id: ResourceId | None
     author_association: str | None
-    original_commit_id: str | None
-    commit_id: str | None
+    commit_sha: str | None
+    head: str | None
 
 
 class Review(TypedDict):
@@ -1063,7 +1054,7 @@ class CreateReviewCommentMultilineProtocol(Protocol):
         side: ReviewSide,
         start_line: int,
         end_line: int,
-    ) -> ActionResult[MultilineReviewComment]: ...
+    ) -> ActionResult[ReviewComment]: ...
 
 
 @runtime_checkable

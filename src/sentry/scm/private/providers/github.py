@@ -4,10 +4,12 @@ from datetime import datetime
 from email.utils import format_datetime, parsedate_to_datetime
 from typing import Any, cast
 
+import msgspec
 import requests
 
 from sentry.integrations.github.client import GitHubApiClient
 from sentry.scm.errors import SCMProviderException
+from sentry.scm.private.github.types import GitHubPullRequestReviewComment
 from sentry.scm.private.rate_limit import (
     DynamicRateLimiter,
     RateLimitProvider,
@@ -35,7 +37,6 @@ from sentry.scm.types import (
     GitRef,
     GitTree,
     InputTreeEntry,
-    MultilineReviewComment,
     PaginatedActionResult,
     PaginatedResponseMeta,
     PaginationParams,
@@ -811,7 +812,7 @@ class GitHubProvider:
                 "subject_type": "file",
             },
         )
-        return map_action(response, map_review_comment)
+        return deserialize_action(response, deserialize_pull_request_review_comment)
 
     def create_review_comment_multiline(
         self,
@@ -822,7 +823,7 @@ class GitHubProvider:
         side: ReviewSide,
         start_line: int,
         end_line: int,
-    ) -> ActionResult[MultilineReviewComment]:
+    ) -> ActionResult[ReviewComment]:
         """Leave a review comment on a line span."""
         response = self.client.post(
             f"/repos/{self.repository['name']}/pulls/{pull_request_id}/comments",
@@ -835,9 +836,7 @@ class GitHubProvider:
                 "start_line": start_line,
             },
         )
-        return map_action(response, map_multiline_review_comment)
-
-    # create_review_comment_line: not supported
+        return deserialize_action(response, deserialize_pull_request_review_comment)
 
     def create_review_comment_reply(
         self,
@@ -853,7 +852,7 @@ class GitHubProvider:
                 "in_reply_to": int(comment_id),
             },
         )
-        return map_action(response, map_review_comment)
+        return deserialize_action(response, deserialize_pull_request_review_comment)
 
     def create_review(
         self,
@@ -1087,25 +1086,6 @@ def map_review_comment(raw: dict[str, Any]) -> ReviewComment:
     )
 
 
-def map_multiline_review_comment(raw: dict[str, Any]) -> MultilineReviewComment:
-    return MultilineReviewComment(
-        id=str(raw["id"]),
-        node_id=raw.get("node_id"),
-        html_url=raw["html_url"],
-        path=raw["path"],
-        body=raw["body"],
-        author=map_author(raw.get("user")),
-        created_at=raw.get("created_at"),
-        diff_hunk=raw.get("diff_hunk"),
-        pull_request_review_id=str(raw["pull_request_review_id"])
-        if raw.get("pull_request_review_id")
-        else None,
-        author_association=raw.get("author_association"),
-        original_commit_id=raw.get("original_commit_id"),
-        commit_id=raw.get("commit_id"),
-    )
-
-
 def map_review(raw: dict[str, Any]) -> Review:
     return Review(
         id=str(raw["id"]),
@@ -1188,4 +1168,31 @@ def map_paginated_action[T](
         "type": "github",
         "raw": {"data": raw, "headers": dict(response.headers)},
         "meta": meta,
+    }
+
+
+def deserialize_action[T](response: requests.Response, fn: Callable[[bytes], T]) -> ActionResult[T]:
+    return {
+        "data": fn(response.content),
+        "type": "github",
+        "raw": {"data": response.json(), "headers": dict(response.headers)},
+        "meta": _extract_response_meta(response),
+    }
+
+
+def deserialize_pull_request_review_comment(content: bytes) -> ReviewComment:
+    comment = msgspec.json.decode(content, type=GitHubPullRequestReviewComment)
+    return {
+        "author_association": comment.author_association,
+        "author": {"id": str(comment.user.id), "username": comment.user.login},
+        "body": comment.body,
+        "commit_sha": comment.original_commit_id,
+        "created_at": comment.created_at.isoformat(),
+        "diff_hunk": comment.diff_hunk,
+        "file_path": comment.path,
+        "head": comment.commit_id,
+        "id": str(comment.id),
+        "review_id": str(comment.pull_request_review_id),
+        "unique_id": comment.node_id,
+        "url": comment.html_url,
     }

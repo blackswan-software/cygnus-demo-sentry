@@ -467,21 +467,15 @@ def _check_created_reaction(result: Any) -> None:
 def _check_review_comment(result: Any) -> None:
     rc = result["data"]
     assert rc["id"] == "100"
+    assert rc["unique_id"] == "PRRC_abc123"
+    assert rc["url"] == "https://github.com/test-org/test-repo/pull/1#discussion_r100"
     assert rc["body"] == "comment"
-    assert result["type"] == "github"
-
-
-def _check_multiline_review_comment(result: Any) -> None:
-    rc = result["data"]
-    assert rc["id"] == "100"
-    assert rc["body"] == "comment"
-    assert rc["node_id"] == "PRRC_abc123"
     assert rc["created_at"] == "2025-01-01T00:00:00Z"
     assert rc["diff_hunk"] == "@@ -1,5 +1,5 @@"
-    assert rc["pull_request_review_id"] == "500"
+    assert rc["review_id"] == "500"
     assert rc["author_association"] == "MEMBER"
-    assert rc["original_commit_id"] == "orig123"
-    assert rc["commit_id"] == "abc123"
+    assert rc["commit_sha"] == "orig123"
+    assert rc["head"] == "abc123"
     assert result["type"] == "github"
 
 
@@ -657,7 +651,7 @@ ACTION_TESTS: tuple[tuple[Callable[..., Any], dict[str, Any], Callable[..., Any]
             "start_line": 1,
             "end_line": 5,
         },
-        _check_multiline_review_comment,
+        _check_review_comment,
     ),
     (
         create_review_comment_reply,

@@ -21,7 +21,6 @@ from sentry.scm.types import (
     GitRef,
     GitTree,
     InputTreeEntry,
-    MultilineReviewComment,
     PaginatedActionResult,
     PaginatedResponseMeta,
     PaginationParams,
@@ -301,34 +300,20 @@ def make_github_pull_request_commit(
 
 def make_github_review_comment(
     comment_id: int = 100,
-    html_url: str = "https://github.com/test-org/test-repo/pull/1#discussion_r100",
-    path: str = "src/main.py",
-    body: str = "Looks good",
-) -> dict[str, Any]:
-    """Factory for GitHub review comment API responses."""
-    return {
-        "id": comment_id,
-        "html_url": html_url,
-        "path": path,
-        "body": body,
-    }
-
-
-def make_github_multiline_review_comment(
-    comment_id: int = 100,
     node_id: str = "PRRC_abc123",
     html_url: str = "https://github.com/test-org/test-repo/pull/1#discussion_r100",
     path: str = "src/main.py",
     body: str = "Looks good",
     user: dict[str, Any] | None = None,
     created_at: str = "2025-01-01T00:00:00Z",
+    updated_at: str = "2025-01-01T00:00:00Z",
     diff_hunk: str = "@@ -1,5 +1,5 @@",
-    pull_request_review_id: int | None = 500,
+    pull_request_review_id: int = 500,
     author_association: str = "MEMBER",
     original_commit_id: str = "orig123",
     commit_id: str = "abc123",
 ) -> dict[str, Any]:
-    """Factory for GitHub multiline review comment API responses."""
+    """Factory for GitHub review comment API responses."""
     return {
         "id": comment_id,
         "node_id": node_id,
@@ -337,6 +322,7 @@ def make_github_multiline_review_comment(
         "body": body,
         "user": user,
         "created_at": created_at,
+        "updated_at": updated_at,
         "diff_hunk": diff_hunk,
         "pull_request_review_id": pull_request_review_id,
         "author_association": author_association,
@@ -498,6 +484,23 @@ def make_github_graphql_pr_comments_response(
 
 
 _DEFAULT_PAGINATED_META: PaginatedResponseMeta = PaginatedResponseMeta(next_cursor=None)
+
+
+def _make_review_comment_data(raw: dict[str, Any]) -> ReviewComment:
+    return ReviewComment(
+        id=str(raw["id"]),
+        unique_id=raw.get("node_id"),
+        url=raw["html_url"],
+        file_path=raw["path"],
+        body=raw["body"],
+        author=None,
+        created_at=raw.get("created_at"),
+        diff_hunk=raw.get("diff_hunk"),
+        review_id=str(raw["pull_request_review_id"]) if raw.get("pull_request_review_id") else None,
+        author_association=raw.get("author_association"),
+        commit_sha=raw.get("original_commit_id"),
+        head=raw.get("commit_id"),
+    )
 
 
 class BaseTestProvider(Provider):
@@ -1118,12 +1121,7 @@ class BaseTestProvider(Provider):
     ) -> ActionResult[ReviewComment]:
         raw = make_github_review_comment(body=body, path=path)
         return ActionResult(
-            data=ReviewComment(
-                id=str(raw["id"]),
-                html_url=raw["html_url"],
-                path=raw["path"],
-                body=raw["body"],
-            ),
+            data=_make_review_comment_data(raw),
             type="github",
             raw={"headers": None, "data": raw},
             meta={},
@@ -1138,25 +1136,10 @@ class BaseTestProvider(Provider):
         side: ReviewSide,
         start_line: int,
         end_line: int,
-    ) -> ActionResult[MultilineReviewComment]:
-        raw = make_github_multiline_review_comment(body=body, path=path)
+    ) -> ActionResult[ReviewComment]:
+        raw = make_github_review_comment(body=body, path=path)
         return ActionResult(
-            data=MultilineReviewComment(
-                id=str(raw["id"]),
-                node_id=raw.get("node_id"),
-                html_url=raw["html_url"],
-                path=raw["path"],
-                body=raw["body"],
-                author=None,
-                created_at=raw.get("created_at"),
-                diff_hunk=raw.get("diff_hunk"),
-                pull_request_review_id=str(raw["pull_request_review_id"])
-                if raw.get("pull_request_review_id")
-                else None,
-                author_association=raw.get("author_association"),
-                original_commit_id=raw.get("original_commit_id"),
-                commit_id=raw.get("commit_id"),
-            ),
+            data=_make_review_comment_data(raw),
             type="github",
             raw={"headers": None, "data": raw},
             meta={},
@@ -1170,12 +1153,7 @@ class BaseTestProvider(Provider):
     ) -> ActionResult[ReviewComment]:
         raw = make_github_review_comment(body=body)
         return ActionResult(
-            data=ReviewComment(
-                id=str(raw["id"]),
-                html_url=raw["html_url"],
-                path=raw["path"],
-                body=raw["body"],
-            ),
+            data=_make_review_comment_data(raw),
             type="github",
             raw={"headers": None, "data": raw},
             meta={},
