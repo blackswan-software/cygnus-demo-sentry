@@ -50,6 +50,15 @@ describe('MetricSelector', () => {
         {key: 'release', type: 'string'},
       ],
     });
+
+    MockApiClient.addMockResponse({
+      url: `/organizations/${organization.slug}/trace-items/attributes/`,
+      method: 'GET',
+      body: [
+        {key: 'device.name', type: 'string'},
+        {key: 'release', type: 'string'},
+      ],
+    });
   });
 
   afterEach(() => {
@@ -296,6 +305,14 @@ describe('MetricSelector', () => {
 
       // Simulate search that narrows the list by re-mocking with fewer results
       MockApiClient.clearMockResponses();
+      MockApiClient.addMockResponse({
+        url: `/organizations/${organization.slug}/trace-items/attributes/`,
+        method: 'GET',
+        body: [
+          {key: 'device.name', type: 'string'},
+          {key: 'release', type: 'string'},
+        ],
+      });
       setupEventsMock(
         createTraceMetricFixtures(organization, project, new Date()).baseFixtures.slice(
           0,
