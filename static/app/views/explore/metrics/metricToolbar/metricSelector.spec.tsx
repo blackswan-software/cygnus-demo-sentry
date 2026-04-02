@@ -441,26 +441,9 @@ describe('MetricSelector', () => {
       expect(within(requestCountOption).queryByText('none')).not.toBeInTheDocument();
     });
 
-    it('does not show side panel without tracemetrics-attributes-dropdown-side-panel feature', async () => {
+    it('renders side panel', async () => {
       render(<MetricSelector traceMetric={DEFAULT_TRACE_METRIC} onChange={jest.fn()} />, {
         organization,
-      });
-
-      await userEvent.click(screen.getByRole('button', {name: 'bar'}));
-      await screen.findByRole('option', {name: 'bar'});
-
-      expect(screen.queryByText('Type')).not.toBeInTheDocument();
-    });
-
-    it('renders side panel with tracemetrics-attributes-dropdown-side-panel feature', async () => {
-      render(<MetricSelector traceMetric={DEFAULT_TRACE_METRIC} onChange={jest.fn()} />, {
-        organization: {
-          ...organization,
-          features: [
-            ...organization.features,
-            'tracemetrics-attributes-dropdown-side-panel',
-          ],
-        },
       });
 
       await userEvent.click(screen.getByRole('button', {name: 'bar'}));
@@ -473,13 +456,7 @@ describe('MetricSelector', () => {
 
     it('side panel defaults to current metric when no option is hovered', async () => {
       render(<MetricSelector traceMetric={DEFAULT_TRACE_METRIC} onChange={jest.fn()} />, {
-        organization: {
-          ...organization,
-          features: [
-            ...organization.features,
-            'tracemetrics-attributes-dropdown-side-panel',
-          ],
-        },
+        organization,
       });
 
       await userEvent.click(screen.getByRole('button', {name: 'bar'}));
@@ -491,13 +468,7 @@ describe('MetricSelector', () => {
 
     it('shows attributes section in side panel', async () => {
       render(<MetricSelector traceMetric={DEFAULT_TRACE_METRIC} onChange={jest.fn()} />, {
-        organization: {
-          ...organization,
-          features: [
-            ...organization.features,
-            'tracemetrics-attributes-dropdown-side-panel',
-          ],
-        },
+        organization,
       });
 
       await userEvent.click(screen.getByRole('button', {name: 'bar'}));
@@ -509,13 +480,7 @@ describe('MetricSelector', () => {
 
     it('side panel updates when hovering over a different metric option', async () => {
       render(<MetricSelector traceMetric={DEFAULT_TRACE_METRIC} onChange={jest.fn()} />, {
-        organization: {
-          ...organization,
-          features: [
-            ...organization.features,
-            'tracemetrics-attributes-dropdown-side-panel',
-          ],
-        },
+        organization,
       });
 
       await userEvent.click(screen.getByRole('button', {name: 'bar'}));
