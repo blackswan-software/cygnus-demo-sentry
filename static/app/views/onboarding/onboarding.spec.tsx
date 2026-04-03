@@ -22,11 +22,14 @@ import {
   useOnboardingContext,
 } from 'sentry/components/onboarding/onboardingContext';
 import * as useRecentCreatedProjectHook from 'sentry/components/onboarding/useRecentCreatedProject';
+import {HookStore} from 'sentry/stores/hookStore';
 import {OnboardingDrawerStore} from 'sentry/stores/onboardingDrawerStore';
 import {ProjectsStore} from 'sentry/stores/projectsStore';
 import {TeamStore} from 'sentry/stores/teamStore';
 import type {PlatformKey} from 'sentry/types/project';
 import {trackAnalytics} from 'sentry/utils/analytics';
+import type {UseExperimentOptions} from 'sentry/utils/useExperiment';
+import {useOrganization} from 'sentry/utils/useOrganization';
 import {OnboardingWithoutContext} from 'sentry/views/onboarding/onboarding';
 
 jest.mock('sentry/utils/analytics');
@@ -630,7 +633,7 @@ describe('Onboarding', () => {
 
   describe('SCM onboarding flow', () => {
     const scmOrganization = OrganizationFixture({
-      features: ['onboarding-scm'],
+      experiments: {'onboarding-scm-experiment': 'active'},
     });
 
     const githubProvider = GitHubIntegrationProviderFixture({
@@ -646,7 +649,19 @@ describe('Onboarding', () => {
       link: 'https://docs.sentry.io/platforms/javascript/guides/nextjs/',
     };
 
+    // In production, gsApp's registerHooks() registers the real useExperiment
+    // hook into HookStore. That doesn't run in tests, so useExperiment falls
+    // back to a noop that always returns inExperiment: false. We register a
+    // minimal implementation here (can't import the real one due to boundary
+    // lint rules).
+    function useTestExperiment(options: UseExperimentOptions) {
+      const organization = useOrganization();
+      const assignment = organization.experiments?.[options.feature] ?? 'control';
+      return {inExperiment: assignment === 'active', experimentAssignment: assignment};
+    }
+
     beforeEach(() => {
+      HookStore.add('react-hook:use-experiment', useTestExperiment);
       MockApiClient.addMockResponse({
         url: `/organizations/${scmOrganization.slug}/config/integrations/`,
         body: {providers: [githubProvider]},
@@ -659,6 +674,10 @@ describe('Onboarding', () => {
         url: `/organizations/${scmOrganization.slug}/repos/`,
         body: [],
       });
+    });
+
+    afterEach(() => {
+      HookStore.remove('react-hook:use-experiment', useTestExperiment);
     });
 
     function renderOnboarding(
