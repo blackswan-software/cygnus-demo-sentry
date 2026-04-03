@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from sentry_protos.billing.v1.services.usage.v1.endpoint_orgs_with_usage_pb2 import (
+    GetOrgsWithUsageRequest,
+    GetOrgsWithUsageResponse,
+)
 from sentry_protos.billing.v1.services.usage.v1.endpoint_usage_pb2 import (
     GetUsageRequest,
     GetUsageResponse,
