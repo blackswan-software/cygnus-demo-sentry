@@ -100,9 +100,7 @@ def generate_summary_and_run_automation(group_id: int, **kwargs) -> None:
             )
         )
 
-    _summary_data, status_code, event = get_issue_summary(
-        group=group, source=SeerAutomationSource.POST_PROCESS
-    )
+    _, status_code, event = get_issue_summary(group=group, source=SeerAutomationSource.POST_PROCESS)
     if status_code == 200 and event is not None:
         try:
             run_automation(group, AnonymousUser(), event, SeerAutomationSource.POST_PROCESS)
