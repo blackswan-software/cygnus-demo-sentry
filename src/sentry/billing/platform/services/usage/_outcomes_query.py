@@ -59,22 +59,19 @@ def query_orgs_with_usage(request: GetOrgsWithUsageRequest) -> GetOrgsWithUsageR
     end = _timestamp_to_datetime(request.end) + timedelta(days=1)
     categories = [proto_to_relay_category(c) for c in request.categories]
 
-    limit = request.limit if request.HasField("limit") else _QUERY_LIMIT
     offset = request.page_token.offset if request.HasField("page_token") else 0
 
-    snuba_request = _build_query(
-        org_id=None,
+    snuba_request = _build_orgs_query(
         start=start,
         end=end,
         categories=categories,
-        total_outcomes=_BILLABLE_OUTCOMES,
-        limit=limit + 1,
+        limit=request.limit + 1,
         offset=offset,
     )
     result = raw_snql_query(snuba_request, referrer=_REFERRER)
     rows = result["data"]
 
-    has_more = len(rows) > limit
+    has_more = len(rows) > request.limit
     if has_more:
         rows.pop()
 
@@ -82,7 +79,7 @@ def query_orgs_with_usage(request: GetOrgsWithUsageRequest) -> GetOrgsWithUsageR
         organization_ids=[int(row["org_id"]) for row in rows],
     )
     if has_more:
-        response.page_token.CopyFrom(PageToken(offset=offset + limit))
+        response.page_token.CopyFrom(PageToken(offset=offset + request.limit))
 
     return response
 
@@ -117,8 +114,44 @@ def query_outcomes_usage(request: GetUsageRequest) -> GetUsageResponse:
     return _build_response(rows)
 
 
+def _build_orgs_query(
+    start: datetime,
+    end: datetime,
+    categories: Sequence[int],
+    *,
+    limit: int,
+    offset: int = 0,
+) -> Request:
+    """Build a query that returns distinct org_ids with billable usage."""
+    where = [
+        Condition(Column("timestamp"), Op.GTE, start),
+        Condition(Column("timestamp"), Op.LT, end),
+        Condition(Column("outcome"), Op.IN, list(_BILLABLE_OUTCOMES)),
+    ]
+    if categories:
+        where.append(Condition(Column("category"), Op.IN, categories))
+
+    query = Query(
+        match=Entity("outcomes"),
+        select=[Column("org_id")],
+        groupby=[Column("org_id")],
+        where=where,
+        orderby=[OrderBy(Column("org_id"), Direction.ASC)],
+        granularity=Granularity(_DAILY_GRANULARITY),
+        limit=Limit(limit),
+        offset=Offset(offset),
+    )
+
+    return Request(
+        dataset=_DATASET,
+        app_id=_APP_ID,
+        query=query,
+        tenant_ids={},
+    )
+
+
 def _build_query(
-    org_id: int | None,
+    org_id: int,
     start: datetime,
     end: datetime,
     categories: Sequence[int],
@@ -133,9 +166,8 @@ def _build_query(
     where = [
         Condition(Column("timestamp"), Op.GTE, start),
         Condition(Column("timestamp"), Op.LT, end),
+        Condition(Column("org_id"), Op.EQ, org_id),
     ]
-    if org_id is not None:
-        where.append(Condition(Column("org_id"), Op.EQ, org_id))
     if categories:
         where.append(Condition(Column("category"), Op.IN, categories))
 
@@ -192,15 +224,10 @@ def _build_query(
         ),
     ]
 
-    groupby = [Column("category"), Column("time")]
-    if org_id is None:
-        select.insert(0, Column("org_id"))
-        groupby.insert(0, Column("org_id"))
-
     query = Query(
         match=Entity("outcomes"),
         select=select,
-        groupby=groupby,
+        groupby=[Column("category"), Column("time")],
         where=where,
         orderby=[OrderBy(Column("time"), Direction.ASC)],
         granularity=Granularity(_DAILY_GRANULARITY),
@@ -208,15 +235,11 @@ def _build_query(
         offset=Offset(offset),
     )
 
-    tenant_ids: dict[str, int] = {}
-    if org_id is not None:
-        tenant_ids["organization_id"] = org_id
-
     return Request(
         dataset=_DATASET,
         app_id=_APP_ID,
         query=query,
-        tenant_ids=tenant_ids,
+        tenant_ids={"organization_id": org_id},
     )
 
 
