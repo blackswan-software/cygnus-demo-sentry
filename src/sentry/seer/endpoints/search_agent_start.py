@@ -66,7 +66,7 @@ def send_search_agent_start_request(
     strategy: str = "Traces",
     user_email: str | None = None,
     timezone: str | None = None,
-    model_name: str | None = None,
+    options: dict[str, Any] | None = None,
     viewer_context: SeerViewerContext | None = None,
 ) -> dict[str, Any]:
     """
@@ -83,10 +83,6 @@ def send_search_agent_start_request(
         body["user_email"] = user_email
     if timezone:
         body["timezone"] = timezone
-
-    options: dict[str, Any] = {}
-    if model_name is not None:
-        options["model_name"] = model_name
     if options:
         body["options"] = options
 
@@ -128,16 +124,22 @@ class SearchAgentStartEndpoint(OrganizationEndpoint):
         natural_language_query = validated_data["natural_language_query"]
         strategy = validated_data.get("strategy", "Traces")
         options = validated_data.get("options") or {}
-        model_name = options.get("model_name")
 
         projects = self.get_projects(
             request, organization, project_ids=set(validated_data["project_ids"])
         )
         project_ids = [project.id for project in projects]
 
-        if not features.has(
+        has_feature = features.has(
             "organizations:gen-ai-search-agent-translate", organization, actor=request.user
-        ):
+        )
+        if strategy == "Metrics":
+            has_feature = has_feature or features.has(
+                "organizations:gen-ai-explore-metrics-search",
+                organization,
+                actor=request.user,
+            )
+        if not has_feature:
             return Response(
                 {"detail": "Feature flag not enabled"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -173,7 +175,7 @@ class SearchAgentStartEndpoint(OrganizationEndpoint):
                 strategy=strategy,
                 user_email=user_email,
                 timezone=timezone,
-                model_name=model_name,
+                options=options if options else None,
                 viewer_context=viewer_context,
             )
 
