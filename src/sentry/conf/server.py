@@ -391,6 +391,7 @@ MIDDLEWARE: tuple[str, ...] = (
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "sentry.middleware.auth.AuthenticationMiddleware",
+    "sentry.middleware.viewer_context.ViewerContextMiddleware",
     "sentry.middleware.ai_agent.AIAgentMiddleware",
     "sentry.middleware.integrations.IntegrationControlMiddleware",
     APIGW_MIDDLEWARE,
@@ -3271,9 +3272,6 @@ if SILO_DEVSERVER:
         }
     ]
     SENTRY_MONOLITH_REGION = SENTRY_CELLS[0]["name"]
-
-    # TODO(cells): remove after getsentry updated
-    SENTRY_REGION_CONFIG = SENTRY_CELLS
 
     # Cross region RPC authentication
     RPC_SHARED_SECRET = [

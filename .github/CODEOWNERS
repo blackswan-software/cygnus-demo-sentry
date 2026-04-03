@@ -345,6 +345,7 @@ tests/sentry/api/endpoints/test_organization_attribute_mappings.py          @get
 /static/app/views/performance/                                            @getsentry/data-browsing
 /static/app/components/performance/                                       @getsentry/data-browsing
 /static/app/utils/performance/                                            @getsentry/data-browsing
+/static/app/components/events/groupingInfo                                @getsentry/data-browsing
 /static/app/components/events/interfaces/spans/                           @getsentry/data-browsing
 /static/app/components/events/viewHierarchy/*                             @getsentry/data-browsing
 /static/app/components/searchQueryBuilder/                                @getsentry/data-browsing
@@ -434,6 +435,7 @@ tests/sentry/api/endpoints/test_organization_attribute_mappings.py          @get
 ## Frontend
 /static/app/components/analyticsArea.spec.tsx  @getsentry/app-frontend
 /static/app/components/analyticsArea.tsx       @getsentry/app-frontend
+/static/app/components/loading/                @getsentry/app-frontend
 /static/app/components/events/interfaces/      @getsentry/app-frontend
 /static/app/components/forms/                  @getsentry/app-frontend
 /static/app/locale.tsx                         @getsentry/app-frontend
@@ -624,6 +626,8 @@ tests/sentry/api/endpoints/test_organization_attribute_mappings.py          @get
 /tests/sentry/tasks/seer/                                   @getsentry/machine-learning-ai
 /src/sentry/viewer_context.py                               @getsentry/machine-learning-ai
 /tests/sentry/test_viewer_context.py                        @getsentry/machine-learning-ai
+/src/sentry/middleware/viewer_context.py                     @getsentry/machine-learning-ai
+/tests/sentry/middleware/test_viewer_context.py              @getsentry/machine-learning-ai
 ## End of ML & AI
 
 ## Issues
