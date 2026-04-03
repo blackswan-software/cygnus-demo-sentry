@@ -129,7 +129,6 @@ export function ExternalIssueForm({
 
   const [hasTrackedLoad, setHasTrackedLoad] = useState(false);
   const [loadSpan, setLoadSpan] = useState<Span | null>(null);
-  const [submitSpan, setSubmitSpan] = useState<Span | null>(null);
   const [action, setAction] = useState<ExternalIssueAction>('create');
   const [isDynamicallyRefetching, setIsDynamicallyRefetching] = useState(false);
 
@@ -264,7 +263,7 @@ export function ExternalIssueForm({
 
   const handleSubmit = useCallback(
     async (values: Record<string, unknown>) => {
-      setSubmitSpan(startSpan('submit'));
+      const span = startSpan('submit');
       try {
         const data: IntegrationExternalIssue = await api.requestPromise(endpointString, {
           method: action === 'create' ? 'POST' : 'PUT',
@@ -279,10 +278,10 @@ export function ExternalIssueForm({
         addSuccessMessage(MESSAGES_BY_ACTION[action]);
         onChange();
         closeModal();
-        submitSpan?.end();
+        span?.end();
         return data;
       } catch (err) {
-        submitSpan?.end();
+        span?.end();
         throw err;
       }
     },
@@ -293,7 +292,6 @@ export function ExternalIssueForm({
       organization,
       group,
       integration,
-      submitSpan,
       startSpan,
       closeModal,
       onChange,
