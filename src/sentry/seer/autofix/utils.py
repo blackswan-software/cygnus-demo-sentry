@@ -654,8 +654,10 @@ def build_automation_handoff(
     handoff_point = get_option("sentry:seer_automation_handoff_point")
     handoff_target = get_option("sentry:seer_automation_handoff_target")
     handoff_integration_id = get_option("sentry:seer_automation_handoff_integration_id")
+
     if handoff_point is None or handoff_target is None or handoff_integration_id is None:
         return None
+
     return SeerAutomationHandoffConfiguration(
         handoff_point=handoff_point,
         target=handoff_target,
@@ -676,19 +678,13 @@ def read_preference_from_sentry_db(project: Project) -> SeerProjectPreference | 
         for project_repo in seer_project_repo_qs
     ]
 
-    if (
-        not repo_definitions
-        and not ProjectOption.objects.filter(
-            project=project, key__in=SEER_PREFERENCE_OPTION_KEYS
-        ).exists()
-    ):
-        return None
-
     return SeerProjectPreference(
         organization_id=project.organization_id,
         project_id=project.id,
         repositories=repo_definitions,
-        automated_run_stopping_point=project.get_option("sentry:seer_automated_run_stopping_point"),
+        automated_run_stopping_point=project.get_option(
+            "sentry:seer_automated_run_stopping_point", SEER_AUTOMATED_RUN_STOPPING_POINT_DEFAULT
+        ),
         automation_handoff=build_automation_handoff(project.get_option),
     )
 
@@ -727,9 +723,9 @@ def bulk_read_preferences_from_sentry_db(
 
         def get_option(key: str) -> Any:
             value = project_options[key][project.id]
-            if value is not None:
-                return value
-            return projectoptions.lookup_well_known_key(key).default
+            if value is None:
+                return projectoptions.lookup_well_known_key(key).default
+            return value
 
         result[project.id] = SeerProjectPreference(
             organization_id=project.organization_id,
