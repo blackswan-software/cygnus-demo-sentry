@@ -112,6 +112,11 @@ interface AskSeerPollingComboBoxProps<T extends QueryTokensProps> extends Omit<
    */
   fallbackMutationOptions?: UseMutationOptions<any, Error, string>;
   /**
+   * Optional key-value options to pass to the search agent start endpoint.
+   * Used for strategy-specific context (e.g., metric name/type/unit for Metrics).
+   */
+  options?: Record<string, unknown>;
+  /**
    * Transform the final response from the polling API to the expected format.
    * This allows customization of how the response is converted to query items.
    */
@@ -126,6 +131,7 @@ export function AskSeerPollingComboBox<T extends QueryTokensProps>({
   strategy,
   transformResponse,
   fallbackMutationOptions,
+  options: extraOptions,
   ...props
 }: AskSeerPollingComboBoxProps<T>) {
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -167,6 +173,7 @@ export function AskSeerPollingComboBox<T extends QueryTokensProps>({
   } = useAskSeerPolling<T>({
     projectIds,
     strategy,
+    options: extraOptions,
     onError: error => {
       addErrorMessage(t('Failed to process AI query: %(error)s', {error: error.message}));
       trackAnalytics('ai_query.error', {
