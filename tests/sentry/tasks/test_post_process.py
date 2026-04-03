@@ -3074,7 +3074,7 @@ class KickOffSeerAutomationTestMixin(BasePostProcessGroupMixin):
 class TriageSignalsV0TestMixin(BasePostProcessGroupMixin):
     """Tests for the triage signals V0 flow."""
 
-    @patch("sentry.tasks.seer.autofix.generate_issue_summary_only.delay")
+    @patch("sentry.tasks.seer.autofix.generate_summary_and_fixability_score.delay")
     @with_feature({"organizations:gen-ai-features": True})
     def test_triage_signals_event_count_less_than_10_no_cache(
         self, mock_generate_summary_only, mock_seat_based_tier
@@ -3099,10 +3099,10 @@ class TriageSignalsV0TestMixin(BasePostProcessGroupMixin):
             event=event,
         )
 
-        # Should call generate_issue_summary_only (not generate_summary_and_run_automation)
+        # Should call generate_summary_and_fixability_score (not generate_summary_and_run_automation)
         mock_generate_summary_only.assert_called_once_with(group.id)
 
-    @patch("sentry.tasks.seer.autofix.generate_issue_summary_only.delay")
+    @patch("sentry.tasks.seer.autofix.generate_summary_and_fixability_score.delay")
     @with_feature({"organizations:gen-ai-features": True})
     def test_triage_signals_event_count_less_than_10_with_cache(
         self, mock_generate_summary_only, mock_seat_based_tier

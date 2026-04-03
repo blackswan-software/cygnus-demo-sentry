@@ -22,7 +22,7 @@ class GroupAiSummaryEndpointTest(APITestCase, SnubaTestCase):
     @patch("sentry.seer.endpoints.group_ai_summary.get_issue_summary")
     def test_endpoint_calls_get_issue_summary(self, mock_get_issue_summary: MagicMock) -> None:
         mock_summary_data = {"headline": "Test headline"}
-        mock_get_issue_summary.return_value = (mock_summary_data, 200)
+        mock_get_issue_summary.return_value = (mock_summary_data, 200, None)
 
         response = self.client.post(self.url, data={"event_id": "test_event_id"}, format="json")
 
@@ -38,7 +38,7 @@ class GroupAiSummaryEndpointTest(APITestCase, SnubaTestCase):
     @patch("sentry.seer.endpoints.group_ai_summary.get_issue_summary")
     def test_endpoint_without_event_id(self, mock_get_issue_summary: MagicMock) -> None:
         mock_summary_data = {"headline": "Test headline"}
-        mock_get_issue_summary.return_value = (mock_summary_data, 200)
+        mock_get_issue_summary.return_value = (mock_summary_data, 200, None)
 
         response = self.client.post(self.url, format="json")
 

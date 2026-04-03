@@ -74,7 +74,9 @@ def check_autofix_status(run_id: int, organization_id: int) -> None:
     retry=Retry(times=1),
 )
 def generate_summary_and_run_automation(group_id: int, **kwargs) -> None:
-    from sentry.seer.autofix.issue_summary import get_issue_summary
+    from django.contrib.auth.models import AnonymousUser
+
+    from sentry.seer.autofix.issue_summary import get_issue_summary, run_automation
 
     trigger_path = kwargs.get("trigger_path", "unknown")
     sentry_sdk.set_tag("trigger_path", trigger_path)
@@ -98,7 +100,17 @@ def generate_summary_and_run_automation(group_id: int, **kwargs) -> None:
             )
         )
 
-    get_issue_summary(group=group, source=SeerAutomationSource.POST_PROCESS)
+    _summary_data, status_code, event = get_issue_summary(
+        group=group, source=SeerAutomationSource.POST_PROCESS
+    )
+    if status_code == 200 and event is not None:
+        try:
+            run_automation(group, AnonymousUser(), event, SeerAutomationSource.POST_PROCESS)
+        except Exception:
+            logger.exception(
+                "Error auto-triggering autofix from issue summary",
+                extra={"group_id": group.id},
+            )
 
 
 @instrumented_task(
@@ -107,7 +119,7 @@ def generate_summary_and_run_automation(group_id: int, **kwargs) -> None:
     processing_deadline_duration=35,
     retry=Retry(times=3, delay=3, on=(Exception,)),
 )
-def generate_issue_summary_only(group_id: int) -> None:
+def generate_summary_and_fixability_score(group_id: int) -> None:
     """
     Generate issue summary WITHOUT triggering automation.
     Used for triage signals flow when event count < AUTOFIX_AUTOMATION_OCCURRENCE_THRESHOLD or when summary doesn't exist yet.
@@ -137,9 +149,7 @@ def generate_issue_summary_only(group_id: int) -> None:
         )
 
     # Generate and cache the summary
-    get_issue_summary(
-        group=group, source=SeerAutomationSource.POST_PROCESS, should_run_automation=False
-    )
+    get_issue_summary(group=group, source=SeerAutomationSource.POST_PROCESS)
 
     get_and_update_group_fixability_score(group, force_generate=True)
 

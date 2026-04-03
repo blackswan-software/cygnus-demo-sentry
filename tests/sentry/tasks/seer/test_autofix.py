@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -13,7 +14,8 @@ from sentry.seer.models.project_repository import SeerProjectRepository
 from sentry.tasks.seer.autofix import (
     check_autofix_status,
     configure_seer_for_existing_org,
-    generate_issue_summary_only,
+    generate_summary_and_fixability_score,
+    generate_summary_and_run_automation,
 )
 from sentry.testutils.cases import TestCase as SentryTestCase
 from sentry.utils.cache import cache
@@ -127,6 +129,7 @@ class TestGenerateIssueSummaryOnly(SentryTestCase):
                 "possibleCause": "Test cause",
             },
             200,
+            None,
         )
         mock_generate_fixability.return_value = SummarizeIssueResponse(
             group_id=str(group.id),
@@ -137,15 +140,59 @@ class TestGenerateIssueSummaryOnly(SentryTestCase):
             scores=SummarizeIssueScores(fixability_score=0.75),
         )
 
-        generate_issue_summary_only(group.id)
+        generate_summary_and_fixability_score(group.id)
 
         mock_get_issue_summary.assert_called_once_with(
-            group=group, source=SeerAutomationSource.POST_PROCESS, should_run_automation=False
+            group=group, source=SeerAutomationSource.POST_PROCESS
         )
         mock_generate_fixability.assert_called_once()
 
         group.refresh_from_db()
         assert group.seer_fixability_score == 0.75
+
+
+class TestGenerateSummaryAndRunAutomation(SentryTestCase):
+    @patch("sentry.seer.autofix.issue_summary.run_automation")
+    @patch("sentry.seer.autofix.issue_summary.get_issue_summary")
+    def test_calls_run_automation_after_summary(
+        self, mock_get_issue_summary: MagicMock, mock_run_automation: MagicMock
+    ) -> None:
+        group = self.create_group(project=self.project)
+        mock_event = MagicMock()
+        mock_get_issue_summary.return_value = ({"headline": "Test"}, 200, mock_event)
+
+        generate_summary_and_run_automation(group.id)
+
+        mock_get_issue_summary.assert_called_once_with(
+            group=group, source=SeerAutomationSource.POST_PROCESS
+        )
+        mock_run_automation.assert_called_once_with(
+            group, mock.ANY, mock_event, SeerAutomationSource.POST_PROCESS
+        )
+
+    @patch("sentry.seer.autofix.issue_summary.run_automation")
+    @patch("sentry.seer.autofix.issue_summary.get_issue_summary")
+    def test_skips_run_automation_when_summary_fails(
+        self, mock_get_issue_summary: MagicMock, mock_run_automation: MagicMock
+    ) -> None:
+        group = self.create_group(project=self.project)
+        mock_get_issue_summary.return_value = ({"detail": "error"}, 400, None)
+
+        generate_summary_and_run_automation(group.id)
+
+        mock_run_automation.assert_not_called()
+
+    @patch("sentry.seer.autofix.issue_summary.run_automation")
+    @patch("sentry.seer.autofix.issue_summary.get_issue_summary")
+    def test_skips_run_automation_when_cache_hit(
+        self, mock_get_issue_summary: MagicMock, mock_run_automation: MagicMock
+    ) -> None:
+        group = self.create_group(project=self.project)
+        mock_get_issue_summary.return_value = ({"headline": "Cached"}, 200, None)
+
+        generate_summary_and_run_automation(group.id)
+
+        mock_run_automation.assert_not_called()
 
 
 class TestConfigureSeerForExistingOrg(SentryTestCase):

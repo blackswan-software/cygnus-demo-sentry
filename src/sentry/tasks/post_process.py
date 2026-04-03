@@ -1529,7 +1529,7 @@ def kick_off_seer_automation(job: PostProcessJob) -> None:
         is_seer_seat_based_tier_enabled,
     )
     from sentry.tasks.seer.autofix import (
-        generate_issue_summary_only,
+        generate_summary_and_fixability_score,
         generate_summary_and_run_automation,
         run_automation_only_task,
     )
@@ -1555,7 +1555,7 @@ def kick_off_seer_automation(job: PostProcessJob) -> None:
                 "seer.automation.filtered", tags={"reason": skip_reason, "tier": "seat_based"}
             )
             if skip_reason == "below_occurrence_threshold":
-                generate_issue_summary_only.delay(group.id)
+                generate_summary_and_fixability_score.delay(group.id)
             return
 
         # Check if summary exists in cache

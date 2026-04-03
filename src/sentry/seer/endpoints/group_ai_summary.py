@@ -43,7 +43,7 @@ class GroupAiSummaryEndpoint(GroupAiEndpoint):
         data = orjson.loads(request.body) if request.body else {}
         force_event_id = data.get("event_id", None)
 
-        summary_data, status_code = get_issue_summary(
+        summary_data, status_code, _ = get_issue_summary(
             group=group,
             user=request.user,
             force_event_id=force_event_id,
