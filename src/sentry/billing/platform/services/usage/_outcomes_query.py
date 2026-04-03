@@ -57,7 +57,7 @@ _BILLABLE_OUTCOMES = [Outcome.ACCEPTED, Outcome.FILTERED, Outcome.RATE_LIMITED]
 def query_orgs_with_usage(request: GetOrgsWithUsageRequest) -> GetOrgsWithUsageResponse:
     start = _timestamp_to_datetime(request.start)
     end = _timestamp_to_datetime(request.end) + timedelta(days=1)
-    categories = [proto_to_relay_category(c) for c in request.categories]
+    categories = [proto_to_sentry_category(c) for c in request.categories]
 
     offset = request.page_token.offset if request.HasField("page_token") else 0
 
