@@ -52,7 +52,7 @@ def fetch_issue_summary(group: Group) -> dict[str, Any] | None:
                 future = executor.submit(
                     get_issue_summary, group, source=SeerAutomationSource.ALERT
                 )
-                summary_result, status_code = future.result(timeout=timeout)
+                summary_result, status_code, _event = future.result(timeout=timeout)
 
                 if status_code == 200:
                     return summary_result
