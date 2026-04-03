@@ -1,6 +1,5 @@
 import type React from 'react';
 import isPropValid from '@emotion/is-prop-valid';
-import {css} from '@emotion/react';
 import styled from '@emotion/styled';
 
 import type {
@@ -8,7 +7,6 @@ import type {
   RadiusSize,
   SpaceSize,
   SurfaceVariant,
-  Theme,
 } from 'sentry/utils/theme';
 
 import {
@@ -268,7 +266,10 @@ export const Container = styled(
   ${p => rc('left', p.left, p.theme)};
   ${p => rc('right', p.right, p.theme)};
 
-  ${p => getOverflowStyle(p)};
+  ${p => rc('overflow', p.overflow, p.theme)};
+  ${p => rc('overflow-x', p.overflowX, p.theme)};
+  ${p => rc('overflow-y', p.overflowY, p.theme)};
+
   ${p => rc('overscroll-behavior', p.overscrollBehavior, p.theme)};
 
   ${p => rc('pointer-events', p.pointerEvents, p.theme)};
@@ -332,36 +333,3 @@ export const Container = styled(
 ` as unknown as <T extends ContainerElement = 'div'>(
   props: ContainerProps<T> | ContainerPropsWithRenderFunction<T>
 ) => React.ReactElement;
-
-function getOverflowStyle(
-  props: Pick<ContainerLayoutProps, 'overflow' | 'overflowX' | 'overflowY'> & {
-    theme: Theme;
-  }
-) {
-  const hasScrollableOverflow = checkOverflowCanScroll(props);
-  return css`
-    ${rc('overflow', props.overflow, props.theme)};
-    ${rc('overflow-x', props.overflowX, props.theme)};
-    ${rc('overflow-y', props.overflowY, props.theme)};
-
-    ${hasScrollableOverflow
-      ? css`
-          scrollbar-width: thin;
-          scrollbar-color: ${props.theme.tokens.graphics.neutral.muted} transparent;
-        `
-      : undefined}
-  `;
-}
-
-const SCROLL_VALUES = ['auto', 'scroll'];
-function checkOverflowCanScroll(
-  props: Pick<ContainerLayoutProps, 'overflow' | 'overflowX' | 'overflowY'>
-) {
-  for (const property of ['overflow', 'overflowX', 'overflowY'] as const) {
-    const value = props[property];
-    if (!value) continue;
-    if (typeof value === 'string' && SCROLL_VALUES.includes(value)) return true;
-    if (Object.values(value).some(v => SCROLL_VALUES.includes(v))) return true;
-  }
-  return false;
-}
