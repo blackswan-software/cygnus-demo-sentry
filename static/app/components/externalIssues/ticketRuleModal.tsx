@@ -16,7 +16,7 @@ import {LoadingError} from 'sentry/components/loadingError';
 import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {t, tct} from 'sentry/locale';
 import type {TicketActionData} from 'sentry/types/alerts';
-import type {Choices} from 'sentry/types/core';
+import type {Choices, SelectValue} from 'sentry/types/core';
 import type {IntegrationIssueConfig, IssueConfigField} from 'sentry/types/integrations';
 import {defined} from 'sentry/utils';
 import {parseQueryKey} from 'sentry/utils/api/apiQueryKey';
@@ -89,6 +89,25 @@ export function TicketRuleModal({
   });
 
   const [isDynamicallyRefetching, setIsDynamicallyRefetching] = useState(false);
+
+  // Track async select options fetched via search so they can be persisted
+  // in the rule config when the form is submitted.
+  const [asyncOptionsCache, setAsyncOptionsCache] = useState<Record<string, Choices>>({});
+  const handleAsyncOptionsFetched = useCallback(
+    (fieldName: string, options: Array<SelectValue<string | number>>) => {
+      setAsyncOptionsCache(prev => ({
+        ...prev,
+        [fieldName]: options.map(
+          o =>
+            [o.value, typeof o.label === 'string' ? o.label : String(o.value)] as [
+              string | number,
+              string,
+            ]
+        ),
+      }));
+    },
+    []
+  );
 
   const {url: endpointString} = parseQueryKey(
     makeIntegrationIssueConfigTicketRuleQueryKey({
@@ -228,7 +247,9 @@ export function TicketRuleModal({
 
   const handleSubmit = useCallback(
     (values: Record<string, unknown>) => {
-      // Build a cache of field choices for async fields so the parent can persist them
+      // Build a cache of field choices so the parent can persist them.
+      // Start with static choices from the config, then overlay search results
+      // captured via onAsyncOptionsFetched.
       const fieldOptionsCache: Record<string, Choices> = {};
       const config = integrationDetails?.[getConfigName(action)] || [];
       for (const field of config) {
@@ -236,12 +257,16 @@ export function TicketRuleModal({
           fieldOptionsCache[field.name] = field.choices as Choices;
         }
       }
+      // Merge async search results (overwrites static choices for the same field)
+      for (const [fieldName, choices] of Object.entries(asyncOptionsCache)) {
+        fieldOptionsCache[fieldName] = choices;
+      }
 
       onSubmitAction(cleanData(values) as Record<string, string>, fieldOptionsCache);
       addSuccessMessage(t('Changes applied.'));
       closeModal();
     },
-    [cleanData, onSubmitAction, closeModal, integrationDetails]
+    [cleanData, onSubmitAction, closeModal, integrationDetails, asyncOptionsCache]
   );
 
   const [lastChangedField, setLastChangedField] = useState<Record<string, unknown>>({});
@@ -283,6 +308,23 @@ export function TicketRuleModal({
       },
     ];
 
+    // Build a map of saved choices from instance.dynamic_form_fields so we can
+    // restore async select options that were previously fetched via search.
+    const savedFields = Object.values(instance?.dynamic_form_fields || {});
+    const savedChoicesMap = new Map(
+      savedFields
+        .filter(
+          (f): f is IssueConfigField =>
+            typeof f === 'object' &&
+            f !== null &&
+            'url' in f &&
+            'choices' in f &&
+            Array.isArray(f.choices) &&
+            f.choices.length > 0
+        )
+        .map(f => [f.name, f.choices as Choices])
+    );
+
     const configFields = (integrationDetails?.[getConfigName(action)] ||
       []) as JsonFormAdapterFieldConfig[];
 
@@ -304,13 +346,29 @@ export function TicketRuleModal({
         let shouldDefaultChoice = true;
 
         if (field.type === 'select' || field.type === 'choice') {
-          const choices = field.choices || [];
-          shouldDefaultChoice = !!(Array.isArray(prevChoice)
-            ? prevChoice.every(value => choices.some(tuple => tuple[0] === value))
-            : choices.some(item => item[0] === prevChoice));
+          // For async select fields, always trust the saved value — choices
+          // are fetched dynamically and won't be in the static choices list.
+          if ('url' in field && field.url) {
+            shouldDefaultChoice = true;
+          } else {
+            const choices = field.choices || [];
+            shouldDefaultChoice = !!(Array.isArray(prevChoice)
+              ? prevChoice.every(value => choices.some(tuple => tuple[0] === value))
+              : choices.some(item => item[0] === prevChoice));
+          }
         }
 
         if (shouldDefaultChoice) {
+          // For async fields, also restore saved choices so the select can
+          // display the label for the saved value.
+          const savedChoices = savedChoicesMap.get(field.name);
+          if (savedChoices && 'url' in field && field.url) {
+            return {
+              ...field,
+              default: prevChoice,
+              choices: savedChoices as Array<[string, string]>,
+            };
+          }
           return {...field, default: prevChoice};
         }
 
@@ -327,6 +385,11 @@ export function TicketRuleModal({
         field.default &&
         !(Array.isArray(field.default) && !field.default.length)
       ) {
+        // Skip validation for async select fields — their choices are
+        // fetched dynamically and won't contain the saved value until searched.
+        if ('url' in field && field.url) {
+          continue;
+        }
         const fieldChoices = (field.choices || []) as Choices;
         const found = fieldChoices.find(([value, _]) =>
           Array.isArray(field.default)
@@ -397,6 +460,7 @@ export function TicketRuleModal({
           submitDisabled={hasFormErrors}
           isLoading={isDynamicallyRefetching}
           dynamicFieldValues={dynamicFieldValues}
+          onAsyncOptionsFetched={handleAsyncOptionsFetched}
           onFieldChange={onFieldChange}
           footer={({SubmitButton, disabled}) => (
             <Footer>

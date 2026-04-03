@@ -1,4 +1,4 @@
-import {useMemo, useState, type ReactNode} from 'react';
+import {useMemo, useRef, useState, type ReactNode, useEffect} from 'react';
 import {queryOptions} from '@tanstack/react-query';
 import {z} from 'zod';
 
@@ -54,6 +54,14 @@ interface BackendJsonSubmitFormProps {
    * Whether the form is in a loading state (e.g., dynamic field refetch in progress).
    */
   isLoading?: boolean;
+  /**
+   * Called when async select options are fetched for a field. Use this to
+   * track fetched choices externally (e.g., for persisting them on submit).
+   */
+  onAsyncOptionsFetched?: (
+    fieldName: string,
+    options: Array<SelectValue<string | number>>
+  ) => void;
   /**
    * Called when a field with `updatesForm: true` changes value.
    */
@@ -133,9 +141,16 @@ export function BackendJsonSubmitForm({
   initialValues,
   isLoading,
   dynamicFieldValues,
+  onAsyncOptionsFetched,
   onFieldChange,
   footer,
 }: BackendJsonSubmitFormProps) {
+  // Ref to avoid including the callback in queryKey (would cause refetches)
+  const onAsyncOptionsFetchedRef = useRef(onAsyncOptionsFetched);
+  useEffect(() => {
+    onAsyncOptionsFetchedRef.current = onAsyncOptionsFetched;
+  });
+
   // Labels for choice_mapper rows (maps key to display label)
   const [choiceMapperLabels, setChoiceMapperLabels] = useState<
     Record<string, Record<string, ReactNode>>
@@ -256,6 +271,7 @@ export function BackendJsonSubmitForm({
                               field.url,
                               debouncedInput,
                               dynamicFieldValues,
+                              JSON.stringify(onAsyncOptionsFetchedRef),
                             ],
                             queryFn: async (): Promise<
                               Array<SelectValue<string | number>>
@@ -274,7 +290,11 @@ export function BackendJsonSubmitForm({
                                 }
                               );
                               // API may return non-array responses (e.g. error objects)
-                              return Array.isArray(response) ? response : [];
+                              const results = Array.isArray(response) ? response : [];
+                              if (results.length > 0) {
+                                onAsyncOptionsFetchedRef.current?.(field.name, results);
+                              }
+                              return results;
                             },
                           });
                         if (field.multiple) {
