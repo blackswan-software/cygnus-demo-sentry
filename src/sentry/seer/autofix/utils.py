@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any, NotRequired, TypedDict
@@ -647,25 +647,6 @@ def build_repo_definition_from_project_repo(
     )
 
 
-def build_automation_handoff(
-    get_option: Callable[[str], Any],
-) -> SeerAutomationHandoffConfiguration | None:
-    """Build handoff config from an option getter (eg, project.get_option or dict.get)."""
-    handoff_point = get_option("sentry:seer_automation_handoff_point")
-    handoff_target = get_option("sentry:seer_automation_handoff_target")
-    handoff_integration_id = get_option("sentry:seer_automation_handoff_integration_id")
-
-    if handoff_point is None or handoff_target is None or handoff_integration_id is None:
-        return None
-
-    return SeerAutomationHandoffConfiguration(
-        handoff_point=handoff_point,
-        target=handoff_target,
-        integration_id=handoff_integration_id,
-        auto_create_pr=get_option("sentry:seer_automation_handoff_auto_create_pr"),
-    )
-
-
 def read_preference_from_sentry_db(project: Project) -> SeerProjectPreference | None:
     """Read a single project's Seer preferences from Sentry DB."""
     seer_project_repo_qs = (
@@ -678,6 +659,25 @@ def read_preference_from_sentry_db(project: Project) -> SeerProjectPreference | 
         for project_repo in seer_project_repo_qs
     ]
 
+    handoff_point = project.get_option("sentry:seer_automation_handoff_point")
+    handoff_target = project.get_option("sentry:seer_automation_handoff_target")
+    handoff_integration_id = project.get_option("sentry:seer_automation_handoff_integration_id")
+
+    automation_handoff = None
+    if (
+        handoff_point is not None
+        and handoff_target is not None
+        and handoff_integration_id is not None
+    ):
+        automation_handoff = SeerAutomationHandoffConfiguration(
+            handoff_point=handoff_point,
+            target=handoff_target,
+            integration_id=handoff_integration_id,
+            auto_create_pr=project.get_option(
+                "sentry:seer_automation_handoff_auto_create_pr", False
+            ),
+        )
+
     return SeerProjectPreference(
         organization_id=project.organization_id,
         project_id=project.id,
@@ -685,7 +685,7 @@ def read_preference_from_sentry_db(project: Project) -> SeerProjectPreference | 
         automated_run_stopping_point=project.get_option(
             "sentry:seer_automated_run_stopping_point", SEER_AUTOMATED_RUN_STOPPING_POINT_DEFAULT
         ),
-        automation_handoff=build_automation_handoff(project.get_option),
+        automation_handoff=automation_handoff,
     )
 
 
@@ -721,18 +721,39 @@ def bulk_read_preferences_from_sentry_db(
         if project.id not in repos_by_project and not has_configured_options:
             continue
 
-        def get_option(key: str) -> Any:
+        # get_value_bulk_id returns None for missing options, unlike project.get_option
+        # which automatically falls back to the registered well-known key default.
+        def get_project_option(key: str) -> Any:
             value = project_options[key][project.id]
             if value is None:
                 return projectoptions.lookup_well_known_key(key).default
             return value
 
+        handoff_point = get_project_option("sentry:seer_automation_handoff_point")
+        handoff_target = get_project_option("sentry:seer_automation_handoff_target")
+        handoff_integration_id = get_project_option("sentry:seer_automation_handoff_integration_id")
+
+        automation_handoff = None
+        if (
+            handoff_point is not None
+            and handoff_target is not None
+            and handoff_integration_id is not None
+        ):
+            automation_handoff = SeerAutomationHandoffConfiguration(
+                handoff_point=handoff_point,
+                target=handoff_target,
+                integration_id=handoff_integration_id,
+                auto_create_pr=get_project_option("sentry:seer_automation_handoff_auto_create_pr"),
+            )
+
         result[project.id] = SeerProjectPreference(
             organization_id=project.organization_id,
             project_id=project.id,
             repositories=repos_by_project.get(project.id, []),
-            automated_run_stopping_point=get_option("sentry:seer_automated_run_stopping_point"),
-            automation_handoff=build_automation_handoff(get_option),
+            automated_run_stopping_point=get_project_option(
+                "sentry:seer_automated_run_stopping_point"
+            ),
+            automation_handoff=automation_handoff,
         )
 
     return result
