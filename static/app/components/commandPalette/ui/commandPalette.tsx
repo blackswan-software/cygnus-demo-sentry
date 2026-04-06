@@ -410,8 +410,34 @@ export function CommandPalette(props: CommandPaletteProps) {
           />
         </ResultsList>
       )}
+      <Collection>
+        <Group>
+          <Item />
+          <Item />
+        </Group>
+      </Collection>
     </Fragment>
   );
+}
+
+interface ItemProps {
+  children?: React.ReactNode;
+  name?: string;
+}
+
+function Group(props: ItemProps) {
+  return props.children;
+}
+
+function Item(props: ItemProps) {
+  return props.children;
+}
+
+// JSX traversal
+
+function Collection({children}: {children: React.ReactNode}) {
+  useLayoutEffect(() => {}, [children]);
+  return children;
 }
 
 function collectResourceActions(
