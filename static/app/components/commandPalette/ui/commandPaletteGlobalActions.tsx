@@ -1,4 +1,4 @@
-import {Fragment, useState} from 'react';
+import {Fragment, useContext, useState} from 'react';
 import {SentryGlobalSearch} from '@sentry-internal/global-search';
 import DOMPurify from 'dompurify';
 
@@ -46,7 +46,7 @@ import {MCP_LANDING_SUB_PATH} from 'sentry/views/insights/pages/mcp/settings';
 import {MOBILE_LANDING_SUB_PATH} from 'sentry/views/insights/pages/mobile/settings';
 import {ISSUE_TAXONOMY_CONFIG} from 'sentry/views/issueList/taxonomies';
 import {useStarredIssueViews} from 'sentry/views/navigation/secondary/sections/issues/issueViews/useStarredIssueViews';
-import {useSecondaryNavigation} from 'sentry/views/navigation/secondaryNavigationContext';
+import {SecondaryNavigationContext} from 'sentry/views/navigation/secondaryNavigationContext';
 import {getUserOrgNavigationConfiguration} from 'sentry/views/settings/organization/userOrgNavigationConfiguration';
 
 import {CMDKAction, CMDKGroup} from './cmdk';
@@ -139,8 +139,7 @@ export function GlobalCommandPaletteActions() {
   const {mutateAsync: mutateUserOptions} = useMutateUserOptions();
   const {starredViews} = useStarredIssueViews();
   const {data: starredDashboards = []} = useGetStarredDashboards();
-  const {view, setView} = useSecondaryNavigation();
-  const isNavCollapsed = view !== 'expanded';
+  const secondaryNav = useContext(SecondaryNavigationContext);
   const [search] = useState(() => helpSearch);
 
   const slug = organization.slug;
@@ -374,15 +373,26 @@ export function GlobalCommandPaletteActions() {
 
       {/* ── Interface ── */}
       <CMDKGroup display={{label: t('Interface')}}>
-        <CMDKAction
-          display={{
-            label: isNavCollapsed
-              ? t('Expand Navigation Sidebar')
-              : t('Collapse Navigation Sidebar'),
-            icon: <IconPanel direction={isNavCollapsed ? 'right' : 'left'} />,
-          }}
-          onAction={() => setView(view === 'expanded' ? 'collapsed' : 'expanded')}
-        />
+        {secondaryNav && (
+          <CMDKAction
+            display={{
+              label:
+                secondaryNav.view === 'expanded'
+                  ? t('Collapse Navigation Sidebar')
+                  : t('Expand Navigation Sidebar'),
+              icon: (
+                <IconPanel
+                  direction={secondaryNav.view === 'expanded' ? 'left' : 'right'}
+                />
+              ),
+            }}
+            onAction={() =>
+              secondaryNav.setView(
+                secondaryNav.view === 'expanded' ? 'collapsed' : 'expanded'
+              )
+            }
+          />
+        )}
         <CMDKGroup display={{label: t('Change Color Theme'), icon: <IconSettings />}}>
           <CMDKAction
             display={{label: t('System')}}
