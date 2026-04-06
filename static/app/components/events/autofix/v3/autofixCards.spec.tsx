@@ -1,3 +1,5 @@
+import {OrganizationFixture} from 'sentry-fixture/organization';
+
 import {render, screen, userEvent} from 'sentry-test/reactTestingLibrary';
 
 import {CodingAgentProvider} from 'sentry/components/events/autofix/types';
@@ -616,5 +618,194 @@ describe('CodingAgentCard', () => {
     expect(screen.getByText('Agent Two')).toBeInTheDocument();
     expect(screen.getByText('completed')).toBeInTheDocument();
     expect(screen.getByText('running')).toBeInTheDocument();
+  });
+});
+
+describe('Retry button', () => {
+  const autofixWithRun = {
+    ...mockAutofix,
+    runState: {run_id: 42} as any,
+    isPolling: false,
+  };
+
+  it('does not show retry button on SolutionCard without feature flag', () => {
+    const artifact = makeSolutionArtifact({
+      one_line_summary: 'Fix the bug',
+      steps: [{title: 'Step 1', description: 'Do something'}],
+    });
+
+    render(
+      <SolutionCard
+        autofix={autofixWithRun}
+        section={makeSection('solution', 'completed', [artifact])}
+      />
+    );
+
+    expect(screen.queryByRole('button', {name: 'Retry'})).not.toBeInTheDocument();
+  });
+
+  it('shows retry button on SolutionCard with feature flag', () => {
+    const artifact = makeSolutionArtifact({
+      one_line_summary: 'Fix the bug',
+      steps: [{title: 'Step 1', description: 'Do something'}],
+    });
+
+    render(
+      <SolutionCard
+        autofix={autofixWithRun}
+        section={makeSection('solution', 'completed', [artifact])}
+      />,
+      {
+        organization: OrganizationFixture({
+          features: ['autofix-retry-from-step'],
+        }),
+      }
+    );
+
+    expect(screen.getByRole('button', {name: 'Retry'})).toBeInTheDocument();
+  });
+
+  it('calls startStep with solution and runId on SolutionCard retry click', async () => {
+    const startStep = jest.fn();
+    const artifact = makeSolutionArtifact({
+      one_line_summary: 'Fix the bug',
+      steps: [{title: 'Step 1', description: 'Do something'}],
+    });
+
+    render(
+      <SolutionCard
+        autofix={{...autofixWithRun, startStep}}
+        section={makeSection('solution', 'completed', [artifact])}
+      />,
+      {
+        organization: OrganizationFixture({
+          features: ['autofix-retry-from-step'],
+        }),
+      }
+    );
+
+    await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
+    expect(startStep).toHaveBeenCalledWith('solution', 42);
+  });
+
+  it('calls startStep with code_changes and runId on CodeChangesCard retry click', async () => {
+    const startStep = jest.fn();
+
+    render(
+      <CodeChangesCard
+        autofix={{...autofixWithRun, startStep}}
+        section={makeSection('code_changes', 'completed', [
+          [makePatch('org/repo', 'src/app.py')],
+        ])}
+      />,
+      {
+        organization: OrganizationFixture({
+          features: ['autofix-retry-from-step'],
+        }),
+      }
+    );
+
+    await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
+    expect(startStep).toHaveBeenCalledWith('code_changes', 42);
+  });
+
+  it('calls createPR with runId on PullRequestsCard retry click', async () => {
+    const createPR = jest.fn();
+
+    render(
+      <PullRequestsCard
+        autofix={{...autofixWithRun, createPR}}
+        section={makeSection('pull_request', 'completed', [[makePR()]])}
+      />,
+      {
+        organization: OrganizationFixture({
+          features: ['autofix-retry-from-step'],
+        }),
+      }
+    );
+
+    await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
+    expect(createPR).toHaveBeenCalledWith(42);
+  });
+
+  it('does not show retry button when section is processing', () => {
+    const artifact = makeSolutionArtifact({
+      one_line_summary: 'Fix the bug',
+      steps: [{title: 'Step 1', description: 'Do something'}],
+    });
+
+    render(
+      <SolutionCard
+        autofix={autofixWithRun}
+        section={makeSection('solution', 'processing', [artifact])}
+      />,
+      {
+        organization: OrganizationFixture({
+          features: ['autofix-retry-from-step'],
+        }),
+      }
+    );
+
+    expect(screen.queryByRole('button', {name: 'Retry'})).not.toBeInTheDocument();
+  });
+
+  it('does not show retry button on SolutionCard when artifact data is null', () => {
+    const artifact = makeSolutionArtifact(null);
+
+    render(
+      <SolutionCard
+        autofix={autofixWithRun}
+        section={makeSection('solution', 'completed', [artifact])}
+      />,
+      {
+        organization: OrganizationFixture({
+          features: ['autofix-retry-from-step'],
+        }),
+      }
+    );
+
+    expect(screen.queryByRole('button', {name: 'Retry'})).not.toBeInTheDocument();
+  });
+
+  it('disables retry button when isPolling is true', () => {
+    const artifact = makeSolutionArtifact({
+      one_line_summary: 'Fix the bug',
+      steps: [{title: 'Step 1', description: 'Do something'}],
+    });
+
+    render(
+      <SolutionCard
+        autofix={{...autofixWithRun, isPolling: true}}
+        section={makeSection('solution', 'completed', [artifact])}
+      />,
+      {
+        organization: OrganizationFixture({
+          features: ['autofix-retry-from-step'],
+        }),
+      }
+    );
+
+    expect(screen.getByRole('button', {name: 'Retry'})).toBeDisabled();
+  });
+
+  it('does not show retry button on RootCauseCard even with feature flag', () => {
+    const artifact = makeRootCauseArtifact({
+      one_line_description: 'Null pointer',
+      five_whys: ['why1'],
+    });
+
+    render(
+      <RootCauseCard
+        autofix={autofixWithRun}
+        section={makeSection('root_cause', 'completed', [artifact])}
+      />,
+      {
+        organization: OrganizationFixture({
+          features: ['autofix-retry-from-step'],
+        }),
+      }
+    );
+
+    expect(screen.queryByRole('button', {name: 'Retry'})).not.toBeInTheDocument();
   });
 });

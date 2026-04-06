@@ -34,6 +34,7 @@ import {IconOpen} from 'sentry/icons/iconOpen';
 import {IconPullRequest} from 'sentry/icons/iconPullRequest';
 import {t, tct, tn} from 'sentry/locale';
 import {defined} from 'sentry/utils';
+import {useOrganization} from 'sentry/utils/useOrganization';
 import {FileDiffViewer} from 'sentry/views/seerExplorer/fileDiffViewer';
 
 interface AutofixCardProps {
@@ -114,11 +115,22 @@ export function SolutionCard({autofix, section}: AutofixCardProps) {
     return isSolutionArtifact(sectionArtifact) ? sectionArtifact : null;
   }, [section]);
 
-  const {runState, startStep} = autofix;
+  const {runState, startStep, isPolling} = autofix;
   const runId = runState?.run_id;
 
   return (
-    <ArtifactCard icon={<IconList />} title={t('Plan')}>
+    <ArtifactCard
+      icon={<IconList />}
+      title={t('Plan')}
+      trailingItems={
+        section.status === 'completed' && artifact?.data ? (
+          <RetryButton
+            onClick={() => startStep('solution', runId)}
+            disabled={isPolling}
+          />
+        ) : undefined
+      }
+    >
       {section.status === 'processing' ? (
         <LoadingDetails
           messages={section.messages}
@@ -197,11 +209,22 @@ export function CodeChangesCard({autofix, section}: AutofixCardProps) {
     return t('%s files changed in %s repos', filesChanged.size, reposChanged);
   }, [patchesByRepo]);
 
-  const {runState, startStep} = autofix;
+  const {runState, startStep, isPolling} = autofix;
   const runId = runState?.run_id;
 
   return (
-    <ArtifactCard icon={<IconCode />} title={t('Code Changes')}>
+    <ArtifactCard
+      icon={<IconCode />}
+      title={t('Code Changes')}
+      trailingItems={
+        section.status === 'completed' && patchesByRepo.size > 0 ? (
+          <RetryButton
+            onClick={() => startStep('code_changes', runId)}
+            disabled={isPolling}
+          />
+        ) : undefined
+      }
+    >
       {section.status === 'processing' ? (
         <LoadingDetails
           messages={section.messages}
@@ -254,14 +277,25 @@ export function CodeChangesCard({autofix, section}: AutofixCardProps) {
   );
 }
 
-export function PullRequestsCard({section}: AutofixCardProps) {
+export function PullRequestsCard({autofix, section}: AutofixCardProps) {
   const artifact = useMemo(() => {
     const sectionArtifact = getAutofixArtifactFromSection(section);
     return isPullRequestsArtifact(sectionArtifact) ? sectionArtifact : null;
   }, [section]);
 
+  const {createPR, runState, isPolling} = autofix;
+  const runId = runState?.run_id;
+
   return (
-    <ArtifactCard icon={<IconPullRequest />} title={t('Pull Requests')}>
+    <ArtifactCard
+      icon={<IconPullRequest />}
+      title={t('Pull Requests')}
+      trailingItems={
+        section.status === 'completed' && runId ? (
+          <RetryButton onClick={() => createPR(runId)} disabled={isPolling} />
+        ) : undefined
+      }
+    >
       {artifact?.map(pullRequest => {
         if (pullRequest.pr_creation_status === 'creating') {
           return (
@@ -363,17 +397,45 @@ export function CodingAgentCard({section}: AutofixCardProps) {
   );
 }
 
-interface ArtifactCardProps {
+interface RetryButtonProps {
+  disabled: boolean;
+  onClick: () => void;
+}
+
+function RetryButton({onClick, disabled}: RetryButtonProps) {
+  const organization = useOrganization();
+
+  if (!organization.features.includes('autofix-retry-from-step')) {
+    return null;
+  }
+
+  return (
+    <Button
+      size="xs"
+      icon={<IconRefresh />}
+      onClick={(e: React.MouseEvent) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      disabled={disabled}
+      aria-label={t('Retry')}
+      tooltipProps={{title: t('Retry from this step')}}
+    />
+  );
+}
+
+interface ArtifactCardInternalProps {
   children: ReactNode;
   icon: ReactNode;
   title: ReactNode;
+  trailingItems?: ReactNode;
 }
 
-function ArtifactCard({children, icon, title}: ArtifactCardProps) {
+function ArtifactCard({children, icon, title, trailingItems}: ArtifactCardInternalProps) {
   return (
     <Container border="primary" radius="md" padding="lg" background="primary">
       <Disclosure defaultExpanded>
-        <Disclosure.Title>
+        <Disclosure.Title trailingItems={trailingItems}>
           <Flex gap="md" align="center">
             {icon}
             <Text bold>{title}</Text>
