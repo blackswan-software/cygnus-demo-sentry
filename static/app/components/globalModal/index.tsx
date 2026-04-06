@@ -1,6 +1,6 @@
 import {Fragment, useCallback, useEffect, useRef} from 'react';
 import {createPortal} from 'react-dom';
-import {css} from '@emotion/react';
+import {css, type Interpolation, type Theme} from '@emotion/react';
 import styled from '@emotion/styled';
 import type {FocusTrap} from 'focus-trap';
 import {createFocusTrap} from 'focus-trap';
@@ -12,9 +12,9 @@ import {useScrollLock} from '@sentry/scraps/useScrollLock';
 
 import {useGlobalModal} from 'sentry/components/globalModal/useGlobalModal';
 import {ROOT_ELEMENT} from 'sentry/constants';
-import ModalStore from 'sentry/stores/modalStore';
-import getModalPortal from 'sentry/utils/getModalPortal';
-import testableTransition from 'sentry/utils/testableTransition';
+import {ModalStore} from 'sentry/stores/modalStore';
+import {getModalPortal} from 'sentry/utils/getModalPortal';
+import {testableTransition} from 'sentry/utils/testableTransition';
 import {useEffectAfterFirstRender} from 'sentry/utils/useEffectAfterFirstRender';
 import {useLocation} from 'sentry/utils/useLocation';
 
@@ -54,7 +54,7 @@ type ModalOptions = {
    * component. You may use the `[role="document"]` selector to target the
    * actual modal content to style the visual element of the modal.
    */
-  modalCss?: ReturnType<typeof css>;
+  modalCss?: Interpolation<Theme>;
   /**
    * Callback for when the modal is closed
    */
@@ -111,8 +111,8 @@ type Props = {
   onClose?: () => void;
 };
 
-function GlobalModal({onClose}: Props) {
-  const {renderer, options, visible} = useGlobalModal();
+export function GlobalModal({onClose}: Props) {
+  const {renderer, options, visible, triggerElement} = useGlobalModal();
   const location = useLocation();
 
   const closeEvents = options.closeEvents ?? 'all';
@@ -171,8 +171,9 @@ function GlobalModal({onClose}: Props) {
     const reset = () => {
       scrollLock.release();
       root?.removeAttribute('aria-hidden');
-      focusTrap.current?.deactivate();
+      focusTrap.current?.deactivate({returnFocus: false});
       document.removeEventListener('keydown', handleEscapeClose);
+      triggerElement?.focus();
     };
 
     if (visible) {
@@ -186,7 +187,7 @@ function GlobalModal({onClose}: Props) {
     }
 
     return reset;
-  }, [portal, handleEscapeClose, visible, scrollLock]);
+  }, [portal, handleEscapeClose, visible, scrollLock, triggerElement]);
 
   // Close the modal when the browser history changes.
   //
@@ -320,5 +321,3 @@ const Content = styled('div')`
     padding: ${p => p.theme.space['3xl']};
   }
 `;
-
-export default GlobalModal;

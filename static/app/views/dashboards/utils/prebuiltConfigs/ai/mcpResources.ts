@@ -1,6 +1,8 @@
 import {t} from 'sentry/locale';
+import {FieldKind} from 'sentry/utils/fields';
 import {DisplayType, WidgetType} from 'sentry/views/dashboards/types';
 import type {PrebuiltDashboard} from 'sentry/views/dashboards/utils/prebuiltConfigs';
+import {WIDGET_COLUMN_LABELS} from 'sentry/views/dashboards/utils/prebuiltConfigs/settings';
 import {spaceWidgetsEquallyOnRow} from 'sentry/views/dashboards/utils/prebuiltConfigs/utils/spaceWidgetsEquallyOnRow';
 import {SpanFields, SpanFunction} from 'sentry/views/insights/types';
 
@@ -42,7 +44,7 @@ const FIRST_ROW_WIDGETS = spaceWidgetsEquallyOnRow(
           fields: [SpanFields.MCP_RESOURCE_URI, `avg(${SpanFields.SPAN_DURATION})`],
           aggregates: [`avg(${SpanFields.SPAN_DURATION})`],
           columns: [SpanFields.MCP_RESOURCE_URI],
-          fieldAliases: [t('Resource'), t('Avg Duration')],
+          fieldAliases: [t('Resource'), WIDGET_COLUMN_LABELS.avg],
           orderby: `-avg(${SpanFields.SPAN_DURATION})`,
         },
       ],
@@ -86,15 +88,15 @@ const RESOURCES_TABLE = {
       fields: [
         SpanFields.MCP_RESOURCE_URI,
         'count()',
-        `count_if(${SpanFields.SPAN_STATUS},equals,internal_error)`,
         `${SpanFunction.FAILURE_RATE}()`,
+        `equation|count_if(${SpanFields.SPAN_STATUS},equals,internal_error)`,
         `avg(${SpanFields.SPAN_DURATION})`,
         `p95(${SpanFields.SPAN_DURATION})`,
       ],
       aggregates: [
         'count()',
-        `count_if(${SpanFields.SPAN_STATUS},equals,internal_error)`,
         `${SpanFunction.FAILURE_RATE}()`,
+        `equation|count_if(${SpanFields.SPAN_STATUS},equals,internal_error)`,
         `avg(${SpanFields.SPAN_DURATION})`,
         `p95(${SpanFields.SPAN_DURATION})`,
       ],
@@ -102,10 +104,10 @@ const RESOURCES_TABLE = {
       fieldAliases: [
         t('Resource URI'),
         t('Requests'),
-        t('Errors'),
         t('Error Rate'),
-        t('Avg'),
-        t('P95'),
+        t('Errors'),
+        WIDGET_COLUMN_LABELS.avg,
+        WIDGET_COLUMN_LABELS.p95,
       ],
       orderby: '-count()',
     },
@@ -122,7 +124,24 @@ const RESOURCES_TABLE = {
 export const MCP_RESOURCES_PREBUILT_CONFIG: PrebuiltDashboard = {
   dateCreated: '',
   projects: [],
-  title: 'MCP Resources',
-  filters: {},
+  title: 'MCP Resource Details',
+  filters: {
+    globalFilter: [
+      {
+        dataset: WidgetType.SPANS,
+        tag: {
+          key: 'mcp.resource.uri',
+          name: 'mcp.resource.uri',
+          kind: FieldKind.TAG,
+        },
+        value: '',
+      },
+    ],
+  },
   widgets: [...FIRST_ROW_WIDGETS, RESOURCES_TABLE],
+  onboarding: {
+    type: 'custom',
+    componentId: 'mcp',
+    requiredProjectFlags: ['hasInsightsMCP'],
+  },
 };

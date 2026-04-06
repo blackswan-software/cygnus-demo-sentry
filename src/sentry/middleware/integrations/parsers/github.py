@@ -15,8 +15,8 @@ from sentry.integrations.github.webhook import (
     get_github_external_id,
 )
 from sentry.integrations.github.webhook_types import (
+    CELL_PROCESSED_GITHUB_EVENTS,
     GITHUB_WEBHOOK_TYPE_HEADER,
-    REGION_PROCESSED_GITHUB_EVENTS,
     GithubWebhookType,
 )
 from sentry.integrations.middleware.hybrid_cloud.parser import BaseRequestParser
@@ -58,8 +58,8 @@ class GithubRequestParser(BaseRequestParser):
         """Override to gate bucketing on an options flag for safe rollout and revert.
 
         When disabled (default), all webhooks route to a single mailbox per integration.
-        When enabled, webhooks are distributed across sub-mailboxes by repository ID,
-        bypassing the rate-limit auto-switch used by the base class.
+        When enabled, webhooks are distributed across sub-mailboxes by repository ID and
+        event type, bypassing the rate-limit auto-switch used by the base class.
         """
         if not options.get("github.webhook.mailbox-bucketing.enabled"):
             metrics.incr(
@@ -68,7 +68,11 @@ class GithubRequestParser(BaseRequestParser):
             )
             return str(integration.id)
 
-        return self._build_bucketed_identifier(integration, data)
+        base = self._build_bucketed_identifier(integration, data)
+        event_type = self.request.META.get(GITHUB_WEBHOOK_TYPE_HEADER)
+        if event_type:
+            return f"{base}:{event_type}"
+        return base
 
     def should_route_to_control_silo(
         self, parsed_event: Mapping[str, Any], request: HttpRequest
@@ -93,7 +97,7 @@ class GithubRequestParser(BaseRequestParser):
         Orchestrates GitHub webhook routing across Sentry's multi-service architecture.
 
         Handles installation events in control silo and distributes webhooks to appropriate
-        region silos based on organization locations.
+        cell silos based on organization locations.
         """
         if self.view_class != self.webhook_endpoint:
             return self.get_response_from_control_silo()
@@ -111,23 +115,19 @@ class GithubRequestParser(BaseRequestParser):
             if not integration:
                 return self.get_default_missing_integration_response()
 
-            regions = self.get_regions_from_organizations()
+            cells = self.get_cells_from_organizations()
         except Integration.DoesNotExist:
             return self.get_default_missing_integration_response()
 
-        if len(regions) == 0:
+        if len(cells) == 0:
             return self.get_default_missing_integration_response()
 
         github_event = self.request.META.get(GITHUB_WEBHOOK_TYPE_HEADER)
 
         # Only drop when we have a known unprocessed event type. Missing or empty
-        # X-GitHub-Event is malformed; let the request be forwarded so the region
+        # X-GitHub-Event is malformed; let the request be forwarded so the cell
         # returns 400 and GitHub is notified of the delivery failure.
-        if (
-            github_event
-            and github_event not in REGION_PROCESSED_GITHUB_EVENTS
-            and options.get("github.webhook.drop-unprocessed-events.enabled")
-        ):
+        if github_event and github_event not in CELL_PROCESSED_GITHUB_EVENTS:
             metrics.incr(
                 "github.webhook.drop_unprocessed_event",
                 tags={"event_type": github_event or "unknown"},
@@ -135,7 +135,7 @@ class GithubRequestParser(BaseRequestParser):
             return HttpResponse(status=202)
 
         response = self.get_response_from_webhookpayload(
-            regions=regions,
+            cells=cells,
             identifier=self.get_mailbox_identifier(integration, event),
             integration_id=integration.id,
         )

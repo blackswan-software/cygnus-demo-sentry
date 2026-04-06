@@ -1,7 +1,8 @@
 import {keyframes} from '@emotion/react';
 import styled from '@emotion/styled';
 
-import {Flex, Grid} from '@sentry/scraps/layout';
+import {Flex} from '@sentry/scraps/layout';
+import {useSizeContext} from '@sentry/scraps/sizeContext';
 import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {IconDefaultsProvider} from 'sentry/icons/useIconDefaults';
@@ -16,26 +17,21 @@ import {useButtonFunctionality} from './useButtonFunctionality';
 export type {ButtonProps};
 
 export function Button({
-  size = 'md',
   disabled,
   type = 'button',
   tooltipProps,
   busy,
+  size: explicitSize,
   ...props
 }: ButtonProps) {
+  const contextSize = useSizeContext();
+  const size = explicitSize ?? contextSize ?? 'md';
   const {handleClick, hasChildren, accessibleLabel} = useButtonFunctionality({
     ...props,
     type,
     disabled,
     busy,
   });
-
-  const iconGap =
-    props.icon && hasChildren
-      ? size === 'xs' || size === 'zero'
-        ? 'sm'
-        : 'md'
-      : undefined;
 
   return (
     <Tooltip
@@ -53,39 +49,59 @@ export function Button({
         type={type}
         busy={busy}
         {...props}
+        shapeVariant={hasChildren ? 'rectangular' : 'square'}
         onClick={handleClick}
         role="button"
       >
-        <Grid as="span" align="center" justifyItems="center" minWidth="0" height="100%">
-          <Flex
-            as="span"
-            align="center"
-            area="1 / 1"
-            gap={iconGap}
-            visibility={busy ? 'hidden' : undefined}
-          >
-            {props.icon && (
-              <Flex as="span" align="center" flexShrink={0}>
-                <IconDefaultsProvider size={BUTTON_ICON_SIZES[size]}>
-                  {props.icon}
-                </IconDefaultsProvider>
-              </Flex>
-            )}
-            {props.children}
-          </Flex>
-          <BusySpinner
-            role="status"
-            aria-label="Busy"
-            style={busy ? undefined : {visibility: 'hidden'}}
-          />
-        </Grid>
+        <Flex
+          as="span"
+          align="center"
+          justify="center"
+          minWidth="0"
+          height="100%"
+          whiteSpace="nowrap"
+          visibility={busy ? 'hidden' : undefined}
+        >
+          {props.icon && (
+            <Flex
+              as="span"
+              align="center"
+              flexShrink={0}
+              marginRight={
+                hasChildren ? (size === 'xs' || size === 'zero' ? 'sm' : 'md') : undefined
+              }
+              aria-hidden="true"
+            >
+              <IconDefaultsProvider size={BUTTON_ICON_SIZES[size]}>
+                {props.icon}
+              </IconDefaultsProvider>
+            </Flex>
+          )}
+          {props.children}
+          {busy && (
+            <Flex
+              align="center"
+              justify="center"
+              position="absolute"
+              visibility="visible"
+              inset={0}
+            >
+              {({className}) => <BusySpinner className={className} aria-hidden />}
+            </Flex>
+          )}
+        </Flex>
       </StyledButton>
     </Tooltip>
   );
 }
 
-const StyledButton = styled('button')<ButtonProps>`
-  ${p => getButtonStyles(p as any)}
+const StyledButton = styled('button')<
+  Omit<ButtonProps, 'size'> & {
+    shapeVariant: 'rectangular' | 'square';
+    size: NonNullable<ButtonProps['size']>;
+  }
+>`
+  ${p => getButtonStyles(p)}
 `;
 
 const spin = keyframes`
@@ -95,8 +111,6 @@ const spin = keyframes`
 `;
 
 const BusySpinner = styled('span')`
-  grid-area: 1 / 1;
-
   &::after {
     content: '';
     display: block;

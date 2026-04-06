@@ -9,11 +9,10 @@ import {IconEllipsis} from 'sentry/icons';
 import {t} from 'sentry/locale';
 import type {Organization} from 'sentry/types/organization';
 import {trackAnalytics} from 'sentry/utils/analytics';
-import toArray from 'sentry/utils/array/toArray';
-import {browserHistory} from 'sentry/utils/browserHistory';
-import type {EventData} from 'sentry/utils/discover/eventView';
-import type EventView from 'sentry/utils/discover/eventView';
+import {toArray} from 'sentry/utils/array/toArray';
+import type {EventData, EventView} from 'sentry/utils/discover/eventView';
 import {MutableSearch} from 'sentry/utils/tokenizeSearch';
+import {useNavigate} from 'sentry/utils/useNavigate';
 import {addToFilter, excludeFromFilter} from 'sentry/views/discover/table/cellAction';
 
 export enum ContextValueType {
@@ -39,7 +38,8 @@ type Props = {
   value: string | number | string[];
 };
 
-function ActionDropDown(props: Props) {
+export function ActionDropDown(props: Props) {
+  const navigate = useNavigate();
   const menuItems: MenuItemProps[] = [];
   const {location, eventView, queryKey, value, organization, contextValueType, dataRow} =
     props;
@@ -52,7 +52,7 @@ function ActionDropDown(props: Props) {
 
     const oldField = eventView?.fields.map(field => field.field);
     const newField = toArray(oldField).concat(queryKey);
-    browserHistory.push({
+    navigate({
       ...location,
       query: {
         ...location?.query,
@@ -87,7 +87,7 @@ function ActionDropDown(props: Props) {
         throw new Error(`Unknown quick context action type. ${actionType}`);
     }
 
-    browserHistory.push({
+    navigate({
       ...location,
       query: {
         ...location?.query,
@@ -170,5 +170,3 @@ function ActionDropDown(props: Props) {
 const StyledTrigger = styled(Button)`
   margin-left: ${p => p.theme.space.xs};
 `;
-
-export default ActionDropDown;

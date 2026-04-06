@@ -1,21 +1,26 @@
+from unittest.mock import patch
+
 import pytest
 
+from sentry.grouping.api import _get_variants_from_strategies
+from sentry.grouping.component import (
+    ChainedExceptionGroupingComponent,
+    ErrorValueGroupingComponent,
+    ExceptionGroupingComponent,
+    MessageGroupingComponent,
+)
+from sentry.grouping.context import GroupingContext
 from sentry.grouping.parameterization import (
     DEFAULT_PARAMETERIZATION_REGEXES_MAP,
     EXPERIMENTAL_PARAMETERIZATION_REGEXES_MAP,
-    Parameterizer,
+    experimental_parameterizer,
+    parameterizer,
 )
-
-
-@pytest.fixture
-def parameterizer() -> Parameterizer:
-    return Parameterizer(experimental=False)
-
-
-@pytest.fixture
-def experimental_parameterizer() -> Parameterizer:
-    return Parameterizer(experimental=True)
-
+from sentry.grouping.variants import ComponentVariant, CustomFingerprintVariant
+from sentry.models.project import Project
+from sentry.services.eventstore.models import Event
+from sentry.testutils.pytest.fixtures import django_db_all
+from sentry.testutils.pytest.mocking import count_matching_calls
 
 standard_cases = [
     ("email", "test@email.com", "<email>"),
@@ -76,7 +81,11 @@ standard_cases = [
     ("date - datetime compressed T-separated", "20060102T150405", "<date>"),
     ("date - datetime compressed T-separated UTC", "20060102T150405Z", "<date>"),
     ("date - datetime compressed T-separated w offset", "20060102T150405+0100", "<date>"),
-    ("date - kitchen", "3:04PM", "<date>"),
+    ("date - kitchen uppercase without space", "11:21PM", "<date>"),
+    ("date - kitchen uppercase with space", "12:31 PM", "<date>"),
+    ("date - kitchen lowercase without space", "11:21pm", "<date>"),
+    ("date - kitchen lowercase with space", "12:31 pm", "<date>"),
+    ("date - kitchen 24-hour", "23:21", "<date>"),
     ("date - time", "15:04:05", "<date>"),
     ("date - basic", "Mon Jan 02, 1999", "<date>"),
     ("date - datetime compressed date", "20240220 11:55:33.546593", "<date>"),
@@ -98,11 +107,7 @@ standard_cases = [
         "tx274a77a8975c4a66aeb24-0052d95365-cluster01",
         "<swift_txn_id>",
     ),
-    (
-        "swift_txn_id - not matching prefix",
-        "ab274a77a8975c4a66aeb24-0052d95365",
-        "<hex>-0052d95365",
-    ),
+    ("swift_txn_id - missing prefix", "ab274a77a8975c4a66aeb24-0052d95365", "<hex>-<hex>"),
     ("hex with prefix - lowercase, 4 digits", "0x9af8", "<hex>"),
     ("hex with prefix - uppercase, 4 digits", "0x9AF8", "<hex>"),
     ("hex with prefix - lowercase, 8 digits", "0x9af8c3be", "<hex>"),
@@ -119,8 +124,8 @@ standard_cases = [
     ("hex without prefix - uppercase, 4 digits", "9AF8", "9AF8"),
     ("hex without prefix - lowercase, 8 digits", "9af8c3be", "<hex>"),
     ("hex without prefix - uppercase, 8 digits", "9AF8C3BE", "<hex>"),
-    ("hex without prefix - lowercase, 10 digits", "9af8c3be3a", "9af8c3be3a"),
-    ("hex without prefix - uppercase, 10 digits", "9AF8C3BE3A", "9AF8C3BE3A"),
+    ("hex without prefix - lowercase, 10 digits", "9af8c3be3a", "<hex>"),
+    ("hex without prefix - uppercase, 10 digits", "9AF8C3BE3A", "<hex>"),
     ("hex without prefix - lowercase, 16 digits", "9af8c3be3a1231fe", "<hex>"),
     ("hex without prefix - uppercase, 16 digits", "9AF8C3BE3A1231FE", "<hex>"),
     ("hex without prefix - lowercase, 24 digits", "9af8c3be3a1231fe1121acb1", "<hex>"),
@@ -133,6 +138,7 @@ standard_cases = [
     ("hex without prefix - uppercase, no numbers until later", "DEADBEEF 123", "DEADBEEF <int>"),
     ("hex without prefix - no letters, < 8 digits", "1234567", "<int>"),
     ("hex without prefix - no letters, 8+ digits", "12345678", "<hex>"),
+    ("git sha", "commit a93c7d2", "commit <git_sha>"),
     ("git sha - all letters", "commit deadbeef", "commit deadbeef"),
     ("git sha - all numbers", "commit 4150908", "commit <int>"),
     ("float", "0.23", "<float>"),
@@ -168,23 +174,21 @@ experimental_cases: list[tuple[str, str, str]] = [
 
 
 @pytest.mark.parametrize(("name", "input", "expected"), standard_cases)
-def test_default_parameterization(
-    name: str, input: str, expected: str, parameterizer: Parameterizer
-) -> None:
-    assert parameterizer.parameterize_all(input) == expected
-    assert parameterizer.parameterize_all(f"prefix {input}") == f"prefix {expected}"
-    assert parameterizer.parameterize_all(f"{input} suffix") == f"{expected} suffix"
-    assert parameterizer.parameterize_all(f"prefix {input} suffix") == f"prefix {expected} suffix"
+def test_default_parameterization(name: str, input: str, expected: str) -> None:
+    assert parameterizer.parameterize(input) == expected
+    assert parameterizer.parameterize(f"prefix {input}") == f"prefix {expected}"
+    assert parameterizer.parameterize(f"{input} suffix") == f"{expected} suffix"
+    assert parameterizer.parameterize(f"prefix {input} suffix") == f"prefix {expected} suffix"
 
 
 @pytest.mark.parametrize(("name", "input", "expected"), experimental_cases)
 def test_default_parameterizer_misses_experimental_cases(
-    name: str, input: str, expected: str, parameterizer: Parameterizer
+    name: str, input: str, expected: str
 ) -> None:
-    assert parameterizer.parameterize_all(input) != expected
-    assert parameterizer.parameterize_all(f"prefix {input}") != f"prefix {expected}"
-    assert parameterizer.parameterize_all(f"{input} suffix") != f"{expected} suffix"
-    assert parameterizer.parameterize_all(f"prefix {input} suffix") != f"prefix {expected} suffix"
+    assert parameterizer.parameterize(input) != expected
+    assert parameterizer.parameterize(f"prefix {input}") != f"prefix {expected}"
+    assert parameterizer.parameterize(f"{input} suffix") != f"{expected} suffix"
+    assert parameterizer.parameterize(f"prefix {input} suffix") != f"prefix {expected} suffix"
 
 
 @pytest.mark.skipif(
@@ -192,14 +196,12 @@ def test_default_parameterizer_misses_experimental_cases(
     reason="no experimental regexes to test",
 )
 @pytest.mark.parametrize(("name", "input", "expected"), standard_cases + experimental_cases)
-def test_experimental_parameterization(
-    name: str, input: str, expected: str, experimental_parameterizer: Parameterizer
-) -> None:
-    assert experimental_parameterizer.parameterize_all(input) == expected
-    assert experimental_parameterizer.parameterize_all(f"prefix {input}") == f"prefix {expected}"
-    assert experimental_parameterizer.parameterize_all(f"{input} suffix") == f"{expected} suffix"
+def test_experimental_parameterization(name: str, input: str, expected: str) -> None:
+    assert experimental_parameterizer.parameterize(input) == expected
+    assert experimental_parameterizer.parameterize(f"prefix {input}") == f"prefix {expected}"
+    assert experimental_parameterizer.parameterize(f"{input} suffix") == f"{expected} suffix"
     assert (
-        experimental_parameterizer.parameterize_all(f"prefix {input} suffix")
+        experimental_parameterizer.parameterize(f"prefix {input} suffix")
         == f"prefix {expected} suffix"
     )
 
@@ -212,12 +214,6 @@ def test_experimental_parameterization(
 # parameterization. (Remember to remove the last item in each tuple for the cases you fix.)
 incorrect_cases = [
     # ("name", "input", "desired", "actual")
-    (
-        "git sha",
-        "commit a93c7d2",
-        "commit <git_sha>",
-        "commit a93c7d2",
-    ),
     (
         "int - number in word",
         "Encoding: utf-8",
@@ -260,8 +256,282 @@ incorrect_cases = [
 
 
 @pytest.mark.parametrize(("name", "input", "desired", "actual"), incorrect_cases)
-def test_incorrect_parameterization(
-    name: str, input: str, desired: str, actual: str, parameterizer: Parameterizer
+def test_incorrect_parameterization(name: str, input: str, desired: str, actual: str) -> None:
+    assert parameterizer.parameterize(input) != desired
+    assert parameterizer.parameterize(input) == actual
+
+
+@django_db_all
+def test_parameterized_message_stored_on_context(default_project: Project) -> None:
+    with patch(
+        "sentry.grouping.api._get_variants_from_strategies", wraps=_get_variants_from_strategies
+    ) as mock_get_variants:
+        event = Event(default_project.id, "11211231", data={"message": "Dog number 1, #1 dog"})
+        event.get_grouping_variants()
+
+        context = mock_get_variants.call_args.args[1]
+
+        assert isinstance(context, GroupingContext)
+        assert len(context.message_parameterization_map) == 1
+        assert (
+            context.message_parameterization_map["Dog number 1, #1 dog"]
+            == "Dog number <int>, #<int> dog"
+        )
+
+
+@django_db_all
+def test_parameterized_error_message_stored_on_context(default_project: Project) -> None:
+    with patch(
+        "sentry.grouping.api._get_variants_from_strategies", wraps=_get_variants_from_strategies
+    ) as mock_get_variants:
+        event = Event(
+            default_project.id,
+            "11211231",
+            data={
+                "exception": {
+                    "values": [
+                        {
+                            "type": "FailedToFetchError",
+                            "value": "That's ball number 6 that Charlie hasn't brought back!",
+                        }
+                    ]
+                },
+            },
+        )
+        event.get_grouping_variants()
+
+        context = mock_get_variants.call_args.args[1]
+
+        assert isinstance(context, GroupingContext)
+        assert len(context.message_parameterization_map) == 1
+        assert (
+            context.message_parameterization_map[
+                "That's ball number 6 that Charlie hasn't brought back!"
+            ]
+            == "That's ball number <int> that Charlie hasn't brought back!"
+        )
+
+
+@django_db_all
+def test_parameterized_chained_error_messages_stored_on_context(default_project: Project) -> None:
+    with patch(
+        "sentry.grouping.api._get_variants_from_strategies", wraps=_get_variants_from_strategies
+    ) as mock_get_variants:
+        event = Event(
+            default_project.id,
+            "11211231",
+            data={
+                "exception": {
+                    "values": [
+                        {
+                            "type": "DogSourcingError",
+                            "value": "Adopt don't shop!",
+                        },
+                        {
+                            "type": "FailedToFetchError",
+                            "value": "That's ball number 6 that Charlie hasn't brought back!",
+                        },
+                        {
+                            "type": "DestroyedShoeError",
+                            "value": "Oh, no! Maisey ate Dad's slippers!",
+                        },
+                    ]
+                },
+            },
+        )
+        event.get_grouping_variants()
+
+        context = mock_get_variants.call_args.args[1]
+
+        assert isinstance(context, GroupingContext)
+        assert len(context.message_parameterization_map) == 3
+        assert context.message_parameterization_map["Adopt don't shop!"] == "Adopt don't shop!"
+        assert (
+            context.message_parameterization_map[
+                "That's ball number 6 that Charlie hasn't brought back!"
+            ]
+            == "That's ball number <int> that Charlie hasn't brought back!"
+        )
+        assert (
+            context.message_parameterization_map["Oh, no! Maisey ate Dad's slippers!"]
+            == "Oh, no! Maisey ate Dad's slippers!"
+        )
+
+
+@django_db_all
+def test_stored_parameterized_message_used(default_project: Project) -> None:
+    with (
+        patch("sentry.grouping.utils.metrics.incr") as mock_metrics_incr,
+        patch(
+            "sentry.grouping.parameterization.parameterizer.parameterize",
+            wraps=parameterizer.parameterize,
+        ) as parameterize_spy,
+    ):
+        event = Event(
+            default_project.id,
+            "11211231",
+            data={
+                "message": "Dog number 1, #1 dog",
+                "fingerprint": ["{{ message }}"],
+            },
+        )
+        variants = event.get_grouping_variants()
+
+        assert len(variants) == 2
+        message_variant = variants["default"]
+        fingerprint_variant = variants["custom_client_fingerprint"]
+
+        assert isinstance(message_variant, ComponentVariant)
+        assert isinstance(message_variant.contributing_component, MessageGroupingComponent)
+        assert message_variant.contributing_component.values == ["Dog number <int>, #<int> dog"]
+
+        assert isinstance(fingerprint_variant, CustomFingerprintVariant)
+        assert fingerprint_variant.values == ["Dog number <int>, #<int> dog"]
+
+        # Even though the parameterized message was used in two places, the parameterizer only ran
+        # once, meaning the stored value must have been used
+        assert parameterize_spy.call_count == 1
+        assert count_matching_calls(mock_metrics_incr, "grouping.cached_param_result_used") == 1
+
+
+@django_db_all
+def test_runs_parameterizer_on_fingerprint_constant_matching_message(
+    default_project: Project,
 ) -> None:
-    assert parameterizer.parameterize_all(input) != desired
-    assert parameterizer.parameterize_all(input) == actual
+    event = Event(
+        default_project.id,
+        "11211231",
+        data={
+            "message": "Dog number 1, #1 dog",
+            "fingerprint": ["Dog number 1, #1 dog", "Dogs are great!"],
+        },
+    )
+    variants = event.get_grouping_variants()
+
+    assert len(variants) == 2
+
+    message_variant = variants["default"]
+    assert isinstance(message_variant, ComponentVariant)
+
+    message_component = message_variant.contributing_component
+    assert isinstance(message_component, MessageGroupingComponent)
+
+    fingerprint_variant = variants["custom_client_fingerprint"]
+    assert isinstance(fingerprint_variant, CustomFingerprintVariant)
+
+    # Both instances of the message have been parameterized
+    assert message_component.values == ["Dog number <int>, #<int> dog"]
+    assert fingerprint_variant.values == [
+        # Parameterized because it matches the event's message
+        "Dog number <int>, #<int> dog",
+        "Dogs are great!",
+    ]
+
+
+@django_db_all
+def test_runs_parameterizer_on_fingerprint_constant_matching_error_message(
+    default_project: Project,
+) -> None:
+    event = Event(
+        default_project.id,
+        "11211231",
+        data={
+            "exception": {
+                "values": [
+                    {
+                        "type": "FailedToFetchError",
+                        "value": "That's ball number 6 that Charlie hasn't brought back!",
+                    }
+                ]
+            },
+            "fingerprint": [
+                "That's ball number 6 that Charlie hasn't brought back!",
+                "Dogs are great!",
+            ],
+        },
+    )
+    variants = event.get_grouping_variants()
+
+    assert len(variants) == 2
+
+    app_variant = variants["app"]
+    assert isinstance(app_variant, ComponentVariant)
+
+    exception_component = app_variant.contributing_component
+    assert isinstance(exception_component, ExceptionGroupingComponent)
+
+    error_message_component = exception_component.values[1]
+    assert isinstance(error_message_component, ErrorValueGroupingComponent)
+
+    fingerprint_variant = variants["custom_client_fingerprint"]
+    assert isinstance(fingerprint_variant, CustomFingerprintVariant)
+
+    # Both instances of the message have been parameterized
+    assert error_message_component.values == [
+        "That's ball number <int> that Charlie hasn't brought back!"
+    ]
+    assert fingerprint_variant.values == [
+        # Parameterized because it matches the event's error message
+        "That's ball number <int> that Charlie hasn't brought back!",
+        "Dogs are great!",
+    ]
+
+
+@django_db_all
+def test_runs_parameterizer_on_fingerprint_constant_matching_chained_error_message(
+    default_project: Project,
+) -> None:
+    event = Event(
+        default_project.id,
+        "11211231",
+        data={
+            "exception": {
+                "values": [
+                    {
+                        "type": "DogSourcingError",
+                        "value": "Adopt don't shop!",
+                    },
+                    {
+                        "type": "FailedToFetchError",
+                        "value": "That's ball number 6 that Charlie hasn't brought back!",
+                    },
+                    {
+                        "type": "DestroyedShoeError",
+                        "value": "Oh, no! Maisey ate Dad's slippers!",
+                    },
+                ]
+            },
+            "fingerprint": [
+                "That's ball number 6 that Charlie hasn't brought back!",
+                "Dogs are great!",
+            ],
+        },
+    )
+    variants = event.get_grouping_variants()
+
+    assert len(variants) == 2
+
+    app_variant = variants["app"]
+    assert isinstance(app_variant, ComponentVariant)
+
+    chained_exception_component = app_variant.contributing_component
+    assert isinstance(chained_exception_component, ChainedExceptionGroupingComponent)
+
+    middle_exception_component = chained_exception_component.values[1]
+    assert isinstance(middle_exception_component, ExceptionGroupingComponent)
+
+    middle_error_message_component = middle_exception_component.values[1]
+    assert isinstance(middle_error_message_component, ErrorValueGroupingComponent)
+
+    fingerprint_variant = variants["custom_client_fingerprint"]
+    assert isinstance(fingerprint_variant, CustomFingerprintVariant)
+
+    # Both instances of the message have been parameterized
+    assert middle_error_message_component.values == [
+        "That's ball number <int> that Charlie hasn't brought back!"
+    ]
+    assert fingerprint_variant.values == [
+        # Parameterized because it matches one of the error messages in the chain
+        "That's ball number <int> that Charlie hasn't brought back!",
+        "Dogs are great!",
+    ]

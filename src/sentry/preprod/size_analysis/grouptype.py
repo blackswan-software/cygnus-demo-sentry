@@ -7,8 +7,10 @@ from datetime import timezone as dt_timezone
 from typing import TYPE_CHECKING, Any, NotRequired, TypeAlias, TypedDict
 from uuid import uuid4
 
+from sentry.exceptions import InvalidSearchQuery
 from sentry.issues.grouptype import GroupCategory, GroupType
 from sentry.issues.issue_occurrence import IssueEvidence
+from sentry.preprod.artifact_search import artifact_matches_query
 from sentry.types.group import PriorityLevel
 from sentry.utils import metrics
 from sentry.workflow_engine.endpoints.validators.base import BaseDetectorTypeValidator
@@ -41,7 +43,7 @@ def _artifact_to_tags(artifact: PreprodArtifact) -> dict[str, str]:
     if artifact.app_id:
         tags["app_id"] = artifact.app_id
 
-    mobile_app_info = getattr(artifact, "mobile_app_info", None)
+    mobile_app_info = artifact.get_mobile_app_info()
     if mobile_app_info is not None:
         if mobile_app_info.app_name:
             tags["app_name"] = mobile_app_info.app_name
@@ -53,6 +55,9 @@ def _artifact_to_tags(artifact: PreprodArtifact) -> dict[str, str]:
         tags["build_configuration"] = artifact.build_configuration.name
     if artifact.artifact_type is not None:
         tags["artifact_type"] = PreprodArtifactModel.ArtifactType(artifact.artifact_type).to_str()
+
+    tags["artifact_id"] = str(artifact.id)
+
     return tags
 
 
@@ -61,11 +66,11 @@ class SizeAnalysisMetadata(TypedDict):
 
     platform: str  # "android", "apple", or "unknown"
     head_metric_id: int
-    base_metric_id: int
+    base_metric_id: NotRequired[int]
     head_artifact_id: int
-    base_artifact_id: int
+    base_artifact_id: NotRequired[int]
     head_artifact: PreprodArtifact
-    base_artifact: PreprodArtifact
+    base_artifact: NotRequired[PreprodArtifact]
 
 
 class SizeAnalysisValue(TypedDict):
@@ -86,7 +91,33 @@ SizeAnalysisEvaluation: TypeAlias = int | float
 class PreprodSizeAnalysisDetectorHandler(
     BaseDetectorHandler[SizeAnalysisValue, SizeAnalysisEvaluation]
 ):
+    def _matches_query(self, data_packet: SizeAnalysisDataPacket) -> bool:
+        query = self.detector.config.get("query", "")
+        if not query or not query.strip():
+            return True
+
+        metadata = data_packet.packet.get("metadata")
+        if not metadata:
+            raise ValueError(
+                f"Data packet is missing metadata required to evaluate query filter: {query}"
+            )
+
+        artifact = metadata["head_artifact"]
+        organization = self.detector.project.organization
+
+        try:
+            return artifact_matches_query(artifact, query, organization)
+        except InvalidSearchQuery:
+            logger.exception(
+                "preprod.size_analysis.invalid_detector_query",
+                extra={"detector_id": self.detector.id, "query": query},
+            )
+            return False
+
     def evaluate_impl(self, data_packet: SizeAnalysisDataPacket) -> GroupedDetectorEvaluationResult:
+        if not self._matches_query(data_packet):
+            return GroupedDetectorEvaluationResult(result={}, tainted=False)
+
         value = self.extract_value(data_packet)
         evaluation, priority = self._evaluate_conditions(value)
         if evaluation is None or priority is None:
@@ -191,17 +222,35 @@ class PreprodSizeAnalysisDetectorHandler(
         }
         if metadata:
             evidence_data["head_artifact_id"] = metadata["head_artifact_id"]
-            evidence_data["base_artifact_id"] = metadata["base_artifact_id"]
+            if "base_artifact_id" in metadata:
+                evidence_data["base_artifact_id"] = metadata["base_artifact_id"]
             evidence_data["head_size_metric_id"] = metadata["head_metric_id"]
-            evidence_data["base_size_metric_id"] = metadata["base_metric_id"]
+            if "base_metric_id" in metadata:
+                evidence_data["base_size_metric_id"] = metadata["base_metric_id"]
 
         tags: dict[str, str] = {}
         if metadata:
             tags["regression_kind"] = measurement.replace("_size", "")
             for key, value in _artifact_to_tags(metadata["head_artifact"]).items():
                 tags[f"head.{key}"] = value
-            for key, value in _artifact_to_tags(metadata["base_artifact"]).items():
-                tags[f"base.{key}"] = value
+            if "base_artifact" in metadata:
+                for key, value in _artifact_to_tags(metadata["base_artifact"]).items():
+                    tags[f"base.{key}"] = value
+
+            commit_comparison = metadata["head_artifact"].commit_comparison
+            if commit_comparison is not None:
+                if (head_sha := commit_comparison.head_sha) is not None:
+                    tags["git.sha"] = head_sha
+                if (head_ref := commit_comparison.head_ref) is not None:
+                    tags["git.branch"] = head_ref
+                if (head_repo := commit_comparison.head_repo_name) is not None:
+                    tags["git.repo"] = head_repo
+                if (base_sha := commit_comparison.base_sha) is not None:
+                    tags["git.base_sha"] = base_sha
+                if (base_ref := commit_comparison.base_ref) is not None:
+                    tags["git.base_branch"] = base_ref
+                if commit_comparison.pr_number is not None:
+                    tags["git.pr_number"] = str(commit_comparison.pr_number)
 
         occurrence = DetectorOccurrence(
             issue_title=issue_title,
@@ -236,7 +285,7 @@ class PreprodSizeAnalysisDetectorHandler(
 
 
 class PreprodSizeAnalysisDetectorValidator(BaseDetectorTypeValidator):
-    pass
+    data_source_required = False
 
 
 @dataclass(frozen=True)
@@ -267,6 +316,10 @@ class PreprodSizeAnalysisGroupType(GroupType):
                     "type": "string",
                     "enum": ["install_size", "download_size"],
                     "description": "The measurement to track",
+                },
+                "query": {
+                    "type": "string",
+                    "description": "Search query to filter which artifacts are monitored",
                 },
             },
             "required": ["threshold_type", "measurement"],

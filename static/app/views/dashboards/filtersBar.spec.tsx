@@ -14,7 +14,7 @@ import {
 
 import type {Organization} from 'sentry/types/organization';
 import {FieldKind} from 'sentry/utils/fields';
-import FiltersBar, {type FiltersBarProps} from 'sentry/views/dashboards/filtersBar';
+import {FiltersBar, type FiltersBarProps} from 'sentry/views/dashboards/filtersBar';
 import {
   DashboardFilterKeys,
   WidgetType,
@@ -29,7 +29,7 @@ describe('FiltersBar', () => {
     mockNetworkRequests();
 
     organization = OrganizationFixture({
-      features: ['dashboards-basic', 'dashboards-edit', 'dashboards-global-filters'],
+      features: ['dashboards-basic', 'dashboards-edit'],
     });
   });
 
@@ -200,7 +200,7 @@ describe('FiltersBar', () => {
     expect(onDashboardFilterChange).not.toHaveBeenCalled();
   });
 
-  it('should not render save button on prebuilt dashboard', async () => {
+  it('should render save and cancel buttons on prebuilt dashboard with unsaved changes', async () => {
     const newLocation = LocationFixture({
       query: {
         [DashboardFilterKeys.GLOBAL_FILTER]: JSON.stringify({
@@ -212,14 +212,15 @@ describe('FiltersBar', () => {
     });
     renderFilterBar({
       location: newLocation,
+      hasUnsavedChanges: true,
       prebuiltDashboardId: PrebuiltDashboardId.FRONTEND_SESSION_HEALTH,
     });
     await waitForElementToBeRemoved(() => screen.queryByTestId('loading-indicator'));
     expect(
       screen.getByRole('button', {name: /browser\.name.*Chrome/i})
     ).toBeInTheDocument();
-    expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', {name: 'Cancel'})).not.toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Save for Everyone'})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Cancel'})).toBeInTheDocument();
   });
 });
 
@@ -242,6 +243,10 @@ const mockNetworkRequests = () => {
         functions: ['p99'],
       },
     },
+  });
+  MockApiClient.addMockResponse({
+    url: '/organizations/org-slug/trace-items/attributes/',
+    body: [],
   });
 
   const mockSearchResponse = [

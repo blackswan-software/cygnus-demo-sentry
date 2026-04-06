@@ -52,7 +52,11 @@ interface ContainerLayoutProps {
   overflowX?: Responsive<'visible' | 'hidden' | 'scroll' | 'auto'>;
   overflowY?: Responsive<'visible' | 'hidden' | 'scroll' | 'auto'>;
 
+  overscrollBehavior?: Responsive<'contain' | 'auto' | 'none'>;
+
   pointerEvents?: Responsive<React.CSSProperties['pointerEvents']>;
+
+  cursor?: Responsive<React.CSSProperties['cursor']>;
 
   radius?: Responsive<Shorthand<RadiusSize, 4>>;
 
@@ -191,6 +195,7 @@ const omitContainerProps = new Set<keyof ContainerLayoutProps | 'as'>([
   'borderRight',
   'bottom',
   'column',
+  'cursor',
   'display',
   'flex',
   'flexBasis',
@@ -213,6 +218,7 @@ const omitContainerProps = new Set<keyof ContainerLayoutProps | 'as'>([
   'overflow',
   'overflowX',
   'overflowY',
+  'overscrollBehavior',
   'pointerEvents',
   'padding',
   'paddingTop',
@@ -264,7 +270,11 @@ export const Container = styled(
   ${p => rc('overflow-x', p.overflowX, p.theme)};
   ${p => rc('overflow-y', p.overflowY, p.theme)};
 
+  ${p => rc('overscroll-behavior', p.overscrollBehavior, p.theme)};
+
   ${p => rc('pointer-events', p.pointerEvents, p.theme)};
+
+  ${p => rc('cursor', p.cursor, p.theme)};
 
   ${p => rc('padding', p.padding, p.theme, getSpacing)};
   ${p => rc('padding-top', p.paddingTop, p.theme, getSpacing)};
