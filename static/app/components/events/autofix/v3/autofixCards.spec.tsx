@@ -30,9 +30,10 @@ jest.mock('sentry/views/seerExplorer/fileDiffViewer', () => ({
 function makeSection(
   step: string,
   status: AutofixSection['status'],
-  artifacts: AutofixArtifact[]
+  artifacts: AutofixArtifact[],
+  blockIndex = 0
 ): AutofixSection {
-  return {step, artifacts, messages: [], status};
+  return {step, blockIndex, artifacts, messages: [], status};
 }
 
 function makePatch(repoName: string, path: string): ExplorerFilePatch {
@@ -665,7 +666,7 @@ describe('Retry button', () => {
     expect(screen.getByRole('button', {name: 'Retry'})).toBeInTheDocument();
   });
 
-  it('calls startStep with solution and runId on SolutionCard retry click', async () => {
+  it('calls startStep with solution, runId, and blockIndex on SolutionCard retry click', async () => {
     const startStep = jest.fn();
     const artifact = makeSolutionArtifact({
       one_line_summary: 'Fix the bug',
@@ -675,7 +676,7 @@ describe('Retry button', () => {
     render(
       <SolutionCard
         autofix={{...autofixWithRun, startStep}}
-        section={makeSection('solution', 'completed', [artifact])}
+        section={makeSection('solution', 'completed', [artifact], 3)}
       />,
       {
         organization: OrganizationFixture({
@@ -685,18 +686,21 @@ describe('Retry button', () => {
     );
 
     await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
-    expect(startStep).toHaveBeenCalledWith('solution', 42);
+    expect(startStep).toHaveBeenCalledWith('solution', 42, undefined, 3);
   });
 
-  it('calls startStep with code_changes and runId on CodeChangesCard retry click', async () => {
+  it('calls startStep with code_changes, runId, and blockIndex on CodeChangesCard retry click', async () => {
     const startStep = jest.fn();
 
     render(
       <CodeChangesCard
         autofix={{...autofixWithRun, startStep}}
-        section={makeSection('code_changes', 'completed', [
-          [makePatch('org/repo', 'src/app.py')],
-        ])}
+        section={makeSection(
+          'code_changes',
+          'completed',
+          [[makePatch('org/repo', 'src/app.py')]],
+          5
+        )}
       />,
       {
         organization: OrganizationFixture({
@@ -706,7 +710,7 @@ describe('Retry button', () => {
     );
 
     await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
-    expect(startStep).toHaveBeenCalledWith('code_changes', 42);
+    expect(startStep).toHaveBeenCalledWith('code_changes', 42, undefined, 5);
   });
 
   it('calls createPR with runId on PullRequestsCard retry click', async () => {

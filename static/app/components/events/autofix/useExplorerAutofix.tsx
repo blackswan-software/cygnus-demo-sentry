@@ -277,6 +277,7 @@ export function getOrderedArtifactKeys(
 
 export interface AutofixSection {
   artifacts: AutofixArtifact[];
+  blockIndex: number;
   messages: Array<Block['message']>;
   status: 'processing' | 'completed';
   step: string;
@@ -308,6 +309,7 @@ export function getOrderedAutofixSections(runState: ExplorerAutofixState | null)
   // appended to whatever section is in progress (initially an 'unknown' one).
   let section: AutofixSection = {
     step: 'unknown',
+    blockIndex: 0,
     artifacts: [],
     messages: [],
     status: 'processing',
@@ -331,7 +333,8 @@ export function getOrderedAutofixSections(runState: ExplorerAutofixState | null)
     }
   }
 
-  for (const block of blocks) {
+  for (let blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
+    const block = blocks[blockIndex]!;
     // Accumulate file patches globally — they need to be merged across all
     // blocks regardless of section boundaries so later patches win per file.
     if (block.merged_file_patches?.length) {
@@ -353,6 +356,7 @@ export function getOrderedAutofixSections(runState: ExplorerAutofixState | null)
 
       section = {
         step: metadata.step,
+        blockIndex,
         artifacts: [],
         messages: [],
         status: 'processing',
@@ -372,6 +376,7 @@ export function getOrderedAutofixSections(runState: ExplorerAutofixState | null)
   if (pullRequests.length) {
     sections.push({
       step: 'pull_request',
+      blockIndex: blocks.length,
       artifacts: [pullRequests],
       messages: [],
       status: pullRequests.some(
@@ -386,6 +391,7 @@ export function getOrderedAutofixSections(runState: ExplorerAutofixState | null)
   if (codingAgents.length) {
     sections.push({
       step: 'coding_agents',
+      blockIndex: blocks.length,
       artifacts: [codingAgents],
       messages: [],
       status: codingAgents.some(
@@ -548,7 +554,12 @@ export function useExplorerAutofix(
    * @param runId - Optional run ID to continue an existing run
    */
   const startStep = useCallback(
-    async (step: AutofixExplorerStep, runId?: number, userContext?: string) => {
+    async (
+      step: AutofixExplorerStep,
+      runId?: number,
+      userContext?: string,
+      insertIndex?: number
+    ) => {
       setWaitingForResponse(true);
 
       try {
@@ -560,6 +571,10 @@ export function useExplorerAutofix(
 
         if (userContext) {
           data.user_context = userContext;
+        }
+
+        if (defined(insertIndex)) {
+          data.insert_index = insertIndex;
         }
 
         const response = await api.requestPromise(

@@ -125,7 +125,7 @@ export function SolutionCard({autofix, section}: AutofixCardProps) {
       trailingItems={
         section.status === 'completed' && artifact?.data ? (
           <RetryButton
-            onClick={() => startStep('solution', runId)}
+            onClick={() => startStep('solution', runId, undefined, section.blockIndex)}
             disabled={isPolling}
           />
         ) : undefined
@@ -219,7 +219,9 @@ export function CodeChangesCard({autofix, section}: AutofixCardProps) {
       trailingItems={
         section.status === 'completed' && patchesByRepo.size > 0 ? (
           <RetryButton
-            onClick={() => startStep('code_changes', runId)}
+            onClick={() =>
+              startStep('code_changes', runId, undefined, section.blockIndex)
+            }
             disabled={isPolling}
           />
         ) : undefined
