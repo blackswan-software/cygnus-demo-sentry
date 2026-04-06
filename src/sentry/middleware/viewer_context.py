@@ -17,13 +17,11 @@ def ViewerContextMiddleware(
     Must be placed **after** ``AuthenticationMiddleware`` so that
     ``request.user`` and ``request.auth`` are already populated.
 
-    Gated by the ``viewer-context.enabled`` option (FLAG_NOSTORE).
-    Set via deploy config; requires restart to change.
+    Gated by the ``viewer-context.enabled`` option.
     """
-    enabled = options.get("viewer-context.enabled")
 
     def ViewerContextMiddleware_impl(request: HttpRequest) -> HttpResponseBase:
-        if not enabled:
+        if not options.get("viewer-context.enabled"):
             return get_response(request)
 
         ctx = _viewer_context_from_request(request)

@@ -4103,10 +4103,9 @@ register(
 )
 
 # ViewerContext — unified caller identity for all entrypoints.
-# Set via deploy config (SENTRY_OPTIONS); requires restart to change.
 register(
     "viewer-context.enabled",
     default=False,
     type=Bool,
-    flags=FLAG_NOSTORE,
+    flags=FLAG_MODIFIABLE_BOOL | FLAG_AUTOMATOR_MODIFIABLE,
 )
