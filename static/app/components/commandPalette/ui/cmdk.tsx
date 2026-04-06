@@ -7,7 +7,10 @@ import type {
 } from 'sentry/components/commandPalette/types';
 
 import {makeCollection} from './collection';
-import {useCommandPaletteState} from './commandPaletteStateContext';
+import {
+  CommandPaletteStateProvider,
+  useCommandPaletteState,
+} from './commandPaletteStateContext';
 
 interface DisplayProps {
   label: string;
@@ -29,12 +32,17 @@ export type CMDKActionData =
     };
 
 export const CMDKCollection = makeCollection<CMDKActionData>();
+
 /**
- * Root provider for the CMDK collection. Must be mounted inside
- * CommandPaletteStateProvider because it reads the current query from it.
+ * Root provider for the command palette. Wrap the component tree that
+ * contains CMDKGroup/CMDKAction registrations and the CommandPalette UI.
  */
-export function CMDKProvider({children}: {children: React.ReactNode}) {
-  return <CMDKCollection.Provider>{children}</CMDKCollection.Provider>;
+export function CommandPaletteProvider({children}: {children: React.ReactNode}) {
+  return (
+    <CommandPaletteStateProvider>
+      <CMDKCollection.Provider>{children}</CMDKCollection.Provider>
+    </CommandPaletteStateProvider>
+  );
 }
 
 interface CMDKGroupProps {
@@ -55,7 +63,6 @@ type CMDKActionProps =
  */
 export function CMDKGroup({display, keywords, resource, children}: CMDKGroupProps) {
   const key = CMDKCollection.useRegisterNode({display, keywords, resource});
-
   const {query} = useCommandPaletteState();
 
   const {data} = useQuery({

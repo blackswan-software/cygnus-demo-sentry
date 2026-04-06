@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 
 import {addSuccessMessage} from 'sentry/actionCreators/indicator';
-import {CommandPaletteProvider} from 'sentry/components/commandPalette/context';
+import {CommandPaletteProvider} from 'sentry/components/commandPalette/ui/cmdk';
 import {CMDKAction, CMDKGroup} from 'sentry/components/commandPalette/ui/cmdk';
 import type {CMDKActionData} from 'sentry/components/commandPalette/ui/cmdk';
 import type {CollectionTreeNode} from 'sentry/components/commandPalette/ui/collection';

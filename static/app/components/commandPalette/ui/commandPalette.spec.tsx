@@ -24,8 +24,8 @@ jest.mock('@tanstack/react-virtual', () => ({
 
 import {closeModal} from 'sentry/actionCreators/modal';
 import * as modalActions from 'sentry/actionCreators/modal';
-import {CommandPaletteProvider} from 'sentry/components/commandPalette/context';
 import type {CommandPaletteAction} from 'sentry/components/commandPalette/types';
+import {CommandPaletteProvider} from 'sentry/components/commandPalette/ui/cmdk';
 import {CMDKAction, CMDKGroup} from 'sentry/components/commandPalette/ui/cmdk';
 import type {CMDKActionData} from 'sentry/components/commandPalette/ui/cmdk';
 import type {CollectionTreeNode} from 'sentry/components/commandPalette/ui/collection';
