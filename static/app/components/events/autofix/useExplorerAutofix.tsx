@@ -371,37 +371,45 @@ export function getOrderedAutofixSections(runState: ExplorerAutofixState | null)
   // Finalize the last in-progress section.
   finalizeSection();
 
-  // If there are any PR states, append a synthetic "pull_request" section.
-  const pullRequests = Object.values(runState?.repo_pr_states ?? {});
-  if (pullRequests.length) {
-    sections.push({
-      step: 'pull_request',
-      blockIndex: blocks.length,
-      artifacts: [pullRequests],
-      messages: [],
-      status: pullRequests.some(
-        pullRequest => pullRequest.pr_creation_status === 'creating'
-      )
-        ? 'processing'
-        : 'completed',
-    });
-  }
+  // Only show synthetic PR and coding-agent sections when code_changes is
+  // completed. After a retry-from-step truncates blocks, these would be stale
+  // and would prevent NextStep buttons from appearing.
+  const hasCompletedCodeChanges = sections.some(
+    s => s.step === 'code_changes' && s.status === 'completed'
+  );
 
-  const codingAgents = Object.values(runState?.coding_agents ?? {});
-  if (codingAgents.length) {
-    sections.push({
-      step: 'coding_agents',
-      blockIndex: blocks.length,
-      artifacts: [codingAgents],
-      messages: [],
-      status: codingAgents.some(
-        codingAgent =>
-          codingAgent.status === CodingAgentStatus.PENDING ||
-          codingAgent.status === CodingAgentStatus.RUNNING
-      )
-        ? 'processing'
-        : 'completed',
-    });
+  if (hasCompletedCodeChanges) {
+    const pullRequests = Object.values(runState?.repo_pr_states ?? {});
+    if (pullRequests.length) {
+      sections.push({
+        step: 'pull_request',
+        blockIndex: blocks.length,
+        artifacts: [pullRequests],
+        messages: [],
+        status: pullRequests.some(
+          pullRequest => pullRequest.pr_creation_status === 'creating'
+        )
+          ? 'processing'
+          : 'completed',
+      });
+    }
+
+    const codingAgents = Object.values(runState?.coding_agents ?? {});
+    if (codingAgents.length) {
+      sections.push({
+        step: 'coding_agents',
+        blockIndex: blocks.length,
+        artifacts: [codingAgents],
+        messages: [],
+        status: codingAgents.some(
+          codingAgent =>
+            codingAgent.status === CodingAgentStatus.PENDING ||
+            codingAgent.status === CodingAgentStatus.RUNNING
+        )
+          ? 'processing'
+          : 'completed',
+      });
+    }
   }
 
   return sections;
