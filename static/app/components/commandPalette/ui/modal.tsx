@@ -6,6 +6,7 @@ import {closeModal} from 'sentry/actionCreators/modal';
 import type {CMDKActionData} from 'sentry/components/commandPalette/ui/cmdk';
 import type {CollectionTreeNode} from 'sentry/components/commandPalette/ui/collection';
 import {CommandPalette} from 'sentry/components/commandPalette/ui/commandPalette';
+import {GlobalCommandPaletteActions} from 'sentry/components/commandPalette/ui/commandPaletteGlobalActions';
 import type {Theme} from 'sentry/utils/theme';
 import {normalizeUrl} from 'sentry/utils/url/normalizeUrl';
 import {useNavigate} from 'sentry/utils/useNavigate';
@@ -27,6 +28,7 @@ export default function CommandPaletteModal({Body}: ModalRenderProps) {
 
   return (
     <Body>
+      <GlobalCommandPaletteActions />
       <CommandPalette onAction={handleSelect} />
     </Body>
   );

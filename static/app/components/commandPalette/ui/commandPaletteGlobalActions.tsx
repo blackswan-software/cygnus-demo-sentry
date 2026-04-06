@@ -49,7 +49,7 @@ import {useStarredIssueViews} from 'sentry/views/navigation/secondary/sections/i
 import {useSecondaryNavigation} from 'sentry/views/navigation/secondaryNavigationContext';
 import {getUserOrgNavigationConfiguration} from 'sentry/views/settings/organization/userOrgNavigationConfiguration';
 
-import {CMDKAction, CMDKGroup} from './ui/cmdk';
+import {CMDKAction, CMDKGroup} from './cmdk';
 
 const DSN_ICONS: React.ReactElement[] = [
   <IconIssues key="issues" />,
