@@ -28,8 +28,9 @@ export default function CommandPaletteModal({Body}: ModalRenderProps) {
 
   return (
     <Body>
-      <GlobalCommandPaletteActions />
-      <CommandPalette onAction={handleSelect} />
+      <CommandPalette onAction={handleSelect}>
+        <GlobalCommandPaletteActions />
+      </CommandPalette>
     </Body>
   );
 }

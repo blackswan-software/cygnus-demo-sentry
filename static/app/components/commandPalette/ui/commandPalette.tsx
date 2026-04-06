@@ -65,6 +65,7 @@ type CMDKFlatItem = CollectionTreeNode<CMDKActionData> & {
 
 interface CommandPaletteProps {
   onAction: (action: CollectionTreeNode<CMDKActionData>) => void;
+  children?: React.ReactNode;
 }
 
 export function CommandPalette(props: CommandPaletteProps) {
@@ -226,6 +227,7 @@ export function CommandPalette(props: CommandPaletteProps) {
 
   return (
     <Fragment>
+      {props.children}
       <Flex direction="column" align="start" gap="md">
         <Flex position="relative" direction="row" align="center" gap="xs" width="100%">
           {p => {
