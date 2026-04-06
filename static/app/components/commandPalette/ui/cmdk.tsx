@@ -83,9 +83,12 @@ export function CMDKGroup({display, keywords, resource, children}: CMDKGroupProp
   const key = CMDKCollection.useRegisterNode({display, keywords, resource, ref});
   const {query} = useCommandPaletteState();
 
+  const resourceOptions = resource
+    ? resource(query)
+    : {queryKey: [], queryFn: () => null};
   const {data} = useQuery({
-    ...(resource ? resource(query) : {queryKey: [], queryFn: () => null}),
-    enabled: !!resource,
+    ...resourceOptions,
+    enabled: !!resource && (resourceOptions.enabled ?? true),
   });
 
   const resolvedChildren =

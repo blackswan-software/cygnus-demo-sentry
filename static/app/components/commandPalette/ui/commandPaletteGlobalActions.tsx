@@ -260,8 +260,8 @@ export function GlobalCommandPaletteActions() {
               ),
               icon: <IconSearch />,
             }}
-            resource={(query: string): CMDKQueryOptions =>
-              queryOptions({
+            resource={(query: string): CMDKQueryOptions => {
+              return queryOptions({
                 ...apiOptions.as<DsnLookupResponse>()(
                   '/organizations/$organizationIdOrSlug/dsn-lookup/',
                   {
@@ -281,8 +281,8 @@ export function GlobalCommandPaletteActions() {
                     },
                     keywords: [query],
                   })),
-              })
-            }
+              });
+            }}
           >
             {(data: CommandPaletteAsyncResult[]) =>
               data.map((item, i) => renderAsyncResult(item, i))
