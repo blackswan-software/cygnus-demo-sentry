@@ -82,7 +82,7 @@ export function makeCollection<T>(): CollectionInstance<T> {
               parent: node.parent,
               children: this.tree(key),
               ...node.dataRef.current,
-            } as CollectionTreeNode<T>;
+            };
           });
         },
       }),

@@ -17,12 +17,12 @@ import {InputGroup} from '@sentry/scraps/input';
 import {Container, Flex, Stack} from '@sentry/scraps/layout';
 import {InnerWrap} from '@sentry/scraps/menuListItem';
 import type {MenuListItemProps} from '@sentry/scraps/menuListItem';
-import {slot} from '@sentry/scraps/slot';
 import {Text} from '@sentry/scraps/text';
 
 import type {CMDKActionData} from 'sentry/components/commandPalette/ui/cmdk';
 import {CMDKCollection} from 'sentry/components/commandPalette/ui/cmdk';
 import type {CollectionTreeNode} from 'sentry/components/commandPalette/ui/collection';
+import {CommandPaletteSlot} from 'sentry/components/commandPalette/ui/commandPaletteSlot';
 import {
   useCommandPaletteDispatch,
   useCommandPaletteState,
@@ -41,7 +41,7 @@ const MotionButton = motion.create(Button);
 const MotionIconSearch = motion.create(IconSearch);
 const MotionContainer = motion.create(Container);
 
-export const CommandPaletteSlot = slot(['global', 'page', 'task']);
+export {CommandPaletteSlot};
 
 function makeLeadingItemAnimation(theme: Theme) {
   return {
@@ -87,7 +87,7 @@ export function CommandPalette(props: CommandPaletteProps) {
   // The current navigation root: null = top-level, otherwise the key of the
   // group the user has drilled into.
   const currentRootKey = state.action?.value.key ?? null;
-  const currentNodes = store.tree(currentRootKey);
+  const currentNodes = presortBySlotRef(store.tree(currentRootKey));
 
   const actions = useMemo<CMDKFlatItem[]>(() => {
     if (!state.query) {
@@ -380,6 +380,28 @@ export function CommandPalette(props: CommandPaletteProps) {
       )}
     </Fragment>
   );
+}
+
+/**
+ * Pre-sorts the root-level nodes by DOM position of their slot outlet element.
+ * Outlets are declared in priority order inside CommandPalette (task → page → global),
+ * so compareDocumentPosition gives the correct ordering for free.
+ * Nodes sharing the same outlet (same slot) retain their existing relative order.
+ * Nodes without a slot ref are not reordered relative to each other.
+ */
+function presortBySlotRef(
+  nodes: Array<CollectionTreeNode<CMDKActionData>>
+): Array<CollectionTreeNode<CMDKActionData>> {
+  return [...nodes].sort((a, b) => {
+    const aEl = a.ref?.current ?? null;
+    const bEl = b.ref?.current ?? null;
+
+    if (aEl === bEl) return 0; // both null, or same outlet element — preserve order
+
+    if (!aEl) return 1; // a has no slot ref → sort after b
+    if (!bEl) return -1; // b has no slot ref → sort a before b
+    return aEl.compareDocumentPosition(bEl) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+  });
 }
 
 function scoreNode(

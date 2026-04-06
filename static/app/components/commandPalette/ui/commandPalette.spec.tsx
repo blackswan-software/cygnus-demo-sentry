@@ -448,5 +448,29 @@ describe('CommandPalette', () => {
       expect(options[0]).toHaveAccessibleName('Page Action');
       expect(options[1]).toHaveAccessibleName('Global Action');
     });
+
+    it('task < page < global ordering when all three slots are populated', async () => {
+      render(
+        <CommandPaletteProvider>
+          <CommandPaletteSlot.Provider>
+            <CommandPaletteSlot name="global">
+              <CMDKAction display={{label: 'Global Action'}} onAction={jest.fn()} />
+            </CommandPaletteSlot>
+            <CommandPaletteSlot name="page">
+              <CMDKAction display={{label: 'Page Action'}} onAction={jest.fn()} />
+            </CommandPaletteSlot>
+            <CommandPaletteSlot name="task">
+              <CMDKAction display={{label: 'Task Action'}} onAction={jest.fn()} />
+            </CommandPaletteSlot>
+            <CommandPalette onAction={jest.fn()} />
+          </CommandPaletteSlot.Provider>
+        </CommandPaletteProvider>
+      );
+
+      const options = await screen.findAllByRole('option');
+      expect(options[0]).toHaveAccessibleName('Task Action');
+      expect(options[1]).toHaveAccessibleName('Page Action');
+      expect(options[2]).toHaveAccessibleName('Global Action');
+    });
   });
 });

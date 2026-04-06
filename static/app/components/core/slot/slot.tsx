@@ -5,6 +5,7 @@ import {
   useLayoutEffect,
   useMemo,
   useReducer,
+  useRef,
 } from 'react';
 import {createPortal} from 'react-dom';
 
@@ -119,10 +120,12 @@ type SlotModule<T extends Slot> = React.FunctionComponent<SlotConsumerProps<T>> 
   Fallback: React.ComponentType<SlotFallbackProps>;
   Outlet: React.ComponentType<SlotOutletProps<T>>;
   Provider: React.ComponentType<SlotProviderProps>;
+  useSlotOutletRef: () => React.RefObject<HTMLElement | null>;
 };
 
 function makeSlotConsumer<T extends Slot>(
-  context: React.Context<SlotContextValue<T> | null>
+  context: React.Context<SlotContextValue<T> | null>,
+  outletNameContext: React.Context<T | null>
 ) {
   function SlotConsumer(props: SlotConsumerProps<T>): React.ReactNode {
     const ctx = useContext(context);
@@ -138,11 +141,21 @@ function makeSlotConsumer<T extends Slot>(
     }, [dispatch, name]);
 
     const element = state[name]?.element;
+
+    // Provide outletNameContext from the consumer so that portaled children
+    // (which don't descend through the outlet in the component tree) can still
+    // read which slot they belong to via useSlotOutletRef.
+    const wrappedChildren = (
+      <outletNameContext.Provider value={name}>
+        {props.children}
+      </outletNameContext.Provider>
+    );
+
     if (!element) {
       // Render in place as a fallback when no target element is registered yet
-      return props.children;
+      return wrappedChildren;
     }
-    return createPortal(props.children, element);
+    return createPortal(wrappedChildren, element);
   }
 
   SlotConsumer.displayName = 'Slot.Consumer';
@@ -230,16 +243,37 @@ function makeSlotProvider<T extends Slot>(
   return SlotProvider as (props: SlotProviderProps) => React.ReactNode;
 }
 
+function makeUseSlotOutletRef<T extends Slot>(
+  context: React.Context<SlotContextValue<T> | null>,
+  outletNameContext: React.Context<T | null>
+): () => React.RefObject<HTMLElement | null> {
+  return function useSlotOutletRef(): React.RefObject<HTMLElement | null> {
+    const ctx = useContext(context);
+    const name = useContext(outletNameContext);
+    const ref = useRef<HTMLElement | null>(null);
+
+    // Synchronously keep ref.current in sync with the outlet element for the
+    // current slot. Safe to assign during render since it's a ref mutation.
+    ref.current = ctx && name ? (ctx[0][name]?.element ?? null) : null;
+
+    return ref;
+  };
+}
+
 export function slot<T extends readonly Slot[]>(names: T): SlotModule<T[number]> {
   type SlotName = T[number];
 
   const SlotContext = createContext<SlotContextValue<SlotName> | null>(null);
   const OutletNameContext = createContext<SlotName | null>(null);
 
-  const Slot = makeSlotConsumer<SlotName>(SlotContext) as SlotModule<SlotName>;
+  const Slot = makeSlotConsumer<SlotName>(
+    SlotContext,
+    OutletNameContext
+  ) as SlotModule<SlotName>;
   Slot.Provider = makeSlotProvider<SlotName>(SlotContext);
   Slot.Outlet = makeSlotOutlet<SlotName>(SlotContext, OutletNameContext);
   Slot.Fallback = makeSlotFallback<SlotName>(SlotContext, OutletNameContext);
+  Slot.useSlotOutletRef = makeUseSlotOutletRef<SlotName>(SlotContext, OutletNameContext);
 
   // Keep `names` reference to preserve the const-narrowed type T
   void names;

@@ -7,6 +7,7 @@ import type {
 } from 'sentry/components/commandPalette/types';
 
 import {makeCollection} from './collection';
+import {CommandPaletteSlot} from './commandPaletteSlot';
 import {
   CommandPaletteStateProvider,
   useCommandPaletteState,
@@ -23,11 +24,22 @@ interface DisplayProps {
  * having children registered under it — there is no separate group type.
  */
 export type CMDKActionData =
-  | {display: DisplayProps; to: string; keywords?: string[]}
-  | {display: DisplayProps; onAction: () => void; keywords?: string[]}
+  | {
+      display: DisplayProps;
+      to: string;
+      keywords?: string[];
+      ref?: React.RefObject<HTMLElement | null>;
+    }
+  | {
+      display: DisplayProps;
+      onAction: () => void;
+      keywords?: string[];
+      ref?: React.RefObject<HTMLElement | null>;
+    }
   | {
       display: DisplayProps;
       keywords?: string[];
+      ref?: React.RefObject<HTMLElement | null>;
       resource?: (query: string) => CMDKQueryOptions;
     };
 
@@ -62,7 +74,8 @@ type CMDKActionProps =
  * current query and passes results to a render-prop children function.
  */
 export function CMDKGroup({display, keywords, resource, children}: CMDKGroupProps) {
-  const key = CMDKCollection.useRegisterNode({display, keywords, resource});
+  const slotRef = CommandPaletteSlot.useSlotOutletRef();
+  const key = CMDKCollection.useRegisterNode({display, keywords, resource, ref: slotRef});
   const {query} = useCommandPaletteState();
 
   const {data} = useQuery({
@@ -84,6 +97,7 @@ export function CMDKGroup({display, keywords, resource, children}: CMDKGroupProp
  * Registers a leaf action node in the collection.
  */
 export function CMDKAction(props: CMDKActionProps) {
-  CMDKCollection.useRegisterNode(props);
+  const slotRef = CommandPaletteSlot.useSlotOutletRef();
+  CMDKCollection.useRegisterNode({...props, ref: slotRef});
   return null;
 }

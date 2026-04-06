@@ -14,9 +14,10 @@ import {
   clearIndicators,
 } from 'sentry/actionCreators/indicator';
 import {CMDKAction, CMDKGroup} from 'sentry/components/commandPalette/ui/cmdk';
-import {CommandPaletteSlot} from 'sentry/components/commandPalette/ui/commandPalette';
+import {CommandPaletteSlot} from 'sentry/components/commandPalette/ui/commandPaletteSlot';
 import {IssueStreamHeaderLabel} from 'sentry/components/IssueStreamHeaderLabel';
 import {Sticky} from 'sentry/components/sticky';
+import {IconList} from 'sentry/icons';
 import {t, tct, tn} from 'sentry/locale';
 import {GroupStore} from 'sentry/stores/groupStore';
 import {ProjectsStore} from 'sentry/stores/projectsStore';
@@ -105,14 +106,17 @@ function ActionsBarPriority({
   return (
     <ActionsBarContainer>
       <CommandPaletteSlot name="task">
-        <CMDKGroup display={{label: t('Issues')}}>
+        <CMDKGroup display={{label: t('Issues List')}}>
           <CMDKAction
-            display={{label: pageSelected ? t('Deselect all') : t('Select all')}}
+            display={{
+              label: pageSelected ? t('Deselect all') : t('Select all'),
+              icon: <IconList />,
+            }}
             onAction={toggleSelectAllVisible}
           />
           {anySelected && (
             <CMDKAction
-              display={{label: t('Resolve selected issues')}}
+              display={{label: t('Resolve selected issues'), icon: <IconList />}}
               onAction={() =>
                 handleUpdate({status: GroupStatus.RESOLVED, statusDetails: {}})
               }
@@ -120,7 +124,7 @@ function ActionsBarPriority({
           )}
           {anySelected && (
             <CMDKAction
-              display={{label: t('Archive selected issues')}}
+              display={{label: t('Archive selected issues'), icon: <IconList />}}
               onAction={() =>
                 handleUpdate({
                   status: GroupStatus.IGNORED,
@@ -132,7 +136,7 @@ function ActionsBarPriority({
           )}
           {anySelected && multiSelected && (
             <CMDKAction
-              display={{label: t('Merge selected issues')}}
+              display={{label: t('Merge selected issues'), icon: <IconList />}}
               onAction={handleMerge}
             />
           )}

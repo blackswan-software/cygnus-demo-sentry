@@ -50,7 +50,7 @@ import {useSecondaryNavigation} from 'sentry/views/navigation/secondaryNavigatio
 import {getUserOrgNavigationConfiguration} from 'sentry/views/settings/organization/userOrgNavigationConfiguration';
 
 import {CMDKAction, CMDKGroup} from './cmdk';
-import {CommandPaletteSlot} from './commandPalette';
+import {CommandPaletteSlot} from './commandPaletteSlot';
 
 const DSN_ICONS: React.ReactElement[] = [
   <IconIssues key="issues" />,
