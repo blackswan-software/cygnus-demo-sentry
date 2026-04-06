@@ -15,6 +15,8 @@ import {
 import {
   getAutofixArtifactFromSection,
   isCodeChangesSection,
+  isCodingAgentsSection,
+  isPullRequestsSection,
   isRootCauseSection,
   isSolutionSection,
   type AutofixSection,
@@ -38,7 +40,11 @@ interface SeerDrawerNextStepProps {
 
 export function SeerDrawerNextStep({sections, group, autofix}: SeerDrawerNextStepProps) {
   const runId = autofix.runState?.run_id;
-  const section = sections[sections.length - 1];
+  // Use the last block-based section, skipping synthetic sections (pull_request,
+  // coding_agents) that persist from stale run state after retry-from-step.
+  const section = [...sections]
+    .reverse()
+    .find(s => !isPullRequestsSection(s) && !isCodingAgentsSection(s));
   const referrer = autofix.runState?.blocks?.[0]?.message?.metadata?.referrer;
 
   if (!defined(runId) || !defined(section)) {
@@ -204,6 +210,11 @@ function CodeChangesNextStep({autofix, group, runId, section, referrer}: NextSte
   const organization = useOrganization();
   const {isPolling, createPR, startStep} = autofix;
 
+  const hasPR = useMemo(() => {
+    const prStates = autofix.runState?.repo_pr_states ?? {};
+    return Object.values(prStates).some(pr => pr.pr_number && pr.pr_url);
+  }, [autofix.runState?.repo_pr_states]);
+
   const handleYesClick = useCallback(() => {
     createPR(runId);
     trackAnalytics('autofix.create_pr_clicked', {
@@ -233,17 +244,22 @@ function CodeChangesNextStep({autofix, group, runId, section, referrer}: NextSte
     return null;
   }
 
+  const yesLabel = hasPR ? t('Yes, update the PR') : t('Yes, draft a PR');
+  const nevermindLabel = hasPR
+    ? t('Nevermind, update the PR')
+    : t('Nevermind, draft a PR');
+
   return (
     <NextStepTemplate
       isProcessing={isPolling}
       prompt={t('Are you happy with these code changes?')}
-      labelYes={t('Yes, draft a PR')}
+      labelYes={yesLabel}
       onClickYes={handleYesClick}
       labelNo={t('No')}
       onClickNo={handleNoClick}
       placeholderPrompt={t('Give seer additional context to improve this code change.')}
       rethinkPrompt={t('How can this code change be improved?')}
-      labelNevermind={t('Nevermind, draft a PR')}
+      labelNevermind={nevermindLabel}
       labelRethink={t('Rethink code changes')}
     />
   );
