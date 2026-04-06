@@ -3,10 +3,9 @@ import {useCallback} from 'react';
 import {addSuccessMessage} from 'sentry/actionCreators/indicator';
 import {CommandPaletteProvider} from 'sentry/components/commandPalette/context';
 import {useCommandPaletteActionsRegister} from 'sentry/components/commandPalette/context';
-import type {
-  CommandPaletteAction,
-  CommandPaletteActionWithKey,
-} from 'sentry/components/commandPalette/types';
+import type {CommandPaletteAction} from 'sentry/components/commandPalette/types';
+import type {CMDKActionData} from 'sentry/components/commandPalette/ui/cmdk';
+import type {CollectionTreeNode} from 'sentry/components/commandPalette/ui/collection';
 import {CommandPalette} from 'sentry/components/commandPalette/ui/commandPalette';
 import {normalizeUrl} from 'sentry/utils/url/normalizeUrl';
 import {useNavigate} from 'sentry/utils/useNavigate';
@@ -20,13 +19,11 @@ export function CommandPaletteDemo() {
   const navigate = useNavigate();
 
   const handleAction = useCallback(
-    (action: CommandPaletteActionWithKey) => {
+    (action: CollectionTreeNode<CMDKActionData>) => {
       if ('to' in action) {
-        navigate(normalizeUrl(action.to));
+        navigate(normalizeUrl(String(action.to)));
       } else if ('onAction' in action) {
         action.onAction();
-      } else {
-        // @TODO: implement async actions
       }
     },
     [navigate]

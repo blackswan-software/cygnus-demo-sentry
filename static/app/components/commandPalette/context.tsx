@@ -11,6 +11,7 @@ import {uuid4} from '@sentry/core';
 import {slugify} from 'sentry/utils/slugify';
 import {unreachable} from 'sentry/utils/unreachable';
 
+import {CMDKProvider} from './ui/cmdk';
 import {CommandPaletteStateProvider} from './ui/commandPaletteStateContext';
 import type {CommandPaletteAction, CommandPaletteActionWithKey} from './types';
 
@@ -151,7 +152,9 @@ export function CommandPaletteProvider({children}: CommandPaletteProviderProps) 
   return (
     <CommandPaletteRegistrationContext.Provider value={registerContext}>
       <CommandPaletteActionsContext.Provider value={actions}>
-        <CommandPaletteStateProvider>{children}</CommandPaletteStateProvider>
+        <CommandPaletteStateProvider>
+          <CMDKProvider>{children}</CMDKProvider>
+        </CommandPaletteStateProvider>
       </CommandPaletteActionsContext.Provider>
     </CommandPaletteRegistrationContext.Provider>
   );

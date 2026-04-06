@@ -62,8 +62,8 @@ registration, unregistration, and data freshness.
 Async groups (`CMDKGroup` with `resource`) need the current search query to call
 `resource(query)`. The query lives in `CommandPaletteStateContext` (`state.query`).
 
-- [ ] Add `CMDKQueryContext = createContext<string>('')` to `ui/cmdk.tsx`
-- [ ] Update `CMDKCollection.Provider` to also provide `CMDKQueryContext`:
+- [x] Add `CMDKQueryContext = createContext<string>('')` to `ui/cmdk.tsx`
+- [x] Update `CMDKCollection.Provider` to also provide `CMDKQueryContext`:
   ```tsx
   function CMDKCollectionProvider({children}) {
     const {query} = useCommandPaletteState();
@@ -75,26 +75,26 @@ Async groups (`CMDKGroup` with `resource`) need the current search query to call
   }
   ```
   Export this as `CMDKProvider` — callers use this instead of `CMDKCollection.Provider` directly.
-- [ ] In `CMDKGroup`, read `const query = useContext(CMDKQueryContext)`
-- [ ] When `resource` prop is present, call `useQuery({ ...resource(query), enabled: !!resource })`
+- [x] In `CMDKGroup`, read `const query = useContext(CMDKQueryContext)`
+- [x] When `resource` prop is present, call `useQuery({ ...resource(query), enabled: !!resource })`
       inside `CMDKGroup`
-- [ ] Resolve children based on whether `children` is a render prop:
+- [x] Resolve children based on whether `children` is a render prop:
   ```ts
   const resolvedChildren =
     typeof children === 'function' ? (data ? children(data) : null) : children;
   ```
-- [ ] Wrap resolved children in `<CMDKCollection.GroupContext.Provider value={key}>` as before
+- [x] Wrap resolved children in `<CMDKCollection.GroupContext.Provider value={key}>` as before
 
 ### Step 3 — Wire CMDKProvider into the provider tree
 
 `CMDKProvider` (from Step 2) must sit inside `CommandPaletteStateProvider` because it
 reads from `useCommandPaletteState()`.
 
-- [ ] Find where `CommandPaletteProvider` and `CommandPaletteStateProvider` are mounted —
+- [x] Find where `CommandPaletteProvider` and `CommandPaletteStateProvider` are mounted —
       search for `CommandPaletteProvider` in the codebase to locate the mount point
-- [ ] Place `<CMDKProvider>` as a child of `CommandPaletteStateProvider`, wrapping
+- [x] Place `<CMDKProvider>` as a child of `CommandPaletteStateProvider`, wrapping
       whatever subtree currently lives inside it
-- [ ] Verify no runtime errors — the collection store is live but empty
+- [x] Verify no runtime errors — the collection store is live but empty
 
 ### Step 4 — Convert global actions to a JSX component
 
@@ -102,20 +102,20 @@ reads from `useCommandPaletteState()`.
 with a large static action tree. Replace it with a component that renders the equivalent
 JSX tree. The old hook stays alive during this step so both systems run in parallel.
 
-- [ ] Create `GlobalCommandPaletteActions` component (can live in `useGlobalCommandPaletteActions.tsx`
+- [x] Create `GlobalCommandPaletteActions` component (can live in `useGlobalCommandPaletteActions.tsx`
       or a new file `globalActions.tsx`)
-- [ ] Translate each section — read `useGlobalCommandPaletteActions.tsx` carefully before translating:
-  - [ ] **Navigation** — one `<CMDKGroup display={{label: t('Go to...')}}>` containing a
+- [x] Translate each section — read `useGlobalCommandPaletteActions.tsx` carefully before translating:
+  - [x] **Navigation** — one `<CMDKGroup display={{label: t('Go to...')}}>` containing a
         `<CMDKAction>` per destination (Issues, Explore, Dashboards, Insights, Settings)
-  - [ ] **Create** — one `<CMDKGroup>` with `<CMDKAction onAction={...}>` for Dashboard,
+  - [x] **Create** — one `<CMDKGroup>` with `<CMDKAction onAction={...}>` for Dashboard,
         Alert, Project, Invite Members
-  - [ ] **DSN Lookup** — `<CMDKGroup resource={dsnQueryFn}>` with render-prop children:
+  - [x] **DSN Lookup** — `<CMDKGroup resource={dsnQueryFn}>` with render-prop children:
         `{data => data.map(item => <CMDKAction key={...} display={item.display} to={item.to} />)}`
-  - [ ] **Help** — static `<CMDKAction>` nodes for Docs/Discord/GitHub/Changelog plus a
+  - [x] **Help** — static `<CMDKAction>` nodes for Docs/Discord/GitHub/Changelog plus a
         `<CMDKGroup resource={helpSearchQueryFn}>` with render-prop children for search results
-  - [ ] **Interface** — `<CMDKAction onAction={...}>` for navigation toggle and theme switching
-- [ ] Mount `<GlobalCommandPaletteActions />` inside `<CMDKProvider>` in the provider tree
-- [ ] Verify `CMDKCollection.useStore().tree()` returns the expected structure by adding a
+  - [x] **Interface** — `<CMDKAction onAction={...}>` for navigation toggle and theme switching
+- [x] Mount `<GlobalCommandPaletteActions />` inside `<CMDKProvider>` in the provider tree
+- [x] Verify `CMDKCollection.useStore().tree()` returns the expected structure by adding a
       temporary log or test — do not remove old system yet
 
 ### Step 5 — Update the palette UI to read from the collection store

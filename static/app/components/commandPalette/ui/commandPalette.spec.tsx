@@ -1,4 +1,4 @@
-import {useCallback} from 'react';
+import {Fragment, useCallback} from 'react';
 
 import {render, screen, userEvent, waitFor} from 'sentry-test/reactTestingLibrary';
 
@@ -25,17 +25,52 @@ jest.mock('@tanstack/react-virtual', () => ({
 import {closeModal} from 'sentry/actionCreators/modal';
 import * as modalActions from 'sentry/actionCreators/modal';
 import {CommandPaletteProvider} from 'sentry/components/commandPalette/context';
-import {useCommandPaletteActionsRegister} from 'sentry/components/commandPalette/context';
-import type {
-  CommandPaletteAction,
-  CommandPaletteActionWithKey,
-} from 'sentry/components/commandPalette/types';
+import type {CommandPaletteAction} from 'sentry/components/commandPalette/types';
+import {CMDKAction, CMDKGroup} from 'sentry/components/commandPalette/ui/cmdk';
+import type {CMDKActionData} from 'sentry/components/commandPalette/ui/cmdk';
+import type {CollectionTreeNode} from 'sentry/components/commandPalette/ui/collection';
 import {CommandPalette} from 'sentry/components/commandPalette/ui/commandPalette';
 import {useNavigate} from 'sentry/utils/useNavigate';
 
-function RegisterActions({actions}: {actions: CommandPaletteAction[]}) {
-  useCommandPaletteActionsRegister(actions);
-  return null;
+/**
+ * Converts the old-style CommandPaletteAction[] fixture format into the new
+ * JSX registration components so tests don't need to be fully rewritten.
+ */
+function ActionsToJSX({actions}: {actions: CommandPaletteAction[]}) {
+  return (
+    <Fragment>
+      {actions.map((action, i) => {
+        if ('actions' in action) {
+          return (
+            <CMDKGroup key={i} display={action.display} keywords={action.keywords}>
+              <ActionsToJSX actions={action.actions} />
+            </CMDKGroup>
+          );
+        }
+        if ('to' in action) {
+          return (
+            <CMDKAction
+              key={i}
+              display={action.display}
+              to={String(action.to)}
+              keywords={action.keywords}
+            />
+          );
+        }
+        if ('onAction' in action) {
+          return (
+            <CMDKAction
+              key={i}
+              display={action.display}
+              onAction={action.onAction}
+              keywords={action.keywords}
+            />
+          );
+        }
+        return null;
+      })}
+    </Fragment>
+  );
 }
 
 function GlobalActionsComponent({
@@ -48,13 +83,11 @@ function GlobalActionsComponent({
   const navigate = useNavigate();
 
   const handleAction = useCallback(
-    (action: CommandPaletteActionWithKey) => {
+    (action: CollectionTreeNode<CMDKActionData>) => {
       if ('to' in action) {
-        navigate(action.to);
+        navigate(String(action.to));
       } else if ('onAction' in action) {
         action.onAction();
-      } else {
-        // @TODO: implement async actions
       }
       closeModal();
     },
@@ -63,7 +96,7 @@ function GlobalActionsComponent({
 
   return (
     <CommandPaletteProvider>
-      <RegisterActions actions={actions} />
+      <ActionsToJSX actions={actions} />
       <CommandPalette onAction={handleAction} />
       {children}
     </CommandPaletteProvider>

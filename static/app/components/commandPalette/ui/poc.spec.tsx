@@ -69,12 +69,13 @@ describe('Collection', () => {
     const tree = storeRef.current!.tree();
     expect(tree).toHaveLength(1);
 
-    const [titleGroup] = tree;
+    const titleGroup = tree[0]!;
     expect(titleGroup.name).toBe('Title');
     expect(titleGroup.parent).toBeNull();
     expect(titleGroup.children).toHaveLength(2);
 
-    const [item1, nestedGroup] = titleGroup.children;
+    const item1 = titleGroup.children[0]!;
+    const nestedGroup = titleGroup.children[1]!;
     expect(item1.name).toBe('Item 1');
     expect(item1.children).toHaveLength(0);
     expect(nestedGroup.name).toBe('Item 2');
@@ -132,7 +133,7 @@ describe('Collection', () => {
       </TestCollection.Provider>
     );
 
-    const [groupA] = storeRef.current!.tree();
+    const groupA = storeRef.current!.tree()[0]!;
     const subtree = storeRef.current!.tree(groupA.key);
     expect(subtree.map(n => n.name)).toEqual(['A1', 'A2']);
   });
@@ -177,7 +178,7 @@ describe('Collection', () => {
       </TestCollection.Provider>
     );
 
-    const groupBKey = storeRef.current!.tree()[1].key;
+    const groupBKey = storeRef.current!.tree()[1]!.key;
 
     rerender(
       <TestCollection.Provider>
@@ -239,7 +240,7 @@ describe('Collection', () => {
       </TestCollection.Provider>
     );
 
-    expect(storeRef.current!.tree()[0].name).toBe('updated');
+    expect(storeRef.current!.tree()[0]!.name).toBe('updated');
   });
 
   it('propagates parent keys correctly at 3+ levels of nesting', () => {
@@ -258,16 +259,16 @@ describe('Collection', () => {
       </TestCollection.Provider>
     );
 
-    const [l1] = storeRef.current!.tree();
+    const l1 = storeRef.current!.tree()[0]!;
     expect(l1.parent).toBeNull();
 
-    const [l2] = l1.children;
+    const l2 = l1.children[0]!;
     expect(l2.parent).toBe(l1.key);
 
-    const [l3] = l2.children;
+    const l3 = l2.children[0]!;
     expect(l3.parent).toBe(l2.key);
 
-    const [deep] = l3.children;
+    const deep = l3.children[0]!;
     expect(deep.parent).toBe(l3.key);
     expect(deep.name).toBe('deep');
   });
