@@ -120,7 +120,7 @@ function helpSearchResource(search: SentryGlobalSearch) {
 
 function renderAsyncResult(item: CommandPaletteAsyncResult, index: number) {
   if ('to' in item) {
-    return <CMDKAction key={index} display={item.display} to={String(item.to)} />;
+    return <CMDKAction key={index} display={item.display} to={item.to} />;
   }
   if ('onAction' in item) {
     return <CMDKAction key={index} display={item.display} onAction={item.onAction} />;
@@ -131,7 +131,6 @@ function renderAsyncResult(item: CommandPaletteAsyncResult, index: number) {
 /**
  * Registers globally-available actions into the CMDK collection via JSX.
  * Must be mounted inside CMDKProvider (which requires CommandPaletteStateProvider).
- * Runs in parallel with the old useGlobalCommandPaletteActions hook during Step 4.
  */
 export function GlobalCommandPaletteActions() {
   const organization = useOrganization();

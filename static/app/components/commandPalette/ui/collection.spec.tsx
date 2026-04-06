@@ -6,10 +6,6 @@ import {slot} from '@sentry/scraps/slot';
 
 import {makeCollection} from './collection';
 
-// ---------------------------------------------------------------------------
-// Shared test collection + components
-// ---------------------------------------------------------------------------
-
 interface NodeData {
   name: string;
 }
@@ -19,9 +15,9 @@ const TestCollection = makeCollection<NodeData>();
 function Group({children, name}: {name: string; children?: React.ReactNode}) {
   const key = TestCollection.useRegisterNode({name});
   return (
-    <TestCollection.GroupContext.Provider value={key}>
+    <TestCollection.Context.Provider value={key}>
       {children}
-    </TestCollection.GroupContext.Provider>
+    </TestCollection.Context.Provider>
   );
 }
 
@@ -44,10 +40,6 @@ function makeStoreRef() {
     typeof TestCollection.useStore
   > | null>;
 }
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 describe('Collection', () => {
   it('builds the tree from JSX structure', () => {

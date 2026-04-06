@@ -8,10 +8,6 @@ import {
   useRef,
 } from 'react';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 type StoredNode<T> = {
   dataRef: React.MutableRefObject<T>;
   key: string;
@@ -41,17 +37,13 @@ export interface CollectionStore<T> {
   unregister: (key: string) => void;
 }
 
-// ---------------------------------------------------------------------------
-// Factory
-// ---------------------------------------------------------------------------
-
 export interface CollectionInstance<T> {
   /**
    * Propagates the nearest parent group's key to children.
    * Use it in Group components to wrap children so they register under this node:
-   *   <instance.GroupContext.Provider value={key}>
+   *   <instance.Context.Provider value={key}>
    */
-  GroupContext: React.Context<string | null>;
+  Context: React.Context<string | null>;
 
   /**
    * Root provider. Wrap your node tree in this component.
@@ -63,7 +55,7 @@ export interface CollectionInstance<T> {
    * Returns the stable key assigned to this node.
    *
    * To make this node a group (i.e. allow it to have children), wrap its
-   * children in <instance.GroupContext.Provider value={key}>.
+   * children in <instance.Context.Provider value={key}>.
    */
   useRegisterNode: (data: T) => string;
 
@@ -79,14 +71,14 @@ export interface CollectionInstance<T> {
  *
  * There is a single type parameter T — the data shape shared by all nodes.
  * A node becomes a "group" by virtue of having children registered under it
- * (via GroupContext), not by having a separate type.
+ * (via Context), not by having a separate type.
  *
  * @example
  * const CMDKCollection = makeCollection<CMDKActionData>();
  *
  * function CMDKGroup({ data, children }) {
  *   const key = CMDKCollection.useRegisterNode(data);
- *   return <CMDKCollection.GroupContext.Provider value={key}>{children}</CMDKCollection.GroupContext.Provider>;
+ *   return <CMDKCollection.Context.Provider value={key}>{children}</CMDKCollection.Context.Provider>;
  * }
  *
  * function CMDKAction({ data }) {
@@ -96,7 +88,7 @@ export interface CollectionInstance<T> {
  */
 export function makeCollection<T>(): CollectionInstance<T> {
   const StoreContext = createContext<CollectionStore<T> | null>(null);
-  const GroupContext = createContext<string | null>(null);
+  const Context = createContext<string | null>(null);
 
   // -------------------------------------------------------------------------
   // Provider
@@ -181,7 +173,7 @@ export function makeCollection<T>(): CollectionInstance<T> {
 
   function useRegisterNode(data: T): string {
     const store = useStore();
-    const parentKey = useContext(GroupContext);
+    const parentKey = useContext(Context);
     const key = useId();
 
     // Store data in a ref so tree() always reflects the latest value without
@@ -198,5 +190,5 @@ export function makeCollection<T>(): CollectionInstance<T> {
     return key;
   }
 
-  return {Provider, GroupContext, useStore, useRegisterNode};
+  return {Provider, Context, useStore, useRegisterNode};
 }

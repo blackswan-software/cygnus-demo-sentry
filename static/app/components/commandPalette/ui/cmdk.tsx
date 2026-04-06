@@ -1,4 +1,5 @@
 import {useQuery} from '@tanstack/react-query';
+import type {LocationDescriptor} from 'history';
 
 import type {
   CMDKQueryOptions,
@@ -44,7 +45,7 @@ interface CMDKGroupProps {
 }
 
 type CMDKActionProps =
-  | {display: DisplayProps; to: string; keywords?: string[]}
+  | {display: DisplayProps; to: LocationDescriptor; keywords?: string[]}
   | {display: DisplayProps; onAction: () => void; keywords?: string[]};
 
 /**
@@ -66,9 +67,9 @@ export function CMDKGroup({display, keywords, resource, children}: CMDKGroupProp
     typeof children === 'function' ? (data ? children(data) : null) : children;
 
   return (
-    <CMDKCollection.GroupContext.Provider value={key}>
+    <CMDKCollection.Context.Provider value={key}>
       {resolvedChildren}
-    </CMDKCollection.GroupContext.Provider>
+    </CMDKCollection.Context.Provider>
   );
 }
 
