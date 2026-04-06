@@ -342,21 +342,19 @@ export function CommandPalette(props: CommandPaletteProps) {
         </Flex>
       </Flex>
 
-      <CommandPaletteSlot.Provider>
-        <CommandPaletteSlot.Outlet name="task">
-          {p => <div {...p} style={{display: 'contents'}} />}
-        </CommandPaletteSlot.Outlet>
-        <CommandPaletteSlot.Outlet name="page">
-          {p => <div {...p} style={{display: 'contents'}} />}
-        </CommandPaletteSlot.Outlet>
-        <CommandPaletteSlot.Outlet name="global">
-          {p => (
-            <div {...p} style={{display: 'contents'}}>
-              {props.children}
-            </div>
-          )}
-        </CommandPaletteSlot.Outlet>
-      </CommandPaletteSlot.Provider>
+      <CommandPaletteSlot.Outlet name="task">
+        {p => <div {...p} style={{display: 'contents'}} />}
+      </CommandPaletteSlot.Outlet>
+      <CommandPaletteSlot.Outlet name="page">
+        {p => <div {...p} style={{display: 'contents'}} />}
+      </CommandPaletteSlot.Outlet>
+      <CommandPaletteSlot.Outlet name="global">
+        {p => (
+          <div {...p} style={{display: 'contents'}}>
+            {props.children}
+          </div>
+        )}
+      </CommandPaletteSlot.Outlet>
       {treeState.collection.size === 0 ? (
         <CommandPaletteNoResults />
       ) : (

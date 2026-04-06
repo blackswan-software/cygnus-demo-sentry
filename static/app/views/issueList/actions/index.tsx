@@ -13,13 +13,15 @@ import {
   addLoadingMessage,
   clearIndicators,
 } from 'sentry/actionCreators/indicator';
+import {CMDKAction, CMDKGroup} from 'sentry/components/commandPalette/ui/cmdk';
+import {CommandPaletteSlot} from 'sentry/components/commandPalette/ui/commandPalette';
 import {IssueStreamHeaderLabel} from 'sentry/components/IssueStreamHeaderLabel';
 import {Sticky} from 'sentry/components/sticky';
 import {t, tct, tn} from 'sentry/locale';
 import {GroupStore} from 'sentry/stores/groupStore';
 import {ProjectsStore} from 'sentry/stores/projectsStore';
 import type {PageFilters} from 'sentry/types/core';
-import type {Group} from 'sentry/types/group';
+import {GroupStatus, GroupSubstatus, type Group} from 'sentry/types/group';
 import {defined} from 'sentry/utils';
 import {trackAnalytics} from 'sentry/utils/analytics';
 import {uniq} from 'sentry/utils/array/uniq';
@@ -102,6 +104,46 @@ function ActionsBarPriority({
 
   return (
     <ActionsBarContainer>
+      <CommandPaletteSlot name="task">
+        <CMDKGroup display={{label: t('Issues')}}>
+          <CMDKAction
+            display={{label: pageSelected ? t('Deselect all') : t('Select all')}}
+            onAction={toggleSelectAllVisible}
+          />
+          {anySelected && (
+            <CMDKAction
+              display={{label: t('Resolve selected issues')}}
+              onAction={() =>
+                handleUpdate({status: GroupStatus.RESOLVED, statusDetails: {}})
+              }
+            />
+          )}
+          {anySelected && (
+            <CMDKAction
+              display={{label: t('Archive selected issues')}}
+              onAction={() =>
+                handleUpdate({
+                  status: GroupStatus.IGNORED,
+                  statusDetails: {},
+                  substatus: GroupSubstatus.ARCHIVED_UNTIL_ESCALATING,
+                })
+              }
+            />
+          )}
+          {anySelected && multiSelected && (
+            <CMDKAction
+              display={{label: t('Merge selected issues')}}
+              onAction={handleMerge}
+            />
+          )}
+          {anySelected && (
+            <CMDKAction
+              display={{label: t('Delete selected issues')}}
+              onAction={handleDelete}
+            />
+          )}
+        </CMDKGroup>
+      </CommandPaletteSlot>
       {!narrowViewport && (
         <Checkbox
           onChange={toggleSelectAllVisible}
