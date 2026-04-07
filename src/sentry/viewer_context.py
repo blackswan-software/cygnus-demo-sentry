@@ -4,11 +4,18 @@ import contextlib
 import contextvars
 import dataclasses
 import enum
-from collections.abc import Generator
+import hashlib
+import hmac
+import logging
+from collections.abc import Generator, MutableMapping
 from typing import TYPE_CHECKING, Any
+
+import orjson
 
 if TYPE_CHECKING:
     from sentry.auth.services.auth import AuthenticatedToken
+
+logger = logging.getLogger(__name__)
 
 _viewer_context_var: contextvars.ContextVar[ViewerContext | None] = contextvars.ContextVar(
     "viewer_context", default=None
@@ -62,6 +69,27 @@ class ViewerContext:
             result["token"] = {"kind": self.token.kind, "scopes": list(self.token.get_scopes())}
         return result
 
+    @classmethod
+    def deserialize(cls, data: str | dict[str, Any]) -> ViewerContext:
+        """Reconstruct from a JSON string or dict (inverse of :meth:`serialize`).
+
+        Unrecognized ``actor_type`` values fall back to ``UNKNOWN``.
+        The ``token`` field is NOT restored (it is in-process only).
+        """
+        if isinstance(data, str):
+            data = orjson.loads(data)
+
+        try:
+            actor_type = ActorType(data.get("actor_type", "unknown"))
+        except ValueError:
+            actor_type = ActorType.UNKNOWN
+
+        return cls(
+            organization_id=data.get("organization_id"),
+            user_id=data.get("user_id"),
+            actor_type=actor_type,
+        )
+
 
 @contextlib.contextmanager
 def viewer_context_scope(ctx: ViewerContext) -> Generator[None]:
@@ -80,3 +108,64 @@ def viewer_context_scope(ctx: ViewerContext) -> Generator[None]:
 def get_viewer_context() -> ViewerContext | None:
     """Return the current ``ViewerContext``, or ``None`` if not set."""
     return _viewer_context_var.get()
+
+
+# ---------------------------------------------------------------------------
+# Cross-service header propagation
+#
+# When Sentry calls another service (or itself) over HTTP, the active
+# ViewerContext must be serialized into request headers so the receiving
+# side can restore it.
+#
+# Sending side:
+#   inject_viewer_context_headers(headers, secret, issuer)
+#     — reads the contextvar (or accepts an explicit ctx), serializes to
+#       JSON, HMAC-signs with *secret*, and sets three headers:
+#         X-Viewer-Context          — JSON payload
+#         X-Viewer-Context-Signature — HMAC-SHA256 hex digest
+#         X-Viewer-Context-Issuer    — identifier of the sending service
+#
+# Receiving side (ViewerContextMiddleware):
+#   Looks for the three headers.  Maps the issuer to a known shared
+#   secret, verifies the signature, and — only on success — deserializes
+#   the payload and enters viewer_context_scope().  Requests without the
+#   headers, or with an invalid/unknown issuer, fall through to the
+#   normal request-based ViewerContext derivation.
+# ---------------------------------------------------------------------------
+
+VIEWER_CONTEXT_HEADER = "X-Viewer-Context"
+VIEWER_CONTEXT_SIGNATURE_HEADER = "X-Viewer-Context-Signature"
+VIEWER_CONTEXT_ISSUER_HEADER = "X-Viewer-Context-Issuer"
+
+
+def inject_viewer_context_headers(
+    headers: MutableMapping[str, str],
+    secret: str,
+    issuer: str,
+    ctx: ViewerContext | None = None,
+) -> None:
+    """Serialize a ViewerContext into HTTP headers with an HMAC signature.
+
+    If *ctx* is ``None``, falls back to the current contextvar value.
+    Sets ``X-Viewer-Context``, ``X-Viewer-Context-Signature``, and
+    ``X-Viewer-Context-Issuer`` on *headers*.
+
+    No-op when there is no ViewerContext or ``secret`` is empty.
+    """
+    if ctx is None:
+        ctx = get_viewer_context()
+    if ctx is None or not secret:
+        return
+
+    try:
+        context_bytes = orjson.dumps(ctx.serialize())
+        signature = hmac.new(
+            secret.encode("utf-8"),
+            context_bytes,
+            hashlib.sha256,
+        ).hexdigest()
+        headers[VIEWER_CONTEXT_HEADER] = context_bytes.decode("utf-8")
+        headers[VIEWER_CONTEXT_SIGNATURE_HEADER] = signature
+        headers[VIEWER_CONTEXT_ISSUER_HEADER] = issuer
+    except Exception:
+        logger.exception("Failed to serialize viewer context into headers.")
