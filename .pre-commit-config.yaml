@@ -111,6 +111,11 @@ repos:
         stages: [pre-push]
         entry: bash -c 'if [ -n "${SENTRY_KNIP_PRE_PUSH:-}" ]; then exec ./node_modules/.bin/knip; fi' --
 
+  - repo: https://github.com/evanpurkhiser/turf
+    rev: '7279130'
+    hooks:
+      - id: turf
+
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
     hooks:
