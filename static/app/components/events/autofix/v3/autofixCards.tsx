@@ -369,8 +369,13 @@ export function PullRequestsCard({autofix, section}: AutofixCardProps) {
         }
 
         return (
-          <Button key={pullRequest.repo_name} priority="primary" disabled>
-            {t('Failed to create PR in %s', pullRequest.repo_name)}
+          <Button
+            key={pullRequest.repo_name}
+            priority="primary"
+            onClick={() => runId && createPR(runId, pullRequest.repo_name)}
+            disabled={isPolling || !runId}
+          >
+            {t('Retry PR in %s', pullRequest.repo_name)}
           </Button>
         );
       })}
