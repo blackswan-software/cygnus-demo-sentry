@@ -3,13 +3,11 @@ from __future__ import annotations
 from typing import Any
 from unittest import mock
 
-import jwt as pyjwt
 import responses
 
 from sentry.integrations.bitbucket.installed import BitbucketInstalledEndpoint
 from sentry.integrations.bitbucket.integration import BitbucketIntegrationProvider, scopes
 from sentry.integrations.models.integration import Integration
-from sentry.integrations.utils.atlassian_connect import get_query_hash
 from sentry.models.project import Project
 from sentry.models.repository import Repository
 from sentry.organizations.services.organization.serial import serialize_rpc_organization
@@ -18,8 +16,6 @@ from sentry.plugins.bases.issue2 import IssueTrackingPlugin2
 from sentry.silo.base import SiloMode
 from sentry.testutils.cases import APITestCase
 from sentry.testutils.silo import assume_test_silo_mode, control_silo_test
-from sentry.utils.http import absolute_uri
-from tests.sentry.utils.test_jwt import RS256_KEY, RS256_PUB_KEY
 
 
 class BitbucketPlugin(IssueTrackingPlugin2):
@@ -33,7 +29,6 @@ class BitbucketInstalledEndpointTest(APITestCase):
     def setUp(self) -> None:
         self.provider = "bitbucket"
         self.path = "/extensions/bitbucket/installed/"
-        self.kid = "bitbucket-kid"
         self.username = "sentryuser"
         self.client_key = "connection:123"
         self.public_key = "123abcDEFg"
@@ -103,105 +98,19 @@ class BitbucketInstalledEndpointTest(APITestCase):
         plugins.unregister(BitbucketPlugin)
         super().tearDown()
 
-    def jwt_token_cdn(self) -> str:
-        return pyjwt.encode(
-            {
-                "iss": self.client_key,
-                "aud": absolute_uri(),
-                "qsh": get_query_hash(self.path, method="POST", query_params={}),
-            },
-            RS256_KEY,
-            algorithm="RS256",
-            headers={"kid": self.kid, "alg": "RS256"},
-        )
-
-    def add_cdn_response(self) -> None:
-        responses.add(
-            responses.GET,
-            f"https://connect-install-keys.atlassian.com/{self.kid}",
-            body=RS256_PUB_KEY,
-        )
-
     def test_default_permissions(self) -> None:
         # Permissions must be empty so that it will be accessible to bitbucket.
         assert BitbucketInstalledEndpoint.authentication_classes == ()
         assert BitbucketInstalledEndpoint.permission_classes == ()
 
-    def test_missing_token(self) -> None:
-        response = self.client.post(self.path, data=self.team_data_from_bitbucket)
-        assert response.status_code == 400
-
-    def test_invalid_token(self) -> None:
-        response = self.client.post(
-            self.path,
-            data=self.team_data_from_bitbucket,
-            HTTP_AUTHORIZATION="invalid",
-        )
-        assert response.status_code == 400
-
-    @responses.activate
-    def test_missing_key_id(self) -> None:
-        token = pyjwt.encode(
-            {
-                "iss": self.client_key,
-                "aud": absolute_uri(),
-                "qsh": get_query_hash(self.path, method="POST", query_params={}),
-            },
-            RS256_KEY,
-            algorithm="RS256",
-            headers={"alg": "RS256"},
-        )
-        response = self.client.post(
-            self.path,
-            data=self.team_data_from_bitbucket,
-            HTTP_AUTHORIZATION=f"JWT {token}",
-        )
-        assert response.status_code == 400
-
-    @responses.activate
-    def test_invalid_key_id(self) -> None:
-        token = pyjwt.encode(
-            {
-                "iss": self.client_key,
-                "aud": absolute_uri(),
-                "qsh": get_query_hash(self.path, method="POST", query_params={}),
-            },
-            RS256_KEY,
-            algorithm="RS256",
-            headers={"kid": "fake-kid", "alg": "RS256"},
-        )
-        response = self.client.post(
-            self.path,
-            data=self.team_data_from_bitbucket,
-            HTTP_AUTHORIZATION=f"JWT {token}",
-        )
-        assert response.status_code == 400
-
-    @responses.activate
-    def test_jwt_issuer_mismatch(self) -> None:
-        self.add_cdn_response()
-        response = self.client.post(
-            self.path,
-            data={**self.team_data_from_bitbucket, "clientKey": "different-client-key"},
-            HTTP_AUTHORIZATION=f"JWT {self.jwt_token_cdn()}",
-        )
-        assert response.status_code == 400
-
-    @responses.activate
     def test_installed_with_public_key(self) -> None:
-        self.add_cdn_response()
-        response = self.client.post(
-            self.path,
-            data=self.team_data_from_bitbucket,
-            HTTP_AUTHORIZATION=f"JWT {self.jwt_token_cdn()}",
-        )
+        response = self.client.post(self.path, data=self.team_data_from_bitbucket)
         assert response.status_code == 200
         integration = Integration.objects.get(provider=self.provider, external_id=self.client_key)
         assert integration.name == self.username
         del integration.metadata["webhook_secret"]
         assert integration.metadata == self.metadata
 
-    @responses.activate
     def test_installed_without_public_key(self) -> None:
         integration, created = Integration.objects.get_or_create(
             provider=self.provider,
@@ -209,12 +118,7 @@ class BitbucketInstalledEndpointTest(APITestCase):
             defaults={"name": self.user_display_name, "metadata": self.user_metadata},
         )
         del self.user_data_from_bitbucket["principal"]["username"]
-        self.add_cdn_response()
-        response = self.client.post(
-            self.path,
-            data=self.user_data_from_bitbucket,
-            HTTP_AUTHORIZATION=f"JWT {self.jwt_token_cdn()}",
-        )
+        response = self.client.post(self.path, data=self.user_data_from_bitbucket)
         assert response.status_code == 200
 
         # assert no changes have been made to the integration
@@ -225,34 +129,22 @@ class BitbucketInstalledEndpointTest(APITestCase):
         del integration_after.metadata["webhook_secret"]
         assert integration.metadata == integration_after.metadata
 
-    @responses.activate
     def test_installed_without_username(self) -> None:
         """Test a user (not team) installation where the user has hidden their username from public view"""
 
         # Remove username to simulate privacy mode
         del self.user_data_from_bitbucket["principal"]["username"]
 
-        self.add_cdn_response()
-        response = self.client.post(
-            self.path,
-            data=self.user_data_from_bitbucket,
-            HTTP_AUTHORIZATION=f"JWT {self.jwt_token_cdn()}",
-        )
+        response = self.client.post(self.path, data=self.user_data_from_bitbucket)
         assert response.status_code == 200
         integration = Integration.objects.get(provider=self.provider, external_id=self.client_key)
         assert integration.name == self.user_display_name
         del integration.metadata["webhook_secret"]
         assert integration.metadata == self.user_metadata
 
-    @responses.activate
     @mock.patch("sentry.integrations.bitbucket.integration.generate_token", return_value="0" * 64)
     def test_installed_with_secret(self, mock_generate_token: mock.MagicMock) -> None:
-        self.add_cdn_response()
-        response = self.client.post(
-            self.path,
-            data=self.team_data_from_bitbucket,
-            HTTP_AUTHORIZATION=f"JWT {self.jwt_token_cdn()}",
-        )
+        response = self.client.post(self.path, data=self.team_data_from_bitbucket)
         assert mock_generate_token.called
         assert response.status_code == 200
         integration = Integration.objects.get(provider=self.provider, external_id=self.client_key)
@@ -280,12 +172,7 @@ class BitbucketInstalledEndpointTest(APITestCase):
                 config={"name": "otheruser/otherrepo"},
             )
 
-        self.add_cdn_response()
-        self.client.post(
-            self.path,
-            data=self.team_data_from_bitbucket,
-            HTTP_AUTHORIZATION=f"JWT {self.jwt_token_cdn()}",
-        )
+        self.client.post(self.path, data=self.team_data_from_bitbucket)
 
         integration = Integration.objects.get(provider=self.provider, external_id=self.client_key)
 
@@ -332,12 +219,7 @@ class BitbucketInstalledEndpointTest(APITestCase):
                 config={"name": "sentryuser/repo"},
             )
 
-        self.add_cdn_response()
-        self.client.post(
-            self.path,
-            data=self.team_data_from_bitbucket,
-            HTTP_AUTHORIZATION=f"JWT {self.jwt_token_cdn()}",
-        )
+        self.client.post(self.path, data=self.team_data_from_bitbucket)
 
         integration = Integration.objects.get(provider=self.provider, external_id=self.client_key)
 

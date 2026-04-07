@@ -1,5 +1,6 @@
 import sentry_sdk
 from django.db import router, transaction
+from jwt import DecodeError, ExpiredSignatureError, InvalidAlgorithmError, InvalidSignatureError
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -55,21 +56,41 @@ class JiraSentryInstalledWebhook(JiraWebhookBase):
                     "clientKey": state.get("clientKey", ""),
                 }
             )
-            if not key_id:
-                return self.respond(
-                    {"detail": "Missing key id"}, status=status.HTTP_400_BAD_REQUEST
-                )
 
-            if key_id in INVALID_KEY_IDS:
-                lifecycle.record_halt(halt_reason="JWT contained invalid key_id (kid)")
-                return self.respond(
-                    {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
-                )
+            if key_id:
+                if key_id in INVALID_KEY_IDS:
+                    lifecycle.record_halt(halt_reason="JWT contained invalid key_id (kid)")
+                    return self.respond(
+                        {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
+                    )
+                decoded_claims = authenticate_asymmetric_jwt(token, key_id)
+            else:
+                shared_secret = state.get("sharedSecret")
+                if not shared_secret:
+                    return self.respond(
+                        {"detail": "Missing shared secret"}, status=status.HTTP_400_BAD_REQUEST
+                    )
+                try:
+                    decoded_claims = jwt.decode(token, shared_secret, audience=False)
+                except (
+                    InvalidSignatureError,
+                    ExpiredSignatureError,
+                    DecodeError,
+                    InvalidAlgorithmError,
+                ):
+                    return self.respond(
+                        {"detail": "Invalid JWT"}, status=status.HTTP_400_BAD_REQUEST
+                    )
+
             if decoded_claims.get("iss") != state.get("clientKey"):
                 lifecycle.record_halt(halt_reason="JWT issuer does not match client key")
                 return self.respond(
-                    {"detail": "JWT issuer does not match client key"}, status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "JWT issuer does not match client key"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            verify_claims(decoded_claims, request.path, request.GET, method="POST")
+            data = JiraIntegrationProvider().build_integration(state)
             integration = ensure_integration(self.provider, data)
 
             # Note: Unlike in all other Jira webhooks, we don't call `bind_org_context_from_integration`
