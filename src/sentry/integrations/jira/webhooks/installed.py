@@ -65,10 +65,11 @@ class JiraSentryInstalledWebhook(JiraWebhookBase):
                 return self.respond(
                     {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
                 )
-            decoded_claims = authenticate_asymmetric_jwt(token, key_id)
-            verify_claims(decoded_claims, request.path, request.GET, method="POST")
-
-            data = JiraIntegrationProvider().build_integration(state)
+            if decoded_claims.get("iss") != state.get("clientKey"):
+                lifecycle.record_halt(halt_reason="JWT issuer does not match client key")
+                return self.respond(
+                    {"detail": "JWT issuer does not match client key"}, status=status.HTTP_400_BAD_REQUEST
+                )
             integration = ensure_integration(self.provider, data)
 
             # Note: Unlike in all other Jira webhooks, we don't call `bind_org_context_from_integration`
