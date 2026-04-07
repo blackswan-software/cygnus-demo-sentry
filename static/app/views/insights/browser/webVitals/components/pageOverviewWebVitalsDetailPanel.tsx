@@ -21,6 +21,7 @@ import {PageAlert, PageAlertProvider} from 'sentry/utils/performance/contexts/pa
 import {generateProfileFlamechartRoute} from 'sentry/utils/profiling/routes';
 import {useReplayExists} from 'sentry/utils/replayCount/useReplayExists';
 import {MutableSearch} from 'sentry/utils/tokenizeSearch';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {useProjects} from 'sentry/utils/useProjects';
@@ -282,7 +283,9 @@ export function PageOverviewWebVitalsDetailPanel({
       return <NoOverflow>{NO_VALUE}</NoOverflow>;
     }
     if (key === 'id') {
+      const isOld = row.timestamp && isPartialSpanOrTraceData(row.timestamp);
       const eventTarget =
+        !isOld &&
         project?.slug &&
         generateLinkToEventInTraceView({
           eventId: row.id,

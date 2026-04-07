@@ -61,7 +61,7 @@ const TraceViewDrawer = memo(function TraceViewDrawer({
     (selectedNodeKey && nodes.find(node => node.id === selectedNodeKey)) ||
     getDefaultSelectedNode(nodes);
 
-  const nodeDetailsLink = useNodeDetailsLink({
+  const {url: nodeDetailsLink, isDisabled: isTraceLinkDisabled} = useNodeDetailsLink({
     node: selectedNode,
     traceSlug,
     source: TraceViewSources.AGENT_MONITORING,
@@ -79,7 +79,12 @@ const TraceViewDrawer = memo(function TraceViewDrawer({
       <StyledDrawerHeader>
         <Flex justify="between" align="center" flex="1">
           {t('Abbreviated Trace')}
-          <LinkButton size="xs" onClick={handleViewFullTraceClick} to={nodeDetailsLink}>
+          <LinkButton
+            size="xs"
+            onClick={handleViewFullTraceClick}
+            to={nodeDetailsLink}
+            disabled={isTraceLinkDisabled}
+          >
             {t('View in Full Trace')}
           </LinkButton>
         </Flex>

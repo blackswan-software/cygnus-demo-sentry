@@ -13,6 +13,7 @@ import {DurationUnit} from 'sentry/utils/discover/fields';
 import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import {decodeScalar} from 'sentry/utils/queryString';
 import {MutableSearch} from 'sentry/utils/tokenizeSearch';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {normalizeUrl} from 'sentry/utils/url/normalizeUrl';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
@@ -154,6 +155,9 @@ export function SpanSamplesContainer({
 
   const handleClickSample = useCallback(
     (span: SpanSample) => {
+      if (isPartialSpanOrTraceData(span.timestamp)) {
+        return;
+      }
       navigate(
         generateLinkToEventInTraceView({
           targetId: span['transaction.span_id'],

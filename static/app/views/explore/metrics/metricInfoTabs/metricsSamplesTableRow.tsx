@@ -16,6 +16,7 @@ import type {EventsMetaType} from 'sentry/utils/discover/eventView';
 import type {ColumnValueType} from 'sentry/utils/discover/fields';
 import {getShortEventId} from 'sentry/utils/events';
 import {FieldValueType} from 'sentry/utils/fields';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {useProjects} from 'sentry/utils/useProjects';
@@ -148,6 +149,16 @@ export function SampleTableRow({
     const oldSpanId = row[TraceMetricKnownFieldKey.OLD_SPAN_ID] as string;
     const spanIdToUse = oldSpanId || spanId;
     const strippedLocation = stripMetricParamsFromLocation(location);
+
+    if (timestamp && isPartialSpanOrTraceData(timestamp)) {
+      return (
+        <WrappingText>
+          <Tooltip showUnderline title={t('Trace is older than 30 days')}>
+            <span style={{minWidth: '66px'}}>{getShortEventId(traceId)}</span>
+          </Tooltip>
+        </WrappingText>
+      );
+    }
 
     const hasSpans = (telemetry?.spansCount ?? 0) > 0;
     const shouldGoToSpans = spanIdToUse && hasSpans;

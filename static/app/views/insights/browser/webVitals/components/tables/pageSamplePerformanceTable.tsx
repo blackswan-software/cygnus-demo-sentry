@@ -31,6 +31,7 @@ import {generateProfileFlamechartRoute} from 'sentry/utils/profiling/routes';
 import {decodeList, decodeScalar} from 'sentry/utils/queryString';
 import {useReplayExists} from 'sentry/utils/replayCount/useReplayExists';
 import {MutableSearch} from 'sentry/utils/tokenizeSearch';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
@@ -478,21 +479,31 @@ export function PageSamplePerformanceTable({transaction, search, limit = 9}: Pro
     }
 
     if (key === 'id' || key === SpanFields.SPAN_DESCRIPTION) {
-      const traceViewLink = generateLinkToEventInTraceView({
-        traceSlug: row.trace,
-        eventId: row.id,
-        timestamp: row.timestamp,
-        organization,
-        location,
-        view: domainViewFilters.view,
-        source: TraceViewSources.WEB_VITALS_MODULE,
-      });
+      const isOld = row.timestamp && isPartialSpanOrTraceData(row.timestamp);
+      const traceViewLink = isOld
+        ? null
+        : generateLinkToEventInTraceView({
+            traceSlug: row.trace,
+            eventId: row.id,
+            timestamp: row.timestamp,
+            organization,
+            location,
+            view: domainViewFilters.view,
+            source: TraceViewSources.WEB_VITALS_MODULE,
+          });
 
       if (key === 'id' && 'id' in row) {
+        if (isOld) {
+          return (
+            <Tooltip showUnderline title={t('Trace is older than 30 days')}>
+              <NoOverflow>{getShortEventId(row.trace)}</NoOverflow>
+            </Tooltip>
+          );
+        }
         return (
           <Tooltip title={t('View Trace')}>
             <NoOverflow>
-              <Link to={traceViewLink}>{getShortEventId(row.trace)}</Link>
+              <Link to={traceViewLink!}>{getShortEventId(row.trace)}</Link>
             </NoOverflow>
           </Tooltip>
         );

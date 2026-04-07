@@ -26,6 +26,7 @@ import type {Sort} from 'sentry/utils/discover/fields';
 import {fieldAlignment} from 'sentry/utils/discover/fields';
 import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import {generateProfileFlamechartRoute} from 'sentry/utils/profiling/routes';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
@@ -75,6 +76,13 @@ export function EventSamplesTable({
     }
 
     if (column.key === eventIdKey) {
+      if (row.timestamp && isPartialSpanOrTraceData(row.timestamp)) {
+        return (
+          <Tooltip showUnderline title={t('Trace is older than 30 days')}>
+            <span>{row[eventIdKey].slice(0, 8)}</span>
+          </Tooltip>
+        );
+      }
       return (
         <Link
           to={generateLinkToEventInTraceView({

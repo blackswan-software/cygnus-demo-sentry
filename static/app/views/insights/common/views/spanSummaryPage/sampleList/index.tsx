@@ -11,6 +11,7 @@ import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import {PageAlert, PageAlertProvider} from 'sentry/utils/performance/contexts/pageAlert';
 import {decodeScalar} from 'sentry/utils/queryString';
 import {MutableSearch} from 'sentry/utils/tokenizeSearch';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocationQuery} from 'sentry/utils/url/useLocationQuery';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
@@ -149,6 +150,9 @@ export function SampleList({groupId, moduleName, transactionRoute, referrer}: Pr
 
   const handleClickSample = useCallback(
     (span: SpanSample) => {
+      if (isPartialSpanOrTraceData(span.timestamp)) {
+        return;
+      }
       navigate(
         generateLinkToEventInTraceView({
           targetId: span['transaction.span_id'],

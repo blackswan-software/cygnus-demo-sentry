@@ -1,5 +1,8 @@
+import type {LocationDescriptorObject} from 'history';
+
 import {normalizeDateTimeParams} from 'sentry/components/pageFilters/parse';
 import {usePageFilters} from 'sentry/components/pageFilters/usePageFilters';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import type {AITraceSpanNode} from 'sentry/views/insights/pages/agents/utils/types';
@@ -14,7 +17,7 @@ export function useNodeDetailsLink({
   node: AITraceSpanNode | undefined;
   source: TraceViewSources;
   traceSlug: string;
-}) {
+}): {isDisabled: boolean; url: LocationDescriptorObject} {
   const organization = useOrganization();
   const {selection} = usePageFilters();
   const location = useLocation();
@@ -23,7 +26,9 @@ export function useNodeDetailsLink({
   const targetId = node?.transactionId;
   const timestamp = node?.startTimestamp;
 
-  return getTraceDetailsUrl({
+  const isDisabled = timestamp ? isPartialSpanOrTraceData(timestamp) : false;
+
+  const url = getTraceDetailsUrl({
     source,
     organization,
     location: {
@@ -37,4 +42,6 @@ export function useNodeDetailsLink({
     timestamp,
     dateSelection: normalizeDateTimeParams(selection),
   });
+
+  return {url, isDisabled};
 }

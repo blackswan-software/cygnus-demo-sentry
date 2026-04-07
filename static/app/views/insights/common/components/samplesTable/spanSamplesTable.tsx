@@ -4,6 +4,7 @@ import {LinkButton} from '@sentry/scraps/button';
 import {Link} from '@sentry/scraps/link';
 import {Tooltip} from '@sentry/scraps/tooltip';
 
+import {DisabledTraceLink} from 'sentry/components/links/disabledTraceLink';
 import type {GridColumnHeader} from 'sentry/components/tables/gridEditable';
 import {COL_WIDTH_UNDEFINED, GridEditable} from 'sentry/components/tables/gridEditable';
 import {IconProfiling} from 'sentry/icons/iconProfiling';
@@ -14,6 +15,7 @@ import {
   generateContinuousProfileFlamechartRouteWithQuery,
   generateProfileFlamechartRoute,
 } from 'sentry/utils/profiling/routes';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {DurationComparisonCell} from 'sentry/views/insights/common/components/samplesTable/common';
@@ -126,6 +128,15 @@ export function SpanSamplesTable({
     row: SpanTableRow
   ): React.ReactNode {
     if (column.key === 'transaction_id') {
+      if (isPartialSpanOrTraceData(row.timestamp)) {
+        return (
+          <OverflowEllipsisTextContainer>
+            <DisabledTraceLink type="span">
+              {row['transaction.span_id'].slice(0, 8)}
+            </DisabledTraceLink>
+          </OverflowEllipsisTextContainer>
+        );
+      }
       return (
         <OverflowEllipsisTextContainer>
           <Link
@@ -153,6 +164,13 @@ export function SpanSamplesTable({
     }
 
     if (column.key === 'span_id') {
+      if (isPartialSpanOrTraceData(row.timestamp)) {
+        return (
+          <OverflowEllipsisTextContainer>
+            <DisabledTraceLink type="span">{row.span_id}</DisabledTraceLink>
+          </OverflowEllipsisTextContainer>
+        );
+      }
       return (
         <OverflowEllipsisTextContainer>
           <Link
