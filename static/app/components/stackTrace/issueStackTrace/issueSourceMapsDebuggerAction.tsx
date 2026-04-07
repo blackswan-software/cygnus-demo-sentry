@@ -27,9 +27,7 @@ export function IssueSourceMapsDebuggerAction() {
   const {data: sourceMapDebuggerData} = useSourceMapDebugQuery(
     project?.slug ?? '',
     event.id,
-    {
-      sdkName: event.sdk?.name ?? null,
-    }
+    event.sdk?.name ?? null
   );
   const debuggerFrame =
     exceptionIndex === undefined

@@ -156,7 +156,7 @@ export function DiagnosisSection({sourceMapQuery}: DiagnosisSectionProps) {
     if (isPending) {
       return <LoadingIndicator mini />;
     }
-    if (isError || !data) {
+    if (isError) {
       return (
         <LoadingError
           message={t('Unable to load source map diagnostic information for this event.')}

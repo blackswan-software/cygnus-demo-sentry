@@ -52,11 +52,11 @@ export interface SourceMapDebugBlueThunderResponse {
 export function useSourceMapDebugQuery(
   projectSlug: string,
   eventId: string,
-  options?: {sdkName?: string | null}
+  sdkName: string | null = null
 ) {
   const organization = useOrganization({allowNull: true});
-  const isSdkThatShouldShowSourceMapsDebugger = options?.sdkName
-    ? options.sdkName.startsWith('sentry.javascript.')
+  const isSdkThatShouldShowSourceMapsDebugger = sdkName
+    ? sdkName.startsWith('sentry.javascript.')
     : true;
   return useApiQuery<SourceMapDebugBlueThunderResponse>(
     [

@@ -21,6 +21,7 @@ export function ProblemSection() {
           size="sm"
           icon={<IconInfo />}
           external
+          // TODO Abdullah Khan: Look into adding platform specific links to source map docs
           href="https://docs.sentry.io/platforms/javascript/sourcemaps/"
         >
           {t('Why configure source maps?')}

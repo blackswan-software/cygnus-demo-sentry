@@ -17,7 +17,8 @@ interface SourceMapIssueDetailsProps {
 export function SourceMapIssueDetails({event, project}: SourceMapIssueDetailsProps) {
   const sourceMapQuery = useSourceMapDebugQuery(
     project.slug,
-    event.occurrence?.evidenceData?.sampleEventId
+    event.occurrence?.evidenceData?.sampleEventId,
+    event.sdk?.name ?? null
   );
 
   return (

@@ -165,7 +165,7 @@ function InnerContent({
   hasChainedExceptions: boolean;
   hiddenExceptions: ExceptionRenderStateMap;
   isSampleError: boolean;
-  sourceMapDebuggerData: SourceMapDebugBlueThunderResponse | undefined;
+  sourceMapDebuggerData: SourceMapDebugBlueThunderResponse;
   toggleRelatedExceptions: (exceptionId: number) => void;
   values: ExceptionValue[];
   project?: Project;
@@ -266,9 +266,11 @@ export function Content({
 }: Props) {
   const {projects} = useProjects({slugs: [projectSlug]});
 
-  const {data: sourceMapDebuggerData} = useSourceMapDebugQuery(projectSlug, event.id, {
-    sdkName: event.sdk?.name ?? null,
-  });
+  const {data: sourceMapDebuggerData} = useSourceMapDebugQuery(
+    projectSlug,
+    event.id,
+    event.sdk?.name ?? null
+  );
   const {hiddenExceptions, toggleRelatedExceptions, expandException} =
     useHiddenExceptions(values);
 
