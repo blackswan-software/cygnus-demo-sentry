@@ -1341,12 +1341,14 @@ class TestBulkReadPreferencesFromSentryDb(TestCase):
         )
 
         pref1 = result[self.project1.id]
+        assert pref1 is not None
         assert len(pref1.repositories) == 1
         assert pref1.repositories[0].branch_name == "main"
         assert pref1.automated_run_stopping_point == "code_changes"
         assert pref1.automation_handoff is None
 
         pref2 = result[self.project2.id]
+        assert pref2 is not None
         assert pref2.repositories == []
         assert pref2.automated_run_stopping_point == "open_pr"
         assert pref2.automation_handoff is not None
