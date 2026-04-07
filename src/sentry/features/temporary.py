@@ -571,6 +571,8 @@ def register_temporary_features(manager: FeatureManager) -> None:
     manager.add("projects:supergroup-embeddings-explorer", ProjectFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=False)
     # Enable lightweight Explorer RCA runs for supergroup quality evaluation
     manager.add("projects:supergroup-lightweight-rca", ProjectFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=False)
+    # Use lightweight RCA source for supergroup clustering and queries
+    manager.add("organizations:supergroups-lightweight-rca-clustering", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=False)
 
     manager.add("projects:workflow-engine-performance-detectors", ProjectFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=False)
 
