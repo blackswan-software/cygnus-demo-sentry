@@ -18,7 +18,7 @@ import {formatPercentage} from 'sentry/utils/number/formatPercentage';
 import {unreachable} from 'sentry/utils/unreachable';
 
 export interface EventRegressionTableRow {
-  group: string;
+  group: string | null;
   operation: string;
   percentageChange: number;
   description?: string;

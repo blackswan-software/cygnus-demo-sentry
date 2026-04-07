@@ -21,7 +21,7 @@ const formatter = new SQLishFormatter();
 interface Props {
   moduleName: ModuleName;
   filters?: Record<string, string>;
-  group?: string;
+  group?: string | null;
   shortDescription?: string;
 }
 
@@ -33,7 +33,10 @@ export function FullSpanDescription({
 }: Props) {
   const {data: indexedSpans, isFetching: areIndexedSpansLoading} = useSpans(
     {
-      search: MutableSearch.fromQueryObject({'span.group': group, ...filters}),
+      search: MutableSearch.fromQueryObject({
+        'span.group': group ?? undefined,
+        ...filters,
+      }),
       limit: 1,
       fields: [
         SpanFields.PROJECT_ID,
@@ -104,7 +107,7 @@ export function FullSpanDescription({
 
 type TruncatedQueryClipBoxProps = {
   children: ReactNode;
-  group: string | undefined;
+  group: string | null | undefined;
 };
 
 function QueryClippedBox({group, children}: TruncatedQueryClipBoxProps) {

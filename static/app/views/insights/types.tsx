@@ -314,7 +314,6 @@ export type NonNullableStringFields =
   | SpanFields.FILE_EXTENSION
   | SpanFields.SPAN_OP
   | SpanFields.SPAN_DESCRIPTION
-  | SpanFields.SPAN_GROUP
   | SpanFields.SPAN_CATEGORY
   | SpanFields.SPAN_SYSTEM
   | SpanFields.TIMESTAMP
@@ -331,7 +330,7 @@ export type NonNullableStringFields =
   | SpanFields.USER_DISPLAY
   | SpanFields.SENTRY_ORIGIN;
 
-type NullableStringFields = SpanFields.NORMALIZED_DESCRIPTION;
+type NullableStringFields = SpanFields.NORMALIZED_DESCRIPTION | SpanFields.SPAN_GROUP;
 
 export type SpanStringFields = NullableStringFields | NonNullableStringFields;
 
