@@ -695,7 +695,7 @@ class PullRequestEventWebhook(APITestCase):
         assert pr.author.name == "baxterthehacker"
         assert pr.merge_commit_sha == "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c"
 
-    @patch("sentry.seer.code_review.webhooks.handlers.CodeReviewPreflightService")
+    @patch("sentry.seer.code_review.webhooks.scm_listeners.CodeReviewPreflightService")
     @patch(
         "sentry.integrations.github_enterprise.webhook.GitHubEnterprisePullRequestEventWebhook._handle"
     )
