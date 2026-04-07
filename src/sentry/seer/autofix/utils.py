@@ -787,7 +787,7 @@ def bulk_read_preferences_from_sentry_db(
         def get_project_option(key: str) -> Any:
             value = project_options[key][project.id]
             if value is None:
-                return projectoptions.lookup_well_known_key(key).default
+                return projectoptions.lookup_well_known_key(key).get_default(project)
             return value
 
         result[project.id] = SeerProjectPreference(
