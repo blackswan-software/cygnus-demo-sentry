@@ -33,6 +33,15 @@ def format_snapshot_pr_comment(
             continue
 
         comparison = comparisons_map.get(metrics.id)
+        has_base = artifact.id in base_artifact_map
+
+        if not comparison and not has_base:
+            # No base to compare against — show snapshot count only
+            table_rows.append(
+                f"| {name_cell} | - | - | - | - | - | \u2705 {metrics.image_count} uploaded |"
+            )
+            continue
+
         if not comparison:
             table_rows.append(f"| {name_cell} | - | - | - | - | - | {_PROCESSING_STATUS} |")
             continue
@@ -77,33 +86,6 @@ def format_snapshot_pr_comment(
         "| Name | Added | Removed | Modified | Renamed | Unchanged | Status |\n"
         "| :--- | :---: | :---: | :---: | :---: | :---: | :---: |\n"
     )
-
-    return f"{_HEADER}\n\n{table_header}" + "\n".join(table_rows)
-
-
-def format_snapshot_pr_comment_solo(
-    artifacts: list[PreprodArtifact],
-    snapshot_metrics_map: dict[int, PreprodSnapshotMetrics],
-) -> str:
-    """Format a PR comment for snapshots without a base comparison."""
-    if not artifacts:
-        raise ValueError("Cannot format PR comment for empty artifact list")
-
-    table_rows = []
-
-    for artifact in artifacts:
-        app_display, app_id = _app_display_info(artifact)
-        artifact_url = get_preprod_artifact_url(artifact, view_type="snapshots")
-        name_cell = _format_name_cell(app_display, app_id, artifact_url)
-
-        metrics = snapshot_metrics_map.get(artifact.id)
-        if not metrics:
-            table_rows.append(f"| {name_cell} | - | {_PROCESSING_STATUS} |")
-            continue
-
-        table_rows.append(f"| {name_cell} | {metrics.image_count} | \u2705 Uploaded |")
-
-    table_header = "| Name | Snapshots | Status |\n| :--- | :---: | :---: |\n"
 
     return f"{_HEADER}\n\n{table_header}" + "\n".join(table_rows)
 

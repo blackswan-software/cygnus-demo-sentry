@@ -6,7 +6,6 @@ from sentry.preprod.models import PreprodArtifact, PreprodComparisonApproval
 from sentry.preprod.snapshots.models import PreprodSnapshotComparison, PreprodSnapshotMetrics
 from sentry.preprod.vcs.pr_comments.snapshot_templates import (
     format_snapshot_pr_comment,
-    format_snapshot_pr_comment_solo,
 )
 from sentry.testutils.cases import TestCase
 from sentry.testutils.silo import cell_silo_test
@@ -79,10 +78,6 @@ class FormatSnapshotPrCommentEmptyTest(SnapshotPrCommentTestBase):
         with pytest.raises(ValueError, match="Cannot format PR comment for empty artifact list"):
             format_snapshot_pr_comment([], {}, {}, {}, {})
 
-    def test_empty_solo_artifacts_raises(self) -> None:
-        with pytest.raises(ValueError, match="Cannot format PR comment for empty artifact list"):
-            format_snapshot_pr_comment_solo([], {})
-
 
 @cell_silo_test
 class FormatSnapshotPrCommentProcessingTest(SnapshotPrCommentTestBase):
@@ -98,10 +93,17 @@ class FormatSnapshotPrCommentProcessingTest(SnapshotPrCommentTestBase):
         assert "Processing" in result
         assert "com.example.app" in result
 
-    def test_no_comparison_shows_processing(self) -> None:
-        artifact, metrics = self._create_artifact_with_metrics()
+    def test_no_comparison_with_base_shows_processing(self) -> None:
+        head_artifact, head_metrics = self._create_artifact_with_metrics()
+        base_artifact, _ = self._create_artifact_with_metrics(app_id="com.example.base")
 
-        result = format_snapshot_pr_comment([artifact], {artifact.id: metrics}, {}, {}, {})
+        result = format_snapshot_pr_comment(
+            [head_artifact],
+            {head_artifact.id: head_metrics},
+            {},
+            {head_artifact.id: base_artifact},
+            {},
+        )
 
         assert "Processing" in result
 
@@ -117,7 +119,7 @@ class FormatSnapshotPrCommentProcessingTest(SnapshotPrCommentTestBase):
             [head_artifact],
             {head_artifact.id: head_metrics},
             {head_metrics.id: comparison},
-            {},
+            {head_artifact.id: base_artifact},
             {},
         )
 
@@ -135,7 +137,7 @@ class FormatSnapshotPrCommentProcessingTest(SnapshotPrCommentTestBase):
             [head_artifact],
             {head_artifact.id: head_metrics},
             {head_metrics.id: comparison},
-            {},
+            {head_artifact.id: base_artifact},
             {},
         )
 
@@ -156,7 +158,7 @@ class FormatSnapshotPrCommentFailedTest(SnapshotPrCommentTestBase):
             [head_artifact],
             {head_artifact.id: head_metrics},
             {head_metrics.id: comparison},
-            {},
+            {head_artifact.id: base_artifact},
             {},
         )
 
@@ -220,7 +222,6 @@ class FormatSnapshotPrCommentSuccessTest(SnapshotPrCommentTestBase):
         )
 
         assert "Needs approval" in result
-        # Counts with changes should be linked
         assert "?section=added" in result
         assert "?section=removed" in result
         assert "?section=changed" in result
@@ -344,29 +345,25 @@ class FormatSnapshotPrCommentSuccessTest(SnapshotPrCommentTestBase):
 
 
 @cell_silo_test
-class FormatSnapshotPrCommentSoloTest(SnapshotPrCommentTestBase):
-    def test_solo_upload(self) -> None:
+class FormatSnapshotPrCommentNoBaseTest(SnapshotPrCommentTestBase):
+    def test_no_base_shows_uploaded_with_count(self) -> None:
         artifact, metrics = self._create_artifact_with_metrics(app_name="My App", image_count=15)
 
-        result = format_snapshot_pr_comment_solo([artifact], {artifact.id: metrics})
+        result = format_snapshot_pr_comment([artifact], {artifact.id: metrics}, {}, {}, {})
 
         assert "## Sentry Snapshot Testing" in result
-        assert "| Name | Snapshots | Status |" in result
+        assert "15 uploaded" in result
         assert "My App" in result
-        assert "| 15 |" in result
-        assert "Uploaded" in result
+        assert "`com.example.app`" in result
 
-    def test_solo_no_metrics_shows_processing(self) -> None:
-        artifact = self.create_preprod_artifact(
-            project=self.project,
-            app_id="com.example.app",
-        )
+    def test_no_base_uses_same_table_header(self) -> None:
+        artifact, metrics = self._create_artifact_with_metrics()
 
-        result = format_snapshot_pr_comment_solo([artifact], {})
+        result = format_snapshot_pr_comment([artifact], {artifact.id: metrics}, {}, {}, {})
 
-        assert "Processing" in result
+        assert "| Name | Added | Removed | Modified | Renamed | Unchanged | Status |" in result
 
-    def test_solo_multiple_artifacts(self) -> None:
+    def test_no_base_multiple_artifacts(self) -> None:
         artifacts = []
         metrics_map: dict[int, PreprodSnapshotMetrics] = {}
 
@@ -377,14 +374,16 @@ class FormatSnapshotPrCommentSoloTest(SnapshotPrCommentTestBase):
             artifacts.append(artifact)
             metrics_map[artifact.id] = metrics
 
-        result = format_snapshot_pr_comment_solo(artifacts, metrics_map)
+        result = format_snapshot_pr_comment(artifacts, metrics_map, {}, {}, {})
 
         assert "com.example.app0" in result
         assert "com.example.app1" in result
+        assert "5 uploaded" in result
+        assert "6 uploaded" in result
 
-    def test_app_id_shown_in_name_cell(self) -> None:
+    def test_no_base_app_id_shown(self) -> None:
         artifact, metrics = self._create_artifact_with_metrics(app_id="com.example.myapp")
 
-        result = format_snapshot_pr_comment_solo([artifact], {artifact.id: metrics})
+        result = format_snapshot_pr_comment([artifact], {artifact.id: metrics}, {}, {}, {})
 
         assert "`com.example.myapp`" in result
