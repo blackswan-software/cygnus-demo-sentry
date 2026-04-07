@@ -2,6 +2,7 @@ import {useMemo, useRef, useState, type ReactNode, useEffect} from 'react';
 import {queryOptions} from '@tanstack/react-query';
 import {z} from 'zod';
 
+import type {ButtonProps} from '@sentry/scraps/button';
 import {defaultFormOptions, useScrapsForm} from '@sentry/scraps/form';
 import {Stack} from '@sentry/scraps/layout';
 
@@ -43,7 +44,10 @@ interface BackendJsonSubmitFormProps {
    * SubmitButton component. Use this to place the button in a custom location
    * (e.g., a modal footer). If not provided, the submit button renders inline.
    */
-  footer?: (props: {SubmitButton: any; disabled: boolean}) => React.ReactNode;
+  footer?: (props: {
+    SubmitButton: React.ComponentType<ButtonProps>;
+    disabled: boolean;
+  }) => React.ReactNode;
   /**
    * Override default values for specific fields. Takes precedence over
    * `field.default`. Useful for preserving dynamic field selections
