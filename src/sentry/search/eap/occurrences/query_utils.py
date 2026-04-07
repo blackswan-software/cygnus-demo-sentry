@@ -108,7 +108,7 @@ def build_event_id_in_filter(event_ids: Sequence[str]) -> TraceItemFilter:
 def build_keyset_pagination_filter(
     timestamp_value: str,
     event_id: str,
-) -> TraceItemFilter:
+) -> TraceItemFilter | None:
     ts_epoch = datetime.fromisoformat(timestamp_value).timestamp()
     timestamp_key = AttributeKey(name="sentry.timestamp", type=AttributeKey.TYPE_DOUBLE)
     event_id_key = AttributeKey(name="sentry.item_id", type=AttributeKey.TYPE_STRING)

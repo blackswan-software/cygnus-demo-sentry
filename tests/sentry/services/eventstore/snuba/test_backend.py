@@ -966,6 +966,7 @@ class EAPEventStorageTest(TestCase, SnubaTestCase, OccurrenceTestCase):
                 event_id=middle_eid,
             ),
         )
+        assert eap_conditions is not None
 
         result = self.eventstore._get_events_eap(
             eap_conditions=eap_conditions,

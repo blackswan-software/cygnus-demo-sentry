@@ -4,6 +4,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 import sentry_sdk
+from sentry_protos.snuba.v1.trace_item_filter_pb2 import TraceItemFilter
 from snuba_sdk import DeleteQuery, Request
 from taskbroker_client.retry import Retry
 
@@ -160,7 +161,7 @@ def fetch_events_from_eventstore(
 ) -> list[Event]:
     logger.info("Fetching %s events for deletion.", limit)
     conditions = []
-    eap_conditions = build_group_id_in_filter(group_ids)
+    eap_conditions: TraceItemFilter | None = build_group_id_in_filter(group_ids)
     if last_event_id and last_event_timestamp:
         conditions.extend(
             [
