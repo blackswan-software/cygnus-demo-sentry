@@ -32,7 +32,7 @@ export function TroubleshootingSection({project}: TroubleshootingSectionProps) {
             <Stack gap="lg">
               <Text>
                 {t(
-                  'For Sentry to de-minify your stack traces you must provide both the minified files (for example, app.min.js) and the corresponding source maps.'
+                  'For Sentry to de-minify your stack traces you must provide both the minified files (for example, app.min.js) and the corresponding source maps. You can find them at:'
                 )}
               </Text>
               <div>
