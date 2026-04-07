@@ -356,34 +356,6 @@ class FormatSnapshotPrCommentSoloTest(SnapshotPrCommentTestBase):
         assert "| 15 |" in result
         assert "Uploaded" in result
 
-    def test_first_upload_shows_onboarding(self) -> None:
-        artifact, metrics = self._create_artifact_with_metrics()
-
-        result = format_snapshot_pr_comment_solo(
-            [artifact], {artifact.id: metrics}, is_first_upload=True
-        )
-
-        assert "first snapshot upload" in result
-        assert "main branch" in result
-
-    def test_missing_base_shows_warning(self) -> None:
-        artifact, metrics = self._create_artifact_with_metrics()
-
-        result = format_snapshot_pr_comment_solo(
-            [artifact], {artifact.id: metrics}, is_missing_base=True
-        )
-
-        assert "No base snapshots found" in result
-        assert "main branch" in result
-
-    def test_solo_no_warnings(self) -> None:
-        artifact, metrics = self._create_artifact_with_metrics()
-
-        result = format_snapshot_pr_comment_solo([artifact], {artifact.id: metrics})
-
-        assert "first snapshot upload" not in result
-        assert "No base snapshots found" not in result
-
     def test_solo_no_metrics_shows_processing(self) -> None:
         artifact = self.create_preprod_artifact(
             project=self.project,

@@ -84,8 +84,6 @@ def format_snapshot_pr_comment(
 def format_snapshot_pr_comment_solo(
     artifacts: list[PreprodArtifact],
     snapshot_metrics_map: dict[int, PreprodSnapshotMetrics],
-    is_first_upload: bool = False,
-    is_missing_base: bool = False,
 ) -> str:
     """Format a PR comment for snapshots without a base comparison."""
     if not artifacts:
@@ -107,29 +105,7 @@ def format_snapshot_pr_comment_solo(
 
     table_header = "| Name | Snapshots | Status |\n| :--- | :---: | :---: |\n"
 
-    sections = [_HEADER, table_header + "\n".join(table_rows)]
-
-    if is_first_upload:
-        sections.append(
-            str(
-                _(
-                    "This looks like your first snapshot upload. "
-                    "Snapshot diffs will appear when we have a base upload to compare against. "
-                    "Make sure to upload snapshots from your main branch."
-                )
-            )
-        )
-    elif is_missing_base:
-        sections.append(
-            str(
-                _(
-                    "No base snapshots found to compare against. "
-                    "Make sure snapshots are uploaded from your main branch."
-                )
-            )
-        )
-
-    return "\n\n".join(sections)
+    return f"{_HEADER}\n\n{table_header}" + "\n".join(table_rows)
 
 
 def _name_cell(
