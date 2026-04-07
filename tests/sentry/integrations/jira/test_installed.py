@@ -138,6 +138,16 @@ class JiraInstalledTest(APITestCase):
         assert integration.status == ObjectStatus.ACTIVE
 
     @patch("sentry.integrations.utils.metrics.EventLifecycle.record_event")
+    def test_without_key_id(self, mock_record_event: MagicMock) -> None:
+        self.get_error_response(
+            **self.body(),
+            extra_headers=dict(
+                HTTP_AUTHORIZATION="JWT " + self._jwt_token("RS256", RS256_KEY, headers={})
+            ),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    @patch("sentry.integrations.utils.metrics.EventLifecycle.record_event")
     def test_with_invalid_key_id(self, mock_record_event: MagicMock) -> None:
         self.get_error_response(
             **self.body(),

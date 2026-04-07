@@ -55,15 +55,18 @@ class JiraSentryInstalledWebhook(JiraWebhookBase):
                     "clientKey": state.get("clientKey", ""),
                 }
             )
+            if not key_id:
+                return self.respond(
+                    {"detail": "Missing key id"}, status=status.HTTP_400_BAD_REQUEST
+                )
 
-            if key_id:
-                if key_id in INVALID_KEY_IDS:
-                    lifecycle.record_halt(halt_reason="JWT contained invalid key_id (kid)")
-                    return self.respond(
-                        {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
-                    )
-                decoded_claims = authenticate_asymmetric_jwt(token, key_id)
-                verify_claims(decoded_claims, request.path, request.GET, method="POST")
+            if key_id in INVALID_KEY_IDS:
+                lifecycle.record_halt(halt_reason="JWT contained invalid key_id (kid)")
+                return self.respond(
+                    {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            decoded_claims = authenticate_asymmetric_jwt(token, key_id)
+            verify_claims(decoded_claims, request.path, request.GET, method="POST")
 
             data = JiraIntegrationProvider().build_integration(state)
             integration = ensure_integration(self.provider, data)
