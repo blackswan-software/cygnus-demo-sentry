@@ -80,25 +80,23 @@ export function ConnectAutomationsDrawer({
   const [localWorkflowIds, setLocalWorkflowIds] = useState(initialWorkflowIds);
 
   const toggleConnected = ({automation}: {automation: Automation}) => {
-    const newAutomations =
-      queryClient.setQueryData(
-        automationsApiOptions(organization, {
-          ids: localWorkflowIds,
-        }).queryKey,
-        oldAutomations => {
-          if (!oldAutomations) {
-            return oldAutomations;
-          }
-          return {
-            ...oldAutomations,
-            json: (oldAutomations.json.some(a => a.id === automation.id)
-              ? oldAutomations.json.filter(a => a.id !== automation.id)
-              : [...oldAutomations.json, automation]
-            ).sort((a, b) => a.id.localeCompare(b.id)),
-          };
-        }
-      )?.json ?? [];
+    const queryKey = automationsApiOptions(organization, {
+      ids: localWorkflowIds,
+    }).queryKey;
+
+    const oldAutomationsData = queryClient.getQueryData(queryKey)?.json ?? [];
+
+    const newAutomations = (
+      oldAutomationsData.some(a => a.id === automation.id)
+        ? oldAutomationsData.filter(a => a.id !== automation.id)
+        : [...oldAutomationsData, automation]
+    ).sort((a, b) => a.id.localeCompare(b.id));
     const newWorkflowIds = newAutomations.map(a => a.id);
+
+    queryClient.setQueryData(
+      automationsApiOptions(organization, {ids: newWorkflowIds}).queryKey,
+      old => (old ? {...old, json: newAutomations} : old)
+    );
 
     setLocalWorkflowIds(newWorkflowIds);
     setWorkflowIds(newWorkflowIds);
