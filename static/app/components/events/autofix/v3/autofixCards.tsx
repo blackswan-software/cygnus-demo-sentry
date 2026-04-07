@@ -1,4 +1,4 @@
-import {Fragment, useCallback, useEffect, useMemo, useRef, type ReactNode} from 'react';
+import {Fragment, useEffect, useMemo, useRef, type ReactNode} from 'react';
 import styled from '@emotion/styled';
 
 import {Tag} from '@sentry/scraps/badge';
@@ -299,34 +299,8 @@ export function PullRequestsCard({autofix, section}: AutofixCardProps) {
   const {createPR, runState, isPolling} = autofix;
   const runId = runState?.run_id;
 
-  // Check if code has changed since each PR was last pushed
-  const isOutOfSync = useCallback(
-    (repoName: string, prCommitSha: string | null) => {
-      const blocks = runState?.blocks ?? [];
-      if (!prCommitSha) {
-        return true;
-      }
-      for (let i = blocks.length - 1; i >= 0; i--) {
-        const block = blocks[i];
-        if (block?.merged_file_patches?.some(p => p.repo_name === repoName)) {
-          return block.pr_commit_shas?.[repoName] !== prCommitSha;
-        }
-      }
-      return true;
-    },
-    [runState?.blocks]
-  );
-
   return (
-    <ArtifactCard
-      icon={<IconPullRequest />}
-      title={t('Pull Requests')}
-      trailingItems={
-        section.status === 'completed' && runId ? (
-          <RetryButton onClick={() => createPR(runId)} disabled={isPolling} />
-        ) : undefined
-      }
-    >
+    <ArtifactCard icon={<IconPullRequest />} title={t('Pull Requests')}>
       {artifact?.map(pullRequest => {
         if (pullRequest.pr_creation_status === 'creating') {
           const isUpdating = !!(pullRequest.pr_number && pullRequest.pr_url);
@@ -344,18 +318,6 @@ export function PullRequestsCard({autofix, section}: AutofixCardProps) {
           pullRequest.pr_url &&
           pullRequest.pr_number
         ) {
-          if (isOutOfSync(pullRequest.repo_name, pullRequest.commit_sha) && runId) {
-            return (
-              <Button
-                key={pullRequest.repo_name}
-                priority="primary"
-                onClick={() => createPR(runId, pullRequest.repo_name)}
-                disabled={isPolling}
-              >
-                {t('Update %s#%s', pullRequest.repo_name, pullRequest.pr_number)}
-              </Button>
-            );
-          }
           return (
             <LinkButton
               key={pullRequest.repo_name}
@@ -375,7 +337,7 @@ export function PullRequestsCard({autofix, section}: AutofixCardProps) {
             onClick={() => runId && createPR(runId, pullRequest.repo_name)}
             disabled={isPolling || !runId}
           >
-            {t('Retry PR in %s', pullRequest.repo_name)}
+            {t('Failed to create PR in %s — Retry', pullRequest.repo_name)}
           </Button>
         );
       })}

@@ -698,20 +698,6 @@ describe('Retry button', () => {
     expect(startStep).toHaveBeenCalledWith('code_changes', 42, undefined, 5);
   });
 
-  it('calls createPR with runId on PullRequestsCard retry click', async () => {
-    const createPR = jest.fn();
-
-    render(
-      <PullRequestsCard
-        autofix={{...autofixWithRun, createPR}}
-        section={makeSection('pull_request', 'completed', [[makePR()]])}
-      />
-    );
-
-    await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
-    expect(createPR).toHaveBeenCalledWith(42);
-  });
-
   it('does not show retry button when section is processing', () => {
     const artifact = makeSolutionArtifact({
       one_line_summary: 'Fix the bug',
