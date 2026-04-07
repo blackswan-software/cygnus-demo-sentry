@@ -133,6 +133,15 @@ class JiraInstalledTest(APITestCase):
             ),
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+        # SLO metric asserts
+        # ENSURE_CONTROL_SILO (success) -> VERIFY_INSTALLATION (halt) -> GET_CONTROL_RESPONSE (success)
+        assert_count_of_metric(mock_record_event, EventLifecycleOutcome.STARTED, 3)
+        assert_count_of_metric(mock_record_event, EventLifecycleOutcome.HALTED, 1)
+        assert_count_of_metric(mock_record_event, EventLifecycleOutcome.SUCCESS, 2)
+        assert_halt_metric(
+            mock_record_event,
+            "Missing key_id (kid)",
+        )
 
     @patch("sentry.integrations.utils.metrics.EventLifecycle.record_event")
     def test_with_invalid_key_id(self, mock_record_event: MagicMock) -> None:
