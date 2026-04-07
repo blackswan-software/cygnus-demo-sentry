@@ -15,7 +15,6 @@ import {
 } from 'sentry-test/reactTestingLibrary';
 
 import {ConfigStore} from 'sentry/stores/configStore';
-import {getKeyCode} from 'sentry/utils/getKeyCode';
 import {Navigation} from 'sentry/views/navigation';
 import {NAVIGATION_SIDEBAR_COLLAPSED_LOCAL_STORAGE_KEY} from 'sentry/views/navigation/constants';
 import {PrimaryNavigationContextProvider} from 'sentry/views/navigation/primaryNavigationContext';
@@ -626,7 +625,7 @@ describe('desktop navigation', () => {
           navigationContext()
         );
 
-        fireEvent.keyDown(document, {keyCode: getKeyCode('b'), ctrlKey: true});
+        fireEvent.keyDown(document, {keyCode: 66 /* b */, ctrlKey: true});
 
         expect(screen.getByTestId('collapsed-secondary-sidebar')).toBeInTheDocument();
       });
@@ -639,10 +638,10 @@ describe('desktop navigation', () => {
           navigationContext()
         );
 
-        fireEvent.keyDown(document, {keyCode: getKeyCode('b'), ctrlKey: true});
+        fireEvent.keyDown(document, {keyCode: 66 /* b */, ctrlKey: true});
         expect(screen.getByTestId('collapsed-secondary-sidebar')).toBeInTheDocument();
 
-        fireEvent.keyDown(document, {keyCode: getKeyCode('b'), ctrlKey: true});
+        fireEvent.keyDown(document, {keyCode: 66 /* b */, ctrlKey: true});
         expect(
           screen.queryByTestId('collapsed-secondary-sidebar')
         ).not.toBeInTheDocument();
@@ -852,9 +851,8 @@ describe('desktop navigation', () => {
 
           await userEvent.hover(screen.getByRole('link', {name: 'Explore'}));
 
-          expect(
-            await within(secondaryNav).findByRole('link', {name: 'Traces'})
-          ).toBeInTheDocument();
+          // Re-query secondary nav because AnimatePresence remounts it with a new key
+          expect(await screen.findByRole('link', {name: 'Traces'})).toBeInTheDocument();
         });
 
         it('shows hovered group content in the peek view when sidebar is collapsed', async () => {
