@@ -1,11 +1,11 @@
-import {Fragment, useCallback, useState} from 'react';
+import {Fragment, useCallback, useRef, useState} from 'react';
 import styled from '@emotion/styled';
 import {mutationOptions} from '@tanstack/react-query';
 import {z} from 'zod';
 
 import {Button} from '@sentry/scraps/button';
 import {AutoSaveForm, FieldGroup} from '@sentry/scraps/form';
-import {Flex, Stack} from '@sentry/scraps/layout';
+import {Container, Flex, Stack} from '@sentry/scraps/layout';
 import {ExternalLink} from '@sentry/scraps/link';
 import {Text} from '@sentry/scraps/text';
 
@@ -77,9 +77,11 @@ export function useScmConnectionsData() {
 // Main component
 // ─────────────────────────────────────────────────────────────
 
-export function ScmConnectionsView() {
-  const data = useScmConnectionsData();
-
+export function ScmConnectionsView({
+  data,
+}: {
+  data: ReturnType<typeof useScmConnectionsData>;
+}) {
   if (data.isPending) {
     return (
       <Flex justify="center" padding="xl" minHeight={200}>
@@ -302,7 +304,7 @@ function IntegrationCard({
   }, [integration]);
 
   return (
-    <CardContainer>
+    <Container border="primary" radius="md" overflow="hidden">
       <CardHeader>
         <RowToggle onClick={() => setExpanded(!expanded)}>
           <IconChevron direction={expanded ? 'down' : 'right'} size="xs" />
@@ -374,7 +376,7 @@ function IntegrationCard({
           )}
         </CardBody>
       )}
-    </CardContainer>
+    </Container>
   );
 }
 
@@ -653,6 +655,7 @@ export function ProviderDropdown({
   const organization = useOrganization();
   const canAccess =
     hasEveryAccess(['org:integrations'], {organization}) || isActiveSuperuser();
+  const dialogRefsRef = useRef<Record<string, (() => void) | undefined>>({});
 
   const singleProvider = providers.length === 1 ? providers[0] : undefined;
   if (singleProvider) {
@@ -671,8 +674,6 @@ export function ProviderDropdown({
 
   // Render a hidden AddIntegration for each provider so we can grab their openDialog refs.
   // When a user picks from the dropdown, we immediately trigger the OAuth flow.
-  const dialogRefs: Record<string, (() => void) | undefined> = {};
-
   return (
     <Fragment>
       {/* Hidden AddIntegration instances to capture openDialog callbacks */}
@@ -684,7 +685,7 @@ export function ProviderDropdown({
           onInstall={() => onAddIntegration()}
         >
           {openDialog => {
-            dialogRefs[p.key] = openDialog;
+            dialogRefsRef.current[p.key] = openDialog;
             return null;
           }}
         </AddIntegration>
@@ -701,7 +702,7 @@ export function ProviderDropdown({
           label: p.name,
           leadingItems: <RepoProviderIcon provider={`integrations:${p.key}`} size="xs" />,
           disabled: !p.canAdd,
-          onAction: () => dialogRefs[p.key]?.(),
+          onAction: () => dialogRefsRef.current[p.key]?.(),
         }))}
       />
     </Fragment>
@@ -720,12 +721,6 @@ const DashedContainer = styled('div')`
   flex-direction: column;
   align-items: center;
   gap: ${p => p.theme.space.xl};
-`;
-
-const CardContainer = styled('div')`
-  border: 1px solid ${p => p.theme.tokens.border.primary};
-  border-radius: ${p => p.theme.radius.md};
-  overflow: hidden;
 `;
 
 const CardHeader = styled('div')`

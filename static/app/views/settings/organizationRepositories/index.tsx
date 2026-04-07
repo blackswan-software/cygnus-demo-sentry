@@ -15,7 +15,7 @@ import {
 
 export default function OrganizationRepositories() {
   const organization = useOrganization();
-  const {hasConnections, scmProviders, refetchIntegrations} = useScmConnectionsData();
+  const scmConnectionsData = useScmConnectionsData();
 
   return (
     <AnalyticsArea name="source-code-management">
@@ -23,10 +23,10 @@ export default function OrganizationRepositories() {
       <SettingsPageHeader
         title={t('Source Code')}
         action={
-          hasConnections ? (
+          scmConnectionsData.hasConnections ? (
             <ProviderDropdown
-              providers={scmProviders}
-              onAddIntegration={refetchIntegrations}
+              providers={scmConnectionsData.scmProviders}
+              onAddIntegration={scmConnectionsData.refetchIntegrations}
               buttonText={t('Connect Source Code')}
               size="sm"
             />
@@ -35,7 +35,7 @@ export default function OrganizationRepositories() {
       />
 
       <Stack gap="3xl">
-        <ScmConnectionsView />
+        <ScmConnectionsView data={scmConnectionsData} />
         <AllCodeMappings />
       </Stack>
     </AnalyticsArea>
