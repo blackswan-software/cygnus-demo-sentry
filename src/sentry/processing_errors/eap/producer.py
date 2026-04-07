@@ -44,6 +44,7 @@ def produce_processing_errors_to_eap(
     project: Project,
     event_data: Mapping[str, Any],
     processing_errors: Sequence[Mapping[str, Any]],
+    group_id: int | None = None,
 ) -> None:
     """
     Produces processing errors as TraceItems to the EAP topic.
@@ -65,6 +66,7 @@ def produce_processing_errors_to_eap(
         release = event_data.get("release")
         environment = event_data.get("environment")
         platform = event_data.get("platform")
+        title = event_data.get("title")
         sdk = event_data.get("sdk") or {}
         sdk_name = sdk.get("name")
         sdk_version = sdk.get("version")
@@ -98,6 +100,12 @@ def produce_processing_errors_to_eap(
 
             if sdk_version is not None:
                 attributes["sdk_version"] = sdk_version
+
+            if title is not None:
+                attributes["title"] = title
+
+            if group_id is not None:
+                attributes["group_id"] = str(group_id)
 
             item_id = hex_to_item_id(
                 uuid.uuid5(PROCESSING_ERROR_NAMESPACE, f"{event_data['event_id']}:{index}").hex
