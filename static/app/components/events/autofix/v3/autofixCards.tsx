@@ -329,9 +329,12 @@ export function PullRequestsCard({autofix, section}: AutofixCardProps) {
     >
       {artifact?.map(pullRequest => {
         if (pullRequest.pr_creation_status === 'creating') {
+          const isUpdating = !!(pullRequest.pr_number && pullRequest.pr_url);
           return (
             <Button key={pullRequest.repo_name} priority="primary" disabled>
-              {t('Creating PR in %s', pullRequest.repo_name)}
+              {isUpdating
+                ? t('Updating PR in %s', pullRequest.repo_name)
+                : t('Creating PR in %s', pullRequest.repo_name)}
             </Button>
           );
         }

@@ -253,16 +253,8 @@ function CodeChangesNextStep({autofix, group, runId, section, referrer}: NextSte
     [autofix.runState?.blocks, autofix.runState?.repo_pr_states]
   );
 
-  if (!defined(artifact) || allInSync) {
+  if (!defined(artifact) || allInSync || creatingPR) {
     return null;
-  }
-
-  if (creatingPR) {
-    return (
-      <Text variant="muted">
-        {hasPR ? t('Updating PR\u2026') : t('Creating PR\u2026')}
-      </Text>
-    );
   }
 
   const yesLabel = hasPR ? t('Yes, update the PR') : t('Yes, draft a PR');

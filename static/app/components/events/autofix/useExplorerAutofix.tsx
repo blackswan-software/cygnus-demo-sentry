@@ -376,17 +376,19 @@ export function getOrderedAutofixSections(runState: ExplorerAutofixState | null)
   );
 
   if (hasCompletedCodeChanges) {
-    // Only show the PR section when all PRs are in sync with current code.
-    // Otherwise the NextStep prompt handles create/update flow.
+    // Show the PR section when PRs are in sync (View links) or when a PR
+    // is being created/updated (disabled button with loading text).
+    // Hide it when PRs are out of sync — the NextStep prompt handles that.
     const repoPRStates = runState?.repo_pr_states ?? {};
-    if (areAllPRsInSync(blocks, repoPRStates)) {
-      const pullRequests = Object.values(repoPRStates);
+    const pullRequests = Object.values(repoPRStates);
+    const anyCreating = pullRequests.some(pr => pr.pr_creation_status === 'creating');
+    if (anyCreating || areAllPRsInSync(blocks, repoPRStates)) {
       sections.push({
         step: 'pull_request',
         blockIndex: blocks.length,
         artifacts: [pullRequests],
         messages: [],
-        status: 'completed',
+        status: anyCreating ? 'processing' : 'completed',
       });
     }
 
