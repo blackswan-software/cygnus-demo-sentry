@@ -940,6 +940,7 @@ class GroupAutofixEndpointExplorerRoutingTest(APITestCase, SnubaTestCase):
                 run_id=None,
                 intelligence_level="low",
                 user_context=None,
+                insert_index=None,
             )
 
     @patch("sentry.seer.autofix.autofix._call_autofix")
