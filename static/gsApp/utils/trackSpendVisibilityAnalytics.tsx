@@ -1,4 +1,3 @@
-import type {Organization} from 'sentry/types/organization';
 import {makeAnalyticsFunction} from 'sentry/utils/analytics/makeAnalyticsFunction';
 
 import type {Subscription} from 'getsentry/types';
@@ -40,7 +39,5 @@ const spendVisibilityEventMap: Record<SpendVisibilityEvents, string> = {
 };
 
 // The type-safe analytics function generated
-export const trackSpendVisibilityAnaltyics = makeAnalyticsFunction<
-  SpendVisibilityEventParameters,
-  {organization: Organization}
->(spendVisibilityEventMap);
+export const trackSpendVisibilityAnaltyics =
+  makeAnalyticsFunction<SpendVisibilityEventParameters>(spendVisibilityEventMap);

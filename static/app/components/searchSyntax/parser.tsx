@@ -886,7 +886,7 @@ export class TokenConverter {
   /**
    * Checks a filter against some non-grammar validation rules
    */
-  checkFilterWarning = <T extends FilterType>(key: FilterMap[T]['key']) => {
+  checkFilterWarning = (key: FilterMap[FilterType]['key']) => {
     if (
       ![
         Token.KEY_SIMPLE,
@@ -1513,10 +1513,12 @@ export const defaultConfig: SearchConfig = {
   },
 };
 
-function tryParseSearch<T extends {config: SearchConfig}>(
-  query: string,
-  config: T
-): ParseResult | null {
+interface SearchParseConfig {
+  [i: string]: any;
+  config: SearchConfig;
+}
+
+function tryParseSearch(query: string, config: SearchParseConfig): ParseResult | null {
   try {
     return parse(query, config);
   } catch (e: any) {
