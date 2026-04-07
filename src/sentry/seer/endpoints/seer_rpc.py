@@ -627,10 +627,10 @@ def trigger_coding_agent_launch(
 
                 if preference:
                     updated_preference = preference.copy(update={"automation_handoff": None})
-                    resolved_pref = resolve_repository_ids(
+                    resolved_preference = resolve_repository_ids(
                         organization.id, [SeerProjectPreference.validate(updated_preference)]
                     )[0]
-                    write_preference_to_sentry_db(project, resolved_pref)
+                    write_preference_to_sentry_db(project, resolved_preference)
         except Exception:
             logger.exception(
                 "coding_agent.clear_handoff_preference_failed",
