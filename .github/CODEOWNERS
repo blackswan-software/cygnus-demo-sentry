@@ -340,6 +340,7 @@ tests/sentry/api/endpoints/test_organization_attribute_mappings.py          @get
 /static/app/views/explore/logs/logsTabSeerComboBox.tsx                    @getsentry/explore @getsentry/machine-learning-ai
 /static/app/views/explore/spans/spansTabSeerComboBox.tsx                  @getsentry/explore @getsentry/machine-learning-ai
 /static/app/views/traces/                                                 @getsentry/explore
+/static/app/components/explore/                                           @getsentry/explore
 /static/app/components/quickTrace/                                        @getsentry/explore
 /static/app/components/dnd/                                               @getsentry/explore
 /src/sentry/insights/                                                     @getsentry/data-browsing
