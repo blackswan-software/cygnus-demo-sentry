@@ -31,7 +31,6 @@ class JiraInstalledTest(APITestCase):
     kid = "cudi"
     shared_secret = "garden"
     path = "/extensions/jira/installed/"
-    client_key = "limepie"
 
     def _jwt_token(
         self,
@@ -41,7 +40,7 @@ class JiraInstalledTest(APITestCase):
     ) -> str:
         return jwt.encode(
             {
-                "iss": self.client_key,
+                "iss": self.external_id,
                 "aud": absolute_uri(),
                 "qsh": get_query_hash(self.path, method="POST", query_params={}),
             },
@@ -62,7 +61,7 @@ class JiraInstalledTest(APITestCase):
                 "metadata": {},
                 "external_id": self.external_id,
             },
-            "clientKey": self.client_key,
+            "clientKey": "limepie",
             "oauthClientId": "EFG",
             "publicKey": "yourCar",
             "sharedSecret": self.shared_secret,
