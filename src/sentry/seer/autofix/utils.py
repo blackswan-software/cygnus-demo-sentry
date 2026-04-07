@@ -815,44 +815,38 @@ def set_project_seer_preference(preference: SeerProjectPreference) -> None:
 
 
 def has_project_connected_repos(
-    organization_id: int, project_id: int, *, skip_cache: bool = False
+    organization: Organization, project: Project, *, skip_cache: bool = False
 ) -> bool:
     """
     Check if a project has connected repositories for Seer automation.
     Checks Seer preferences first, then falls back to Sentry code mappings.
     Results are cached for 15 minutes to minimize API calls.
     """
-    cache_key = f"seer-project-has-repos:{organization_id}:{project_id}"
+    cache_key = f"seer-project-has-repos:{organization.id}:{project.id}"
     if not skip_cache:
         cached_value = cache.get(cache_key)
         if cached_value is not None:
             return cached_value
 
-    has_repos = False
-
-    try:
-        project_preferences = get_project_seer_preferences(project_id)
-        has_repos = bool(
-            project_preferences.preference and project_preferences.preference.repositories
-        )
-    except (SeerApiError, SeerApiResponseValidationError):
-        pass
+    if features.has("organizations:seer-project-settings-read-from-sentry", organization):
+        preference = read_preference_from_sentry_db(project)
+        has_repos = bool(preference and preference.repositories)
+    else:
+        try:
+            project_preferences = get_project_seer_preferences(project.id)
+            has_repos = bool(
+                project_preferences.preference and project_preferences.preference.repositories
+            )
+        except (SeerApiError, SeerApiResponseValidationError):
+            pass
 
     if not has_repos:
         # If it's the first autofix run of project we check code mapping.
-        try:
-            project = Project.objects.get(id=project_id)
-            has_repos = bool(get_autofix_repos_from_project_code_mappings(project))
-        except Project.DoesNotExist:
-            pass
+        has_repos = bool(get_autofix_repos_from_project_code_mappings(project))
 
     logger.info(
         "Checking if project has repositories connected",
-        extra={
-            "org_id": organization_id,
-            "project_id": project_id,
-            "has_repos": has_repos,
-        },
+        extra={"org_id": organization.id, "project_id": project.id, "has_repos": has_repos},
     )
 
     cache.set(cache_key, has_repos, timeout=60 * 15)  # Cache for 15 minutes
