@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 
-export const TRACE_DATA_RETENTION_DAYS = 30;
+const TRACE_DATA_RETENTION_DAYS = 30;
 
 /**
  * Returns true if the given timestamp is older than 30 days, indicating
