@@ -11,7 +11,7 @@ import {bulkDelete, bulkUpdate, mergeGroups} from 'sentry/actionCreators/group';
 import {
   addErrorMessage,
   addLoadingMessage,
-  clearIndicators,
+  addSuccessMessage,
 } from 'sentry/actionCreators/indicator';
 import {IssueStreamHeaderLabel} from 'sentry/components/IssueStreamHeaderLabel';
 import {Sticky} from 'sentry/components/sticky';
@@ -305,9 +305,7 @@ export function IssueListActions({
       // * users with global views need to be explicit about what projects the query will run against
       const projectConstraints = {project: getSelectedProjectIds(itemIds)};
 
-      if (itemIds?.length) {
-        addLoadingMessage(t('Saving changes\u2026'));
-      }
+      addLoadingMessage(t('Saving changes\u2026'));
 
       bulkUpdate(
         api,
@@ -323,7 +321,7 @@ export function IssueListActions({
         },
         {
           success: () => {
-            clearIndicators();
+            addSuccessMessage(t('Changes saved'));
             onActionTaken?.(itemIds ?? [], data);
 
             // Prevents stale data on issue details
@@ -346,7 +344,6 @@ export function IssueListActions({
             }
           },
           error: () => {
-            clearIndicators();
             addErrorMessage(t('Unable to update issues'));
           },
         }
