@@ -13,6 +13,7 @@ import {
   type CodingAgentIntegration,
 } from 'sentry/components/events/autofix/useAutofix';
 import {
+  areAllPRsInSync,
   getAutofixArtifactFromSection,
   isCodeChangesSection,
   isCodingAgentsSection,
@@ -240,7 +241,17 @@ function CodeChangesNextStep({autofix, group, runId, section, referrer}: NextSte
 
   const artifact = useMemo(() => getAutofixArtifactFromSection(section), [section]);
 
-  if (!defined(artifact)) {
+  // All PRs are already in sync with current code — nothing for the user to do
+  const allInSync = useMemo(
+    () =>
+      areAllPRsInSync(
+        autofix.runState?.blocks ?? [],
+        autofix.runState?.repo_pr_states ?? {}
+      ),
+    [autofix.runState?.blocks, autofix.runState?.repo_pr_states]
+  );
+
+  if (!defined(artifact) || allInSync) {
     return null;
   }
 

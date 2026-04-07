@@ -371,26 +371,22 @@ export function getOrderedAutofixSections(runState: ExplorerAutofixState | null)
   // Finalize the last in-progress section.
   finalizeSection();
 
-  // Only show synthetic PR and coding-agent sections when code_changes is
-  // completed. After a retry-from-step truncates blocks, these would be stale
-  // and would prevent NextStep buttons from appearing.
   const hasCompletedCodeChanges = sections.some(
     s => s.step === 'code_changes' && s.status === 'completed'
   );
 
   if (hasCompletedCodeChanges) {
-    const pullRequests = Object.values(runState?.repo_pr_states ?? {});
-    if (pullRequests.length) {
+    // Only show the PR section when all PRs are in sync with current code.
+    // Otherwise the NextStep prompt handles create/update flow.
+    const repoPRStates = runState?.repo_pr_states ?? {};
+    if (areAllPRsInSync(blocks, repoPRStates)) {
+      const pullRequests = Object.values(repoPRStates);
       sections.push({
         step: 'pull_request',
         blockIndex: blocks.length,
         artifacts: [pullRequests],
         messages: [],
-        status: pullRequests.some(
-          pullRequest => pullRequest.pr_creation_status === 'creating'
-        )
-          ? 'processing'
-          : 'completed',
+        status: 'completed',
       });
     }
 
@@ -433,6 +429,36 @@ export function isPullRequestsSection(section: AutofixSection): boolean {
 
 export function isCodingAgentsSection(section: AutofixSection): boolean {
   return section.step === 'coding_agents';
+}
+
+/**
+ * Checks if all PRs are in sync with the current code changes.
+ * A PR is in sync when its commit_sha matches the pr_commit_shas on the
+ * last block that has merged patches for that repo.
+ */
+export function areAllPRsInSync(
+  blocks: Block[],
+  repoPRStates: Record<string, RepoPRState>
+): boolean {
+  const pullRequests = Object.values(repoPRStates);
+  if (!pullRequests.length) {
+    return false;
+  }
+  return pullRequests.every(pr => {
+    if (pr.pr_creation_status === 'creating') {
+      return false;
+    }
+    if (!pr.pr_number || !pr.pr_url || !pr.commit_sha) {
+      return false;
+    }
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      const block = blocks[i];
+      if (block?.merged_file_patches?.some(p => p.repo_name === pr.repo_name)) {
+        return block.pr_commit_shas?.[pr.repo_name] === pr.commit_sha;
+      }
+    }
+    return false;
+  });
 }
 
 export type AutofixArtifact =
