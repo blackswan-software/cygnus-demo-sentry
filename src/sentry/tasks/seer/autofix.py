@@ -250,7 +250,8 @@ def configure_seer_for_existing_org(organization_id: int) -> None:
     if features.has("organizations:seer-project-settings-read-from-sentry", organization):
         preferences = bulk_read_preferences_from_sentry_db(organization_id, project_ids)
         preferences_by_id = {
-            str(project_id): preference.dict() for project_id, preference in preferences.items()
+            str(project_id): preference.dict() if preference else None
+            for project_id, preference in preferences.items()
         }
     else:
         preferences_by_id = bulk_get_project_preferences(organization_id, project_ids)

@@ -188,7 +188,8 @@ class OrganizationAutofixAutomationSettingsEndpoint(OrganizationEndpoint):
         if features.has("organizations:seer-project-settings-read-from-sentry", organization):
             preferences = bulk_read_preferences_from_sentry_db(organization.id, project_ids_list)
             preferences_map = {
-                str(project_id): preference.dict() for project_id, preference in preferences.items()
+                str(project_id): preference.dict() if preference else None
+                for project_id, preference in preferences.items()
             }
         else:
             preferences_map = bulk_get_project_preferences(organization.id, project_ids_list) or {}
@@ -308,7 +309,7 @@ class OrganizationAutofixAutomationSettingsEndpoint(OrganizationEndpoint):
                     organization.id, list(projects_by_id.keys())
                 )
                 existing_preferences_map = {
-                    str(project_id): preference.dict()
+                    str(project_id): preference.dict() if preference else None
                     for project_id, preference in existing_preferences.items()
                 }
             else:

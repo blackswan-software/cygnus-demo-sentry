@@ -828,6 +828,7 @@ def has_project_connected_repos(
         if cached_value is not None:
             return cached_value
 
+    has_repos = False
     if features.has("organizations:seer-project-settings-read-from-sentry", organization):
         preference = read_preference_from_sentry_db(project)
         has_repos = bool(preference and preference.repositories)
@@ -853,7 +854,9 @@ def has_project_connected_repos(
     return has_repos
 
 
-def bulk_get_project_preferences(organization_id: int, project_ids: list[int]) -> dict[str, dict]:
+def bulk_get_project_preferences(
+    organization_id: int, project_ids: list[int]
+) -> dict[str, dict | None]:
     """Bulk fetch Seer project preferences. Returns dict mapping project ID (string) to preference dict."""
     viewer_context = SeerViewerContext(organization_id=organization_id)
     response = make_bulk_get_project_preferences_request(

@@ -235,6 +235,10 @@ def _launch_agents_for_repos(
     if features.has("organizations:seer-project-settings-read-from-sentry", organization):
         try:
             project = Project.objects.get_from_cache(id=autofix_state.request.project_id)
+
+            preference = read_preference_from_sentry_db(project)
+            if preference and preference.automation_handoff:
+                auto_create_pr = preference.automation_handoff.auto_create_pr
         except Project.DoesNotExist:
             logger.exception(
                 "coding_agent.project_not_found",
@@ -244,10 +248,6 @@ def _launch_agents_for_repos(
                     "project_id": autofix_state.request.project_id,
                 },
             )
-
-        preference = read_preference_from_sentry_db(project)
-        if preference and preference.automation_handoff:
-            auto_create_pr = preference.automation_handoff.auto_create_pr
     else:
         try:
             preference_response = get_project_seer_preferences(autofix_state.request.project_id)
