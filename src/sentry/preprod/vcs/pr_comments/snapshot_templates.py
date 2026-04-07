@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from django.utils.translation import gettext_lazy as _
-
 from sentry.preprod.models import PreprodArtifact, PreprodComparisonApproval
 from sentry.preprod.snapshots.models import PreprodSnapshotComparison, PreprodSnapshotMetrics
-from sentry.preprod.url_utils import get_preprod_artifact_comparison_url, get_preprod_artifact_url
+from sentry.preprod.vcs.snapshot_template_utils import (
+    format_name_cell,
+    format_section_cell,
+    get_app_display_info,
+    get_artifact_url,
+    get_comparison_status,
+)
 
 _HEADER = "## Sentry Snapshot Testing"
 _PROCESSING_STATUS = "\u23f3 Processing"
@@ -55,30 +59,17 @@ def format_snapshot_pr_comment(
             table_rows.append(f"| {name_cell} | - | - | - | - | - | \u274c Comparison failed |")
         else:
             base_artifact = base_artifact_map.get(artifact.id)
-            artifact_url = (
-                get_preprod_artifact_comparison_url(
-                    artifact, base_artifact, comparison_type="snapshots"
-                )
-                if base_artifact
-                else get_preprod_artifact_url(artifact, view_type="snapshots")
-            )
-
-            has_changes = changes_map.get(artifact.id, False)
-            is_approved = approvals_map is not None and artifact.id in approvals_map
-            if has_changes and is_approved:
-                status = "\u2705 Approved"
-            elif has_changes:
-                status = "\u23f3 Needs approval"
-            else:
-                status = "\u2705 Unchanged"
+            metrics = snapshot_metrics_map.get(artifact.id)
+            artifact_url = get_artifact_url(artifact, base_artifact, metrics)
+            status = get_comparison_status(artifact.id, changes_map, approvals_map)
 
             table_rows.append(
                 f"| {name_cell}"
-                f" | {_section_cell(comparison.images_added, 'added', artifact_url)}"
-                f" | {_section_cell(comparison.images_removed, 'removed', artifact_url)}"
-                f" | {_section_cell(comparison.images_changed, 'changed', artifact_url)}"
-                f" | {_section_cell(comparison.images_renamed, 'renamed', artifact_url)}"
-                f" | {_section_cell(comparison.images_unchanged, 'unchanged', artifact_url)}"
+                f" | {format_section_cell(comparison.images_added, 'added', artifact_url)}"
+                f" | {format_section_cell(comparison.images_removed, 'removed', artifact_url)}"
+                f" | {format_section_cell(comparison.images_changed, 'changed', artifact_url)}"
+                f" | {format_section_cell(comparison.images_renamed, 'renamed', artifact_url)}"
+                f" | {format_section_cell(comparison.images_unchanged, 'unchanged', artifact_url)}"
                 f" | {status} |"
             )
 
@@ -95,35 +86,8 @@ def _name_cell(
     snapshot_metrics_map: dict[int, PreprodSnapshotMetrics],
     base_artifact_map: dict[int, PreprodArtifact],
 ) -> str:
-    app_display, app_id = _app_display_info(artifact)
+    app_display, app_id = get_app_display_info(artifact)
     metrics = snapshot_metrics_map.get(artifact.id)
     base_artifact = base_artifact_map.get(artifact.id)
-
-    if base_artifact and metrics:
-        artifact_url = get_preprod_artifact_comparison_url(
-            artifact, base_artifact, comparison_type="snapshots"
-        )
-    else:
-        artifact_url = get_preprod_artifact_url(artifact, view_type="snapshots")
-
-    return _format_name_cell(app_display, app_id, artifact_url)
-
-
-def _app_display_info(artifact: PreprodArtifact) -> tuple[str, str]:
-    mobile_app_info = getattr(artifact, "mobile_app_info", None)
-    app_name = mobile_app_info.app_name if mobile_app_info else None
-    app_display = app_name or artifact.app_id or str(_("Unknown App"))
-    app_id = artifact.app_id or ""
-    return app_display, app_id
-
-
-def _format_name_cell(app_display: str, app_id: str, url: str) -> str:
-    if app_id:
-        return f"[{app_display}]({url})<br>`{app_id}`"
-    return f"[{app_display}]({url})"
-
-
-def _section_cell(count: int, section: str, artifact_url: str) -> str:
-    if count > 0:
-        return f"[{count}]({artifact_url}?section={section})"
-    return str(count)
+    artifact_url = get_artifact_url(artifact, base_artifact, metrics)
+    return format_name_cell(app_display, app_id, artifact_url)
