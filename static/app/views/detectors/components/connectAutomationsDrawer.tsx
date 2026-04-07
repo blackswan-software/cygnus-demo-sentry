@@ -5,10 +5,10 @@ import {DrawerHeader} from 'sentry/components/globalDrawer/components';
 import {DetailSection} from 'sentry/components/workflowEngine/ui/detailSection';
 import {t} from 'sentry/locale';
 import type {Automation} from 'sentry/types/workflowEngine/automations';
-import {getApiQueryData, setApiQueryData, useQueryClient} from 'sentry/utils/queryClient';
+import {useQueryClient} from 'sentry/utils/queryClient';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {AutomationSearch} from 'sentry/views/automations/components/automationListTable/search';
-import {makeAutomationsQueryKey} from 'sentry/views/automations/hooks';
+import {automationsApiOptions} from 'sentry/views/automations/hooks';
 import {ConnectedAutomationsList} from 'sentry/views/detectors/components/connectedAutomationList';
 
 function ConnectedAutomations({
@@ -80,30 +80,26 @@ export function ConnectAutomationsDrawer({
   const [localWorkflowIds, setLocalWorkflowIds] = useState(initialWorkflowIds);
 
   const toggleConnected = ({automation}: {automation: Automation}) => {
-    const oldAutomationsData =
-      getApiQueryData<Automation[]>(
-        queryClient,
-        makeAutomationsQueryKey({
+    const newAutomations =
+      queryClient.setQueryData(
+        automationsApiOptions({
           orgSlug: organization.slug,
           ids: localWorkflowIds,
-        })
-      ) ?? [];
-
-    const newAutomations = (
-      oldAutomationsData.some(a => a.id === automation.id)
-        ? oldAutomationsData.filter(a => a.id !== automation.id)
-        : [...oldAutomationsData, automation]
-    ).sort((a, b) => a.id.localeCompare(b.id));
+        }).queryKey,
+        oldAutomations => {
+          if (!oldAutomations) {
+            return oldAutomations;
+          }
+          return {
+            ...oldAutomations,
+            json: (oldAutomations.json.some(a => a.id === automation.id)
+              ? oldAutomations.json.filter(a => a.id !== automation.id)
+              : [...oldAutomations.json, automation]
+            ).sort((a, b) => a.id.localeCompare(b.id)),
+          };
+        }
+      )?.json ?? [];
     const newWorkflowIds = newAutomations.map(a => a.id);
-
-    setApiQueryData<Automation[]>(
-      queryClient,
-      makeAutomationsQueryKey({
-        orgSlug: organization.slug,
-        ids: newWorkflowIds,
-      }),
-      newAutomations
-    );
 
     setLocalWorkflowIds(newWorkflowIds);
     setWorkflowIds(newWorkflowIds);
