@@ -82,8 +82,7 @@ export function ConnectAutomationsDrawer({
   const toggleConnected = ({automation}: {automation: Automation}) => {
     const newAutomations =
       queryClient.setQueryData(
-        automationsApiOptions({
-          orgSlug: organization.slug,
+        automationsApiOptions(organization, {
           ids: localWorkflowIds,
         }).queryKey,
         oldAutomations => {
