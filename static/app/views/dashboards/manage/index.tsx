@@ -43,6 +43,8 @@ import {useLocalStorageState} from 'sentry/utils/useLocalStorageState';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {DashboardCreateLimitWrapper} from 'sentry/views/dashboards/createLimitWrapper';
 import {getDashboardTemplates} from 'sentry/views/dashboards/data';
 import {useOwnedDashboards} from 'sentry/views/dashboards/hooks/useOwnedDashboards';
@@ -162,6 +164,7 @@ function ManageDashboards() {
   const navigate = useNavigate();
   const location = useLocation();
   const api = useApi();
+  const hasPageFrameFeature = useHasPageFrameFeature();
   const dashboardGridRef = useRef<HTMLDivElement>(null);
   const hasPrebuiltDashboards = organization.features.includes(
     'dashboards-prebuilt-insights-dashboards'
@@ -645,7 +648,13 @@ function ManageDashboards() {
                         </TemplateSwitch>
                       )}
 
-                      <FeedbackButton />
+                      {hasPageFrameFeature ? (
+                        <TopBar.Slot name="feedback">
+                          <FeedbackButton>{null}</FeedbackButton>
+                        </TopBar.Slot>
+                      ) : (
+                        <FeedbackButton />
+                      )}
                       <Feature features={['dashboards-ai-generate']}>
                         {({hasFeature: hasAiGenerate}) =>
                           hasAiGenerate && areAiFeaturesAllowed ? (

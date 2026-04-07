@@ -32,6 +32,8 @@ import {
   useQueryParamsTitle,
 } from 'sentry/views/explore/queryParams/context';
 import {TraceItemDataset} from 'sentry/views/explore/types';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {useOnboardingProject} from 'sentry/views/insights/common/queries/useOnboardingProject';
 
 export default function LogsContent() {
@@ -99,6 +101,7 @@ function LogsHeader() {
   const organization = useOrganization();
   const {data: savedQuery} = useGetSavedQuery(pageId);
   const onboardingProject = useOnboardingProject({property: 'hasLogs'});
+  const hasPageFrameFeature = useHasPageFrameFeature();
 
   const hasSavedQueryTitle =
     defined(pageId) && defined(savedQuery) && savedQuery.name.length > 0;
@@ -120,15 +123,29 @@ function LogsHeader() {
       </Layout.HeaderContent>
       <Layout.HeaderActions>
         <Grid flow="column" align="center" gap="md">
-          <FeedbackButton
-            feedbackOptions={{
-              messagePlaceholder: t('How can we make logs work better for you?'),
-              tags: {
-                ['feedback.source']: 'logs-listing',
-                ['feedback.owner']: 'performance',
-              },
-            }}
-          />
+          {hasPageFrameFeature ? (
+            <TopBar.Slot name="feedback">
+              <FeedbackButton
+                feedbackOptions={{
+                  messagePlaceholder: t('How can we make logs work better for you?'),
+                  tags: {
+                    ['feedback.source']: 'logs-listing',
+                    ['feedback.owner']: 'performance',
+                  },
+                }}
+              >{null}</FeedbackButton>
+            </TopBar.Slot>
+          ) : (
+            <FeedbackButton
+              feedbackOptions={{
+                messagePlaceholder: t('How can we make logs work better for you?'),
+                tags: {
+                  ['feedback.source']: 'logs-listing',
+                  ['feedback.owner']: 'performance',
+                },
+              }}
+            />
+          )}
           {defined(onboardingProject) && <SetupLogsButton />}
         </Grid>
       </Layout.HeaderActions>

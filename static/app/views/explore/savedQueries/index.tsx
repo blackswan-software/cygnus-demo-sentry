@@ -11,6 +11,8 @@ import {IconAdd} from 'sentry/icons/iconAdd';
 import {t} from 'sentry/locale';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {isLogsEnabled} from 'sentry/views/explore/logs/isLogsEnabled';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {getLogsUrl} from 'sentry/views/explore/logs/utils';
 import {SavedQueriesLandingContent} from 'sentry/views/explore/savedQueries/savedQueriesLandingContent';
 import {getExploreUrl} from 'sentry/views/explore/utils';
@@ -19,6 +21,7 @@ export default function SavedQueriesView() {
   const organization = useOrganization();
   const hasLogsFeature = isLogsEnabled(organization);
   const navigate = useNavigate();
+  const hasPageFrameFeature = useHasPageFrameFeature();
 
   const items = [
     {
@@ -48,7 +51,13 @@ export default function SavedQueriesView() {
           </Layout.HeaderContent>
           <Layout.HeaderActions>
             <Grid flow="column" align="center" gap="md">
-              <FeedbackButton />
+              {hasPageFrameFeature ? (
+                <TopBar.Slot name="feedback">
+                  <FeedbackButton>{null}</FeedbackButton>
+                </TopBar.Slot>
+              ) : (
+                <FeedbackButton />
+              )}
               {hasLogsFeature ? (
                 <DropdownMenu
                   items={items}

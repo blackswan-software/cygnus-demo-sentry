@@ -17,6 +17,8 @@ import {MultiQueryModeContent} from 'sentry/views/explore/multiQueryMode/content
 import {SavedQueryEditMenu} from 'sentry/views/explore/savedQueryEditMenu';
 import {StarSavedQueryButton} from 'sentry/views/explore/starSavedQueryButton';
 import {makeTracesPathname} from 'sentry/views/traces/pathnames';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 export default function MultiQueryMode() {
   const location = useLocation();
@@ -25,6 +27,7 @@ export default function MultiQueryMode() {
 
   const id = getIdFromLocation(location);
   const {data: savedQuery} = useGetSavedQuery(id);
+  const hasPageFrameFeature = useHasPageFrameFeature();
 
   return (
     <Feature
@@ -58,7 +61,13 @@ export default function MultiQueryMode() {
             <Grid flow="column" align="center" gap="md">
               <StarSavedQueryButton />
               {defined(id) && savedQuery?.isPrebuilt === false && <SavedQueryEditMenu />}
-              <FeedbackButton />
+              {hasPageFrameFeature ? (
+                <TopBar.Slot name="feedback">
+                  <FeedbackButton>{null}</FeedbackButton>
+                </TopBar.Slot>
+              ) : (
+                <FeedbackButton />
+              )}
             </Grid>
           </Layout.HeaderActions>
         </Layout.Header>

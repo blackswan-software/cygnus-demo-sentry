@@ -46,6 +46,8 @@ import {MobileBuilds} from 'sentry/views/releases/list/mobileBuilds';
 import {ReleaseHealthCTA} from 'sentry/views/releases/list/releaseHealthCTA';
 import {ReleaseListInner} from 'sentry/views/releases/list/releaseListInner';
 import {isMobileRelease} from 'sentry/views/releases/utils';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 import {ReleasesDisplayOption, ReleasesDisplayOptions} from './releasesDisplayOptions';
 import {ReleasesSortOptions} from './releasesSortOptions';
@@ -109,6 +111,7 @@ function makeReleaseListQueryKey({
 export default function ReleasesList() {
   const api = useApi({persistInFlight: true});
   const organization = useOrganization();
+  const hasPageFrameFeature = useHasPageFrameFeature();
   const {projects} = useProjects();
   const {selection} = usePageFilters();
   const location = useLocation();
@@ -425,16 +428,31 @@ export default function ReleasesList() {
                   </Layout.Title>
                 </Layout.HeaderContent>
                 <Layout.HeaderActions>
-                  <FeedbackButton
-                    feedbackOptions={{
-                      messagePlaceholder: t(
-                        'How can we improve the Releases experience?'
-                      ),
-                      tags: {
-                        ['feedback.source']: 'releases-list-header',
-                      },
-                    }}
-                  />
+                  {hasPageFrameFeature ? (
+                    <TopBar.Slot name="feedback">
+                      <FeedbackButton
+                        feedbackOptions={{
+                          messagePlaceholder: t(
+                            'How can we improve the Releases experience?'
+                          ),
+                          tags: {
+                            ['feedback.source']: 'releases-list-header',
+                          },
+                        }}
+                      >{null}</FeedbackButton>
+                    </TopBar.Slot>
+                  ) : (
+                    <FeedbackButton
+                      feedbackOptions={{
+                        messagePlaceholder: t(
+                          'How can we improve the Releases experience?'
+                        ),
+                        tags: {
+                          ['feedback.source']: 'releases-list-header',
+                        },
+                      }}
+                    />
+                  )}
                 </Layout.HeaderActions>
               </Flex>
 

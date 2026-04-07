@@ -41,6 +41,8 @@ import {replaysRouteWithQuery} from 'sentry/views/performance/transactionSummary
 import {tagsRouteWithQuery} from 'sentry/views/performance/transactionSummary/transactionTags/utils';
 import {transactionSummaryRouteWithQuery} from 'sentry/views/performance/transactionSummary/utils';
 import {getSelectedProjectPlatforms} from 'sentry/views/performance/utils';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 import {Tab} from './tabs';
 import TeamKeyTransactionButton from './teamKeyTransactionButton';
@@ -72,6 +74,7 @@ export function TransactionHeader({
 }: Props) {
   const {isInDomainView, view} = useDomainViewFilters();
   const navigate = useNavigate();
+  const hasPageFrameFeature = useHasPageFrameFeature();
 
   const getNewRoute = useCallback(
     (newTab: Tab) => {
@@ -314,7 +317,13 @@ export function TransactionHeader({
               onChangeThreshold={onChangeThreshold}
             />
           </GuideAnchor>
-          <FeedbackButton />
+          {hasPageFrameFeature ? (
+            <TopBar.Slot name="feedback">
+              <FeedbackButton>{null}</FeedbackButton>
+            </TopBar.Slot>
+          ) : (
+            <FeedbackButton />
+          )}
         </Grid>
       </Layout.HeaderActions>
       <TabList

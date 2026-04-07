@@ -16,6 +16,8 @@ import {FeedbackButton} from 'sentry/components/feedbackButton/feedbackButton';
 import {t, tct} from 'sentry/locale';
 import {defined} from 'sentry/utils';
 import {useOrganization} from 'sentry/utils/useOrganization';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 import {GIGABYTE} from 'getsentry/constants';
 import type {
@@ -505,6 +507,7 @@ export function CheckoutSuccess({
   previewData,
 }: CheckoutSuccessProps) {
   const organization = useOrganization();
+  const hasPageFrameFeature = useHasPageFrameFeature();
   const viewSubscriptionQueryParams =
     nextQueryParams.length > 0 ? `?${nextQueryParams.join('&')}` : '';
 
@@ -607,19 +610,37 @@ export function CheckoutSuccess({
             >
               {t('Edit plan')}
             </LinkButton>
-            <FeedbackButton
-              feedbackOptions={{
-                formTitle: t('Give feedback'),
-                messagePlaceholder: t(
-                  'How can we make the checkout experience better for you?'
-                ),
-                tags: {
-                  ['feedback.source']: 'checkout_success',
-                  ['feedback.owner']: 'billing',
-                },
-              }}
-              size="md"
-            />
+            {hasPageFrameFeature ? (
+              <TopBar.Slot name="feedback">
+                <FeedbackButton
+                  feedbackOptions={{
+                    formTitle: t('Give feedback'),
+                    messagePlaceholder: t(
+                      'How can we make the checkout experience better for you?'
+                    ),
+                    tags: {
+                      ['feedback.source']: 'checkout_success',
+                      ['feedback.owner']: 'billing',
+                    },
+                  }}
+                  size="md"
+                >{null}</FeedbackButton>
+              </TopBar.Slot>
+            ) : (
+              <FeedbackButton
+                feedbackOptions={{
+                  formTitle: t('Give feedback'),
+                  messagePlaceholder: t(
+                    'How can we make the checkout experience better for you?'
+                  ),
+                  tags: {
+                    ['feedback.source']: 'checkout_success',
+                    ['feedback.owner']: 'billing',
+                  },
+                }}
+                size="md"
+              />
+            )}
           </Flex>
         </Flex>
       </Flex>

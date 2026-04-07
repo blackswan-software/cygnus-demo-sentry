@@ -2,6 +2,8 @@ import {FeatureBadge} from '@sentry/scraps/badge';
 
 import {FeedbackButton} from 'sentry/components/feedbackButton/feedbackButton';
 import * as Layout from 'sentry/components/layouts/thirds';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {PageFiltersContainer} from 'sentry/components/pageFilters/container';
 import {SentryDocumentTitle} from 'sentry/components/sentryDocumentTitle';
 import {t} from 'sentry/locale';
@@ -37,6 +39,7 @@ export default function ErrorsContent() {
 }
 
 function ErrorsHeader() {
+  const hasPageFrameFeature = useHasPageFrameFeature();
   return (
     <Layout.Header unified>
       <Layout.HeaderContent unified>
@@ -45,7 +48,13 @@ function ErrorsHeader() {
         </Layout.Title>
       </Layout.HeaderContent>
       <Layout.HeaderActions>
-        <FeedbackButton />
+        {hasPageFrameFeature ? (
+          <TopBar.Slot name="feedback">
+            <FeedbackButton>{null}</FeedbackButton>
+          </TopBar.Slot>
+        ) : (
+          <FeedbackButton />
+        )}
       </Layout.HeaderActions>
     </Layout.Header>
   );

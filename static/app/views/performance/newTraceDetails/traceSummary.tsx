@@ -17,6 +17,8 @@ import type {ApiQueryKey} from 'sentry/utils/queryClient';
 import {useApiQuery, useQueryClient} from 'sentry/utils/queryClient';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {getTraceDetailsUrl} from 'sentry/views/performance/traceDetails/utils';
 
 interface SpanInsight {
@@ -76,6 +78,7 @@ function useTraceSummary(traceSlug: string) {
 export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
   const traceContent = useTraceSummary(traceSlug);
   const {feedback} = useFeedbackSDKIntegration();
+  const hasPageFrameFeature = useHasPageFrameFeature();
   const organization = useOrganization();
   const location = useLocation();
 
@@ -87,16 +90,35 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
     return (
       <Flex align="center" padding="xl" gap="md">
         <div>{t('Error loading Trace Summary')}</div>
-        <FeedbackButton
-          size="xs"
-          feedbackOptions={{
-            messagePlaceholder: t('How can we make the trace summary better for you?'),
-            tags: {
-              ['feedback.source']: 'trace-summary',
-              ['feedback.owner']: 'ml-ai',
-            },
-          }}
-        />
+        {hasPageFrameFeature ? (
+          <TopBar.Slot name="feedback">
+            <FeedbackButton
+              size="xs"
+              feedbackOptions={{
+                messagePlaceholder: t(
+                  'How can we make the trace summary better for you?'
+                ),
+                tags: {
+                  ['feedback.source']: 'trace-summary',
+                  ['feedback.owner']: 'ml-ai',
+                },
+              }}
+            >
+              {null}
+            </FeedbackButton>
+          </TopBar.Slot>
+        ) : (
+          <FeedbackButton
+            size="xs"
+            feedbackOptions={{
+              messagePlaceholder: t('How can we make the trace summary better for you?'),
+              tags: {
+                ['feedback.source']: 'trace-summary',
+                ['feedback.owner']: 'ml-ai',
+              },
+            }}
+          />
+        )}
       </Flex>
     );
   }
@@ -161,16 +183,37 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
 
       {feedback && (
         <Flex justify="end" marginTop="xl">
-          <FeedbackButton
-            size="xs"
-            feedbackOptions={{
-              messagePlaceholder: t('How can we make the trace summary better for you?'),
-              tags: {
-                ['feedback.source']: 'trace-summary',
-                ['feedback.owner']: 'ml-ai',
-              },
-            }}
-          />
+          {hasPageFrameFeature ? (
+            <TopBar.Slot name="feedback">
+              <FeedbackButton
+                size="xs"
+                feedbackOptions={{
+                  messagePlaceholder: t(
+                    'How can we make the trace summary better for you?'
+                  ),
+                  tags: {
+                    ['feedback.source']: 'trace-summary',
+                    ['feedback.owner']: 'ml-ai',
+                  },
+                }}
+              >
+                {null}
+              </FeedbackButton>
+            </TopBar.Slot>
+          ) : (
+            <FeedbackButton
+              size="xs"
+              feedbackOptions={{
+                messagePlaceholder: t(
+                  'How can we make the trace summary better for you?'
+                ),
+                tags: {
+                  ['feedback.source']: 'trace-summary',
+                  ['feedback.owner']: 'ml-ai',
+                },
+              }}
+            />
+          )}
         </Flex>
       )}
     </SummaryContainer>

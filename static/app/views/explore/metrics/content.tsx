@@ -25,6 +25,8 @@ import {
 } from 'sentry/views/explore/queryParams/savedQuery';
 import {TraceItemDataset} from 'sentry/views/explore/types';
 import {useOnboardingProject} from 'sentry/views/insights/common/queries/useOnboardingProject';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 export default function MetricsContent() {
   const organization = useOrganization();
@@ -75,6 +77,7 @@ function MetricsHeader() {
   const title = getTitleFromLocation(location, TITLE_KEY);
   const organization = useOrganization();
   const {data: savedQuery} = useGetSavedQuery(pageId);
+  const hasPageFrameFeature = useHasPageFrameFeature();
 
   const hasSavedQueryTitle =
     defined(pageId) && defined(savedQuery) && savedQuery.name.length > 0;
@@ -97,15 +100,29 @@ function MetricsHeader() {
         </Layout.Title>
       </Layout.HeaderContent>
       <Layout.HeaderActions>
-        <FeedbackButton
-          feedbackOptions={{
-            messagePlaceholder: t('How can we make metrics work better for you?'),
-            tags: {
-              ['feedback.source']: 'metrics-listing',
-              ['feedback.owner']: 'performance',
-            },
-          }}
-        />
+        {hasPageFrameFeature ? (
+          <TopBar.Slot name="feedback">
+            <FeedbackButton
+              feedbackOptions={{
+                messagePlaceholder: t('How can we make metrics work better for you?'),
+                tags: {
+                  ['feedback.source']: 'metrics-listing',
+                  ['feedback.owner']: 'performance',
+                },
+              }}
+            >{null}</FeedbackButton>
+          </TopBar.Slot>
+        ) : (
+          <FeedbackButton
+            feedbackOptions={{
+              messagePlaceholder: t('How can we make metrics work better for you?'),
+              tags: {
+                ['feedback.source']: 'metrics-listing',
+                ['feedback.owner']: 'performance',
+              },
+            }}
+          />
+        )}
       </Layout.HeaderActions>
     </Layout.Header>
   );

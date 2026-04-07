@@ -25,6 +25,8 @@ import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {getIssueViewQueryParams} from 'sentry/views/issueList/issueViews/getIssueViewQueryParams';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {IssueViewsTable} from 'sentry/views/issueList/issueViews/issueViewsList/issueViewsTable';
 import {
   DEFAULT_ENVIRONMENTS,
@@ -325,6 +327,7 @@ export default function IssueViewsList() {
   const organization = useOrganization();
   const navigate = useNavigate();
   const location = useLocation();
+  const hasPageFrameFeature = useHasPageFrameFeature();
   const query = typeof location.query.query === 'string' ? location.query.query : '';
   const {mutate: createGroupSearchView, isPending: isCreatingView} =
     useCreateGroupSearchView();
@@ -365,17 +368,33 @@ export default function IssueViewsList() {
           </Layout.HeaderContent>
           <Layout.HeaderActions>
             <Grid flow="column" align="center" gap="md">
-              <FeedbackButton
-                size="sm"
-                feedbackOptions={{
-                  formTitle: t('Give Feedback'),
-                  messagePlaceholder: t('How can we make issue views better for you?'),
-                  tags: {
-                    ['feedback.source']: 'custom_views',
-                    ['feedback.owner']: 'issues',
-                  },
-                }}
-              />
+              {hasPageFrameFeature ? (
+                <TopBar.Slot name="feedback">
+                  <FeedbackButton
+                    size="sm"
+                    feedbackOptions={{
+                      formTitle: t('Give Feedback'),
+                      messagePlaceholder: t('How can we make issue views better for you?'),
+                      tags: {
+                        ['feedback.source']: 'custom_views',
+                        ['feedback.owner']: 'issues',
+                      },
+                    }}
+                  >{null}</FeedbackButton>
+                </TopBar.Slot>
+              ) : (
+                <FeedbackButton
+                  size="sm"
+                  feedbackOptions={{
+                    formTitle: t('Give Feedback'),
+                    messagePlaceholder: t('How can we make issue views better for you?'),
+                    tags: {
+                      ['feedback.source']: 'custom_views',
+                      ['feedback.owner']: 'issues',
+                    },
+                  }}
+                />
+              )}
               <Feature
                 features="organizations:issue-views"
                 hookName="feature-disabled:issue-views"

@@ -14,6 +14,8 @@ import {
 } from 'sentry/views/explore/logs/types';
 import {useModuleURLBuilder} from 'sentry/views/insights/common/utils/useModuleURL';
 import {useDomainViewFilters} from 'sentry/views/insights/pages/useFilters';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import type {TraceMetaQueryResults} from 'sentry/views/performance/newTraceDetails/traceApi/useTraceMeta';
 import type {TraceRootEventQueryResults} from 'sentry/views/performance/newTraceDetails/traceApi/useTraceRootEvent';
 import {Highlights} from 'sentry/views/performance/newTraceDetails/traceHeader/highlights';
@@ -44,6 +46,7 @@ export function TraceMetaDataHeader(props: TraceMetadataHeaderProps) {
   const {view} = useDomainViewFilters();
   const moduleURLBuilder = useModuleURLBuilder(true);
   const {projects} = useProjects();
+  const hasPageFrameFeature = useHasPageFrameFeature();
   const {hasLogs, hasMetrics} = useTraceContextSections({
     tree: props.tree,
     logs: props.logs,
@@ -89,16 +92,35 @@ export function TraceMetaDataHeader(props: TraceMetadataHeaderProps) {
             })}
           />
           <Grid flow="column" align="center" gap="md">
-            <FeedbackButton
-              size="xs"
-              feedbackOptions={{
-                messagePlaceholder: t('How can we make the trace view better for you?'),
-                tags: {
-                  ['feedback.source']: 'trace-view',
-                  ['feedback.owner']: 'performance',
-                },
-              }}
-            />
+            {hasPageFrameFeature ? (
+              <TopBar.Slot name="feedback">
+                <FeedbackButton
+                  size="xs"
+                  feedbackOptions={{
+                    messagePlaceholder: t(
+                      'How can we make the trace view better for you?'
+                    ),
+                    tags: {
+                      ['feedback.source']: 'trace-view',
+                      ['feedback.owner']: 'performance',
+                    },
+                  }}
+                >
+                  {null}
+                </FeedbackButton>
+              </TopBar.Slot>
+            ) : (
+              <FeedbackButton
+                size="xs"
+                feedbackOptions={{
+                  messagePlaceholder: t('How can we make the trace view better for you?'),
+                  tags: {
+                    ['feedback.source']: 'trace-view',
+                    ['feedback.owner']: 'performance',
+                  },
+                }}
+              />
+            )}
           </Grid>
         </TraceHeaderComponents.HeaderRow>
         <TraceHeaderComponents.HeaderRow>
