@@ -1,5 +1,6 @@
 import logging
-from collections.abc import Iterable
+from collections import defaultdict
+from collections.abc import Iterable, Mapping
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any, NotRequired, TypedDict
@@ -13,7 +14,7 @@ from rest_framework import serializers
 from urllib3 import BaseHTTPResponse, HTTPConnectionPool
 from urllib3.util.retry import Retry
 
-from sentry import features, options, ratelimits
+from sentry import features, options, projectoptions, ratelimits
 from sentry.constants import (
     AUTO_OPEN_PRS_DEFAULT,
     SEER_AUTOMATED_RUN_STOPPING_POINT_DEFAULT,
@@ -756,8 +757,69 @@ def bulk_read_preferences_from_sentry_db(
     if not project_ids:
         return {}
 
-    projects = Project.objects.filter(id__in=project_ids, organization_id=organization_id)
-    return {project.id: read_preference_from_sentry_db(project) for project in projects}
+    projects = list(Project.objects.filter(id__in=project_ids, organization_id=organization_id))
+
+    repo_definitions_by_project: defaultdict[int, list[SeerRepoDefinition]] = defaultdict(list)
+    for project_repo in (
+        SeerProjectRepository.objects.filter(project_id__in=project_ids)
+        .select_related("repository")
+        .prefetch_related("branch_overrides")
+    ):
+        repo_definitions_by_project[project_repo.project_id].append(
+            build_repo_definition_from_project_repo(project_repo)
+        )
+
+    project_options: dict[str, Mapping[int, Any]] = {
+        key: ProjectOption.objects.get_value_bulk_id(project_ids, key)
+        for key in SEER_PROJECT_PREFERENCE_OPTION_KEYS
+    }
+
+    result: dict[int, SeerProjectPreference | None] = {}
+    for project in projects:
+        has_configured_options = any(
+            project_options[key][project.id] is not None
+            for key in SEER_PROJECT_PREFERENCE_OPTION_KEYS
+        )
+        if project.id not in repo_definitions_by_project and not has_configured_options:
+            result[project.id] = None
+            continue
+
+        # get_value_bulk_id returns None for missing options, unlike project.get_option
+        # which automatically falls back to the registered well-known key default.
+        def get_project_option(key: str) -> Any:
+            value = project_options[key][project.id]
+            if value is None:
+                return projectoptions.lookup_well_known_key(key).default
+            return value
+
+        handoff_point = get_project_option("sentry:seer_automation_handoff_point")
+        handoff_target = get_project_option("sentry:seer_automation_handoff_target")
+        handoff_integration_id = get_project_option("sentry:seer_automation_handoff_integration_id")
+
+        automation_handoff = None
+        if (
+            handoff_point is not None
+            and handoff_target is not None
+            and handoff_integration_id is not None
+        ):
+            automation_handoff = SeerAutomationHandoffConfiguration(
+                handoff_point=handoff_point,
+                target=handoff_target,
+                integration_id=handoff_integration_id,
+                auto_create_pr=get_project_option("sentry:seer_automation_handoff_auto_create_pr"),
+            )
+
+        result[project.id] = SeerProjectPreference(
+            organization_id=project.organization_id,
+            project_id=project.id,
+            repositories=repo_definitions_by_project.get(project.id, []),
+            automated_run_stopping_point=get_project_option(
+                "sentry:seer_automated_run_stopping_point"
+            ),
+            automation_handoff=automation_handoff,
+        )
+
+    return result
 
 
 def set_project_seer_preference(preference: SeerProjectPreference) -> None:
