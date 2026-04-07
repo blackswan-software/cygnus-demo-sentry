@@ -13,8 +13,6 @@ import {LoadingError} from 'sentry/components/loadingError';
 import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {IconOpen} from 'sentry/icons';
 import {t, tct} from 'sentry/locale';
-import {SectionKey} from 'sentry/views/issueDetails/streamline/context';
-import {InterimSection} from 'sentry/views/issueDetails/streamline/interimSection';
 
 function getDiagnosisMessage(data: SourceMapDebugBlueThunderResponse): ReactNode | null {
   const release = data.release ? (
@@ -179,8 +177,11 @@ export function DiagnosisSection({sourceMapQuery}: DiagnosisSectionProps) {
   }
 
   return (
-    <InterimSection type={SectionKey.CONFIGURATION_DIAGNOSIS} title={t('Diagnosis')}>
+    <Stack gap="md" padding="lg">
+      <Text size="lg" bold>
+        {t('Diagnosis')}
+      </Text>
       {renderContent()}
-    </InterimSection>
+    </Stack>
   );
 }

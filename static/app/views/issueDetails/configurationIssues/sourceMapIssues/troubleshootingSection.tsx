@@ -1,58 +1,16 @@
 import styled from '@emotion/styled';
 
 import {LinkButton} from '@sentry/scraps/button';
+import {InlineCode} from '@sentry/scraps/code';
 import {Disclosure} from '@sentry/scraps/disclosure';
 import {Flex, Stack} from '@sentry/scraps/layout';
 import {Text} from '@sentry/scraps/text';
 
 import {ExternalLink} from 'sentry/components/links/externalLink';
-import {IconSettings} from 'sentry/icons';
-import {t} from 'sentry/locale';
+import {IconDocs, IconSettings} from 'sentry/icons';
+import {t, tct} from 'sentry/locale';
 import type {Project} from 'sentry/types/project';
 import {useOrganization} from 'sentry/utils/useOrganization';
-import {SectionKey} from 'sentry/views/issueDetails/streamline/context';
-import {InterimSection} from 'sentry/views/issueDetails/streamline/interimSection';
-
-interface TroubleshootingItem {
-  description: string;
-  docUrl: string;
-  title: string;
-}
-
-const TROUBLESHOOTING_ITEMS: TroubleshootingItem[] = [
-  {
-    title: t('Verify Artifacts Are Uploaded'),
-    description: t(
-      'For Sentry to de-minify your stack traces you must provide both the minified files (for example, app.min.js) and the corresponding source maps.'
-    ),
-    docUrl:
-      'https://docs.sentry.io/platforms/javascript/sourcemaps/troubleshooting_js/#verify-artifacts-are-uploaded',
-  },
-  {
-    title: t("Verify That You're Building Source Maps"),
-    description: t(
-      'Ensure your bundler (Webpack, Rollup, Vite, etc.) is configured to emit source maps. For production builds, check that the sourceMaps option is enabled.'
-    ),
-    docUrl:
-      'https://docs.sentry.io/platforms/javascript/sourcemaps/troubleshooting_js/#verify-that-youre-building-source-maps',
-  },
-  {
-    title: t("Verify That You're Running a Production Build"),
-    description: t(
-      'Source maps are typically only generated for production builds. Ensure you are testing against a production or production-like environment, not a dev server output.'
-    ),
-    docUrl:
-      'https://docs.sentry.io/platforms/javascript/sourcemaps/troubleshooting_js/#verify-that-youre-running-a-production-build',
-  },
-  {
-    title: t('Verify Your Source Files Contain Debug ID Injection Snippets'),
-    description: t(
-      'If you are using the Sentry bundler plugin, each source file should contain a debug ID snippet injected at build time. Verify the plugin is running and the snippet appears in your built output.'
-    ),
-    docUrl:
-      'https://docs.sentry.io/platforms/javascript/sourcemaps/troubleshooting_js/#verify-your-source-files-contain-debug-id-injection-snippets',
-  },
-];
 
 interface TroubleshootingSectionProps {
   project: Project;
@@ -63,45 +21,122 @@ export function TroubleshootingSection({project}: TroubleshootingSectionProps) {
   const settingsUrl = `/settings/${organization.slug}/projects/${project.slug}/source-maps/`;
 
   return (
-    <InterimSection
-      type={SectionKey.CONFIGURATION_TROUBLESHOOTING}
-      title={t('Troubleshooting suggestions')}
-    >
+    <Stack gap="md" padding="lg">
+      <Text size="lg" bold>
+        {t('Troubleshooting suggestions')}
+      </Text>
       <Stack gap="sm">
-        {TROUBLESHOOTING_ITEMS.map((item, index) => (
-          <Disclosure key={item.title} size="md" defaultExpanded={index === 0}>
-            <Disclosure.Title>{item.title}</Disclosure.Title>
-            <Disclosure.Content>
-              <Stack gap="sm">
-                <Text>{item.description}</Text>
-                {index === 0 ? (
-                  <div>
-                    <LinkButton
-                      size="sm"
-                      priority="primary"
-                      icon={<IconSettings />}
-                      to={settingsUrl}
-                    >
-                      {t('Settings')}
-                    </LinkButton>
-                  </div>
-                ) : (
-                  <ExternalLink href={item.docUrl}>{t('Read the docs')}</ExternalLink>
+        <Disclosure size="md" defaultExpanded>
+          <Disclosure.Title>{t('Verify Artifacts Are Uploaded')}</Disclosure.Title>
+          <Disclosure.Content>
+            <Stack gap="lg">
+              <Text>
+                {t(
+                  'For Sentry to de-minify your stack traces you must provide both the minified files (for example, app.min.js) and the corresponding source maps.'
                 )}
-              </Stack>
-            </Disclosure.Content>
-          </Disclosure>
-        ))}
+              </Text>
+              <div>
+                <LinkButton
+                  size="sm"
+                  priority="primary"
+                  icon={<IconSettings />}
+                  to={settingsUrl}
+                >
+                  {t('Settings')}
+                </LinkButton>
+              </div>
+            </Stack>
+          </Disclosure.Content>
+        </Disclosure>
+        <Disclosure size="md">
+          <Disclosure.Title>
+            {t("Verify That You're Building Source Maps")}
+          </Disclosure.Title>
+          <Disclosure.Content>
+            <Text>
+              {tct(
+                'Bundlers and tools (like [tsc]) that generate code, often require you to manually set specific options to generate source maps.',
+                {tsc: <InlineCode>tsc</InlineCode>}
+              )}
+              <br />
+              <br />
+              {tct(
+                'If you followed one of our tool-specific guides, verify you configured your tool to emit source maps and that the source maps contain your original source code in the [sourcesContent] field.',
+                {sourcesContent: <InlineCode>sourcesContent</InlineCode>}
+              )}
+            </Text>
+          </Disclosure.Content>
+        </Disclosure>
+        <Disclosure size="md">
+          <Disclosure.Title>
+            {t("Verify That You're Running a Production Build")}
+          </Disclosure.Title>
+          <Disclosure.Content>
+            <Text>
+              {t(
+                'When running JavaScript build tools (like webpack, Vite, ...) in development-mode/watch-mode, the generated code is sometimes incompatible with our source map uploading processes.'
+              )}
+              <br />
+              <br />
+              {t(
+                'We recommend, especially when testing locally, to run a production build to verify your source maps uploading setup.'
+              )}
+            </Text>
+          </Disclosure.Content>
+        </Disclosure>
+        <Disclosure size="md">
+          <Disclosure.Title>
+            {t('Verify Your Source Files Contain Debug ID Injection Snippets')}
+          </Disclosure.Title>
+          <Disclosure.Content>
+            <Text>
+              {tct(
+                'In the JavaScript files you uploaded to Sentry, search for code that roughly looks like [snippet]. This code snippet might look different depending on how you process your code.',
+                {
+                  snippet: (
+                    <InlineCode>{'e._sentryDebugIds=e._sentryDebugIds||{}'}</InlineCode>
+                  ),
+                }
+              )}
+              <br />
+              <br />
+              {t(
+                'If this code exists in a bundle, that bundle will be able to be matched to a source file. Every bundle you deploy in your app needs to have this snippet in order to be correctly source mapped.'
+              )}
+              <br />
+              <br />
+              {tct(
+                "If your source code does not contain this snippet and you're using a Sentry plugin for your bundler, please check that you are using the latest version and please verify that the plugin is correctly processing your files. Set the [debug] option to [true] to print useful debugging information.",
+                {
+                  debug: <InlineCode>debug</InlineCode>,
+                  true: <InlineCode>true</InlineCode>,
+                }
+              )}
+              <br />
+              <br />
+              {tct(
+                "If you're using the Sentry CLI, verify that you're running the [inject] command before you upload to Sentry and before you deploy your files.",
+                {inject: <InlineCode>inject</InlineCode>}
+              )}
+            </Text>
+          </Disclosure.Content>
+        </Disclosure>
         <FooterRow>
+          <Text variant="muted">{t('Not what you\u2019re looking for?')}</Text>
           <ExternalLink href="https://docs.sentry.io/platforms/javascript/sourcemaps/troubleshooting_js/">
-            {t('Read all documentation')}
+            <Flex align="center" gap="xs">
+              <IconDocs size="xs" />
+              {t('Read all documentation')}
+            </Flex>
           </ExternalLink>
         </FooterRow>
       </Stack>
-    </InterimSection>
+    </Stack>
   );
 }
 
 const FooterRow = styled(Flex)`
   padding-top: ${p => p.theme.space.sm};
+  align-items: center;
+  gap: ${p => p.theme.space.sm};
 `;

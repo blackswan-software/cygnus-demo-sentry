@@ -1,9 +1,8 @@
-import {Stack} from '@sentry/scraps/layout';
-
 import {useSourceMapDebugQuery} from 'sentry/components/events/interfaces/crashContent/exception/useSourceMapDebuggerData';
 import type {Event} from 'sentry/types/event';
 import type {Group} from 'sentry/types/group';
 import type {Project} from 'sentry/types/project';
+import {SectionDivider} from 'sentry/views/issueDetails/streamline/foldSection';
 
 import {DiagnosisSection} from './diagnosisSection';
 import {ProblemSection} from './problemSection';
@@ -22,10 +21,12 @@ export function SourceMapIssueDetails({event, project}: SourceMapIssueDetailsPro
   );
 
   return (
-    <Stack gap="lg">
+    <div>
       <ProblemSection />
+      <SectionDivider orientation="horizontal" />
       <DiagnosisSection sourceMapQuery={sourceMapQuery} />
+      <SectionDivider orientation="horizontal" />
       <TroubleshootingSection project={project} />
-    </Stack>
+    </div>
   );
 }
