@@ -2,6 +2,7 @@ import {useCallback, useMemo} from 'react';
 import styled from '@emotion/styled';
 
 import {LinkButton} from '@sentry/scraps/button';
+import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {FeedbackButton} from 'sentry/components/feedbackButton/feedbackButton';
 import * as Layout from 'sentry/components/layouts/thirds';
@@ -11,6 +12,7 @@ import type {Event} from 'sentry/types/event';
 import {trackAnalytics} from 'sentry/utils/analytics';
 import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import {isSchema, isSentrySampledProfile} from 'sentry/utils/profiling/guards/profile';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {useProfiles} from 'sentry/views/profiling/profilesProvider';
@@ -41,6 +43,8 @@ function ProfileHeader({transaction, projectId, eventId}: ProfileHeaderProps) {
     profiles.type === 'resolved' ? getTransactionName(profiles.data) : '';
   const profileId = eventId ?? '';
   const projectSlug = projectId ?? '';
+
+  const isOld = isPartialSpanOrTraceData(transaction?.endTimestamp);
 
   const transactionTarget = transaction?.id
     ? generateLinkToEventInTraceView({
@@ -91,9 +95,19 @@ function ProfileHeader({transaction, projectId, eventId}: ProfileHeaderProps) {
       <StyledHeaderActions>
         <FeedbackButton />
         {transactionTarget && (
-          <LinkButton size="sm" onClick={handleGoToTransaction} to={transactionTarget}>
-            {t('Go to Trace')}
-          </LinkButton>
+          <Tooltip
+            title={t('Trace data is only available for the last 30 days')}
+            disabled={!isOld}
+          >
+            <LinkButton
+              size="sm"
+              onClick={handleGoToTransaction}
+              to={transactionTarget}
+              disabled={isOld}
+            >
+              {t('Go to Trace')}
+            </LinkButton>
+          </Tooltip>
         )}
       </StyledHeaderActions>
     </SmallerLayoutHeader>

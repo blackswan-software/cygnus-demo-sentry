@@ -19,6 +19,7 @@ import type {FlamegraphPreferences} from 'sentry/utils/profiling/flamegraph/flam
 import {useFlamegraphPreferences} from 'sentry/utils/profiling/flamegraph/hooks/useFlamegraphPreferences';
 import type {ProfileGroup} from 'sentry/utils/profiling/profile/importProfile';
 import {makeFormatter} from 'sentry/utils/profiling/units/units';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {useProjects} from 'sentry/utils/useProjects';
@@ -283,11 +284,12 @@ function TransactionEventDetails({
       {
         key: 'transaction',
         label: t('Transaction'),
-        value: transactionTarget ? (
-          <Link to={transactionTarget}>{transaction.title}</Link>
-        ) : (
-          transaction.title
-        ),
+        value:
+          transactionTarget && !isPartialSpanOrTraceData(transaction.endTimestamp) ? (
+            <Link to={transactionTarget}>{transaction.title}</Link>
+          ) : (
+            transaction.title
+          ),
       },
       {
         key: 'timestamp',
@@ -410,7 +412,7 @@ function ProfileEventDetails({
                   organization,
                 })
               : null;
-          if (transactionTarget) {
+          if (transactionTarget && !isPartialSpanOrTraceData(transaction?.endTimestamp)) {
             return (
               <DetailsRow key={key}>
                 <strong>{label}:</strong>

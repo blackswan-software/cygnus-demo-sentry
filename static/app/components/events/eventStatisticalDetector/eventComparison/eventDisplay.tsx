@@ -34,6 +34,7 @@ import {DiscoverDatasets} from 'sentry/utils/discover/types';
 import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import {getShortEventId} from 'sentry/utils/events';
 import {useApiQuery} from 'sentry/utils/queryClient';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 
@@ -208,6 +209,7 @@ function EventDisplay({
 
   const waterfallModel = new WaterfallModel(eventData);
   const traceSlug = eventData.contexts?.trace?.trace_id ?? '';
+  const isOld = isPartialSpanOrTraceData(eventData.endTimestamp);
   const fullEventTarget = generateLinkToEventInTraceView({
     eventId: eventData.id,
     traceSlug,
@@ -245,13 +247,19 @@ function EventDisplay({
                 </OverlayTrigger.Button>
               )}
             />
-            <LinkButton
-              tooltipProps={{title: t('Full Event Details')}}
-              size={BUTTON_SIZE}
-              to={fullEventTarget}
-              aria-label={t('Full Event Details')}
-              icon={<IconOpen />}
-            />
+            <Tooltip
+              title={t('Trace data is only available for the last 30 days')}
+              disabled={!isOld}
+            >
+              <LinkButton
+                tooltipProps={{title: isOld ? undefined : t('Full Event Details')}}
+                size={BUTTON_SIZE}
+                to={fullEventTarget}
+                disabled={isOld}
+                aria-label={t('Full Event Details')}
+                icon={<IconOpen />}
+              />
+            </Tooltip>
           </StyledEventControls>
           <div>
             <NavButtons>
@@ -279,7 +287,7 @@ function EventDisplay({
           </div>
         </Flex>
         <ComparisonContentWrapper>
-          <Link to={fullEventTarget}>
+          {isOld ? (
             <MinimapContainer>
               <MinimapPositioningContainer>
                 <ActualMinimap
@@ -297,7 +305,27 @@ function EventDisplay({
                 />
               </MinimapPositioningContainer>
             </MinimapContainer>
-          </Link>
+          ) : (
+            <Link to={fullEventTarget}>
+              <MinimapContainer>
+                <MinimapPositioningContainer>
+                  <ActualMinimap
+                    theme={theme}
+                    spans={waterfallModel.getWaterfall({
+                      viewStart: 0,
+                      viewEnd: 1,
+                    })}
+                    generateBounds={waterfallModel.generateBounds({
+                      viewStart: 0,
+                      viewEnd: 1,
+                    })}
+                    dividerPosition={0}
+                    rootSpan={waterfallModel.rootSpan.span}
+                  />
+                </MinimapPositioningContainer>
+              </MinimapContainer>
+            </Link>
+          )}
 
           <OpsBreakdown event={eventData} operationNameFilters={noFilter} hideHeader />
         </ComparisonContentWrapper>

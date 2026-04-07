@@ -24,6 +24,7 @@ import {
   getSpanSubTimings,
   SpanSubTimingName,
 } from 'sentry/components/events/interfaces/spans/utils';
+import {getEventTimestampInSeconds} from 'sentry/components/events/interfaces/utils';
 import {AnnotatedText} from 'sentry/components/events/meta/annotatedText';
 import {t} from 'sentry/locale';
 import type {Entry, EntryRequest, Event, EventTransaction} from 'sentry/types/event';
@@ -40,6 +41,7 @@ import {formatBytesBase2} from 'sentry/utils/bytes/formatBytesBase2';
 import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import {toRoundedPercent} from 'sentry/utils/number/toRoundedPercent';
 import {SQLishFormatter} from 'sentry/utils/sqlish';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {safeURL} from 'sentry/utils/url/safeURL';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
@@ -374,10 +376,17 @@ function AIDetectedSpanEvidence({
     organization,
   });
 
+  const eventTimestamp = getEventTimestampInSeconds(event);
+  const isOld = eventTimestamp ? isPartialSpanOrTraceData(eventTimestamp) : false;
   const actionButton = projectSlug ? (
-    <LinkButton size="xs" to={eventDetailsLocation}>
-      {t('View Full Trace')}
-    </LinkButton>
+    <Tooltip
+      title={t('Trace data is only available for the last 30 days')}
+      disabled={!isOld}
+    >
+      <LinkButton size="xs" to={eventDetailsLocation} disabled={isOld}>
+        {t('View Full Trace')}
+      </LinkButton>
+    </Tooltip>
   ) : undefined;
 
   const transactionRow = makeRow(
@@ -616,10 +625,17 @@ const makeTransactionNameRow = (
     organization,
   });
 
+  const eventTimestamp = getEventTimestampInSeconds(event);
+  const isOld = eventTimestamp ? isPartialSpanOrTraceData(eventTimestamp) : false;
   const actionButton = projectSlug ? (
-    <LinkButton size="xs" to={eventDetailsLocation}>
-      {t('View Full Trace')}
-    </LinkButton>
+    <Tooltip
+      title={t('Trace data is only available for the last 30 days')}
+      disabled={!isOld}
+    >
+      <LinkButton size="xs" to={eventDetailsLocation} disabled={isOld}>
+        {t('View Full Trace')}
+      </LinkButton>
+    </Tooltip>
   ) : undefined;
 
   return makeRow(

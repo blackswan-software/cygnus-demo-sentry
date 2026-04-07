@@ -26,6 +26,7 @@ import {SpanChartRenderer2D} from 'sentry/utils/profiling/renderers/spansRendere
 import {SpansTextRenderer} from 'sentry/utils/profiling/renderers/spansTextRenderer';
 import type {SpanChart, SpanChartNode} from 'sentry/utils/profiling/spanChart';
 import {Rect} from 'sentry/utils/profiling/speedscope';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {TraceViewSources} from 'sentry/views/performance/newTraceDetails/traceHeader/breadcrumbs';
@@ -448,6 +449,11 @@ export function FlamegraphSpans({
     const node = hoveredNodeOnContextMenuOpen.current?.node;
     if (!node) {
       addErrorMessage(t('No event ID or span ID found'));
+      return;
+    }
+
+    if (isPartialSpanOrTraceData(node.span.timestamp)) {
+      addErrorMessage(t('Trace data is only available for the last 30 days'));
       return;
     }
 

@@ -28,6 +28,7 @@ import {getShortEventId} from 'sentry/utils/events';
 import type {EventsResults} from 'sentry/utils/profiling/hooks/types';
 import {generateProfileFlamechartRoute} from 'sentry/utils/profiling/routes';
 import {renderTableHead} from 'sentry/utils/profiling/tableRenderer';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {useProjects} from 'sentry/utils/useProjects';
@@ -175,6 +176,10 @@ function ProfileEventsCell<F extends FieldType>(props: ProfileEventsCellProps<F>
       props.baggage.location
     ).normalizeDateSelection(props.baggage.location);
 
+    if (isPartialSpanOrTraceData(timestamp)) {
+      return <Container>{getShortEventId(traceId)}</Container>;
+    }
+
     return (
       <Container>
         <Link
@@ -197,6 +202,11 @@ function ProfileEventsCell<F extends FieldType>(props: ProfileEventsCellProps<F>
     const project = getProjectForRow(props.baggage, props.dataRow);
     const transactionId = getShortEventId(props.dataRow[key] ?? '');
     if (!project) {
+      return <Container>{transactionId}</Container>;
+    }
+
+    const txTimestamp = getTimeStampFromTableDateField(props.dataRow.timestamp);
+    if (isPartialSpanOrTraceData(txTimestamp)) {
       return <Container>{transactionId}</Container>;
     }
 

@@ -1,4 +1,5 @@
 import {LinkButton} from '@sentry/scraps/button';
+import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {KeyValueList} from 'sentry/components/events/interfaces/keyValueList';
 import {IconProfiling} from 'sentry/icons';
@@ -6,6 +7,7 @@ import {t} from 'sentry/locale';
 import type {Event} from 'sentry/types/event';
 import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import {generateProfileFlamechartRouteWithHighlightFrame} from 'sentry/utils/profiling/routes';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {SectionKey} from 'sentry/views/issueDetails/streamline/context';
@@ -19,6 +21,7 @@ export function ProfileEventEvidence({event, projectSlug}: ProfileEvidenceProps)
   const evidenceData = event.occurrence?.evidenceData ?? {};
   const evidenceDisplay = event.occurrence?.evidenceDisplay ?? [];
   const traceSlug = event.contexts?.trace?.trace_id ?? '';
+  const isOld = isPartialSpanOrTraceData(evidenceData.timestamp);
 
   const keyValueListData = [
     ...(evidenceData.transactionId && evidenceData.transactionName
@@ -28,18 +31,27 @@ export function ProfileEventEvidence({event, projectSlug}: ProfileEvidenceProps)
             key: 'Transaction Name',
             value: evidenceData.transactionName,
             actionButton: traceSlug ? (
-              <LinkButton
-                size="xs"
-                to={generateLinkToEventInTraceView({
-                  traceSlug,
-                  timestamp: evidenceData.timestamp,
-                  eventId: evidenceData.transactionId,
-                  location: {...location, query: {...location.query, referrer: 'issue'}},
-                  organization,
-                })}
+              <Tooltip
+                title={t('Trace data is only available for the last 30 days')}
+                disabled={!isOld}
               >
-                {t('View Transaction')}
-              </LinkButton>
+                <LinkButton
+                  size="xs"
+                  disabled={isOld}
+                  to={generateLinkToEventInTraceView({
+                    traceSlug,
+                    timestamp: evidenceData.timestamp,
+                    eventId: evidenceData.transactionId,
+                    location: {
+                      ...location,
+                      query: {...location.query, referrer: 'issue'},
+                    },
+                    organization,
+                  })}
+                >
+                  {t('View Transaction')}
+                </LinkButton>
+              </Tooltip>
             ) : null,
           },
         ]
