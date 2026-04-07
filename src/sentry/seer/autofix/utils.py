@@ -734,18 +734,14 @@ def read_preference_from_sentry_db(project: Project) -> SeerProjectPreference | 
             handoff_point=handoff_point,
             target=handoff_target,
             integration_id=handoff_integration_id,
-            auto_create_pr=project.get_option(
-                "sentry:seer_automation_handoff_auto_create_pr", False
-            ),
+            auto_create_pr=project.get_option("sentry:seer_automation_handoff_auto_create_pr"),
         )
 
     return SeerProjectPreference(
         organization_id=project.organization_id,
         project_id=project.id,
         repositories=repo_definitions,
-        automated_run_stopping_point=project.get_option(
-            "sentry:seer_automated_run_stopping_point", SEER_AUTOMATED_RUN_STOPPING_POINT_DEFAULT
-        ),
+        automated_run_stopping_point=project.get_option("sentry:seer_automated_run_stopping_point"),
         automation_handoff=automation_handoff,
     )
 
