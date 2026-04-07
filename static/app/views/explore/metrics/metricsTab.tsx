@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import {css} from '@emotion/react';
 import styled from '@emotion/styled';
 
@@ -25,6 +26,7 @@ import {ToolbarVisualizeAddChart} from 'sentry/views/explore/components/toolbar/
 import {useMetricsAnalytics} from 'sentry/views/explore/hooks/useAnalytics';
 import {useControlSectionExpanded} from 'sentry/views/explore/hooks/useControlSectionExpanded';
 import {useMetricOptions} from 'sentry/views/explore/hooks/useMetricOptions';
+import {useHasMetricEquations} from 'sentry/views/explore/metrics/hooks/useHasMetricEquations';
 import {MetricPanel} from 'sentry/views/explore/metrics/metricPanel';
 import {canUseMetricsUIRefresh} from 'sentry/views/explore/metrics/metricsFlags';
 import {MetricsQueryParamsProvider} from 'sentry/views/explore/metrics/metricsQueryParams';
@@ -32,6 +34,7 @@ import {MetricToolbar} from 'sentry/views/explore/metrics/metricToolbar';
 import {MetricSaveAs} from 'sentry/views/explore/metrics/metricToolbar/metricSaveAs';
 import {
   MultiMetricsQueryParamsProvider,
+  useAddEquationQuery,
   useAddMetricQuery,
   useMultiMetricsQueryParams,
 } from 'sentry/views/explore/metrics/multiMetricsQueryParams';
@@ -39,6 +42,8 @@ import {
   FilterBarWithSaveAsContainer,
   StyledPageFilterBar,
 } from 'sentry/views/explore/metrics/styles';
+import {isVisualizeFunction} from 'sentry/views/explore/queryParams/visualize';
+import {getVisualizeLabel} from 'sentry/views/explore/toolbar/toolbarVisualize';
 
 const MAX_METRICS_ALLOWED = 8;
 export const METRICS_CHART_GROUP = 'metrics-charts-group';
@@ -116,7 +121,17 @@ function MetricsQueryBuilderSection({
   const organization = useOrganization();
   const metricQueries = useMultiMetricsQueryParams();
   const addMetricQuery = useAddMetricQuery();
-
+  const addEquationQuery = useAddEquationQuery();
+  const hasEquations = useHasMetricEquations();
+  const references = useMemo(() => {
+    return new Set(
+      metricQueries
+        .filter(metricQuery =>
+          metricQuery.queryParams.visualizes.some(isVisualizeFunction)
+        )
+        .map((_metricQuery, index) => getVisualizeLabel(index))
+    );
+  }, [metricQueries]);
   if (canUseMetricsUIRefresh(organization)) {
     return (
       <ExploreControlSection expanded={controlSectionExpanded ?? true}>
@@ -133,17 +148,31 @@ function MetricsQueryBuilderSection({
                   removeMetric={metricQuery.removeMetric}
                 >
                   <Container width="100%">
-                    <MetricToolbar traceMetric={metricQuery.metric} queryIndex={index} />
+                    <MetricToolbar
+                      traceMetric={metricQuery.metric}
+                      queryIndex={index}
+                      references={references}
+                    />
                   </Container>
                 </MetricsQueryParamsProvider>
               );
             })}
-            <ToolbarVisualizeAddChart
-              display="button"
-              add={addMetricQuery}
-              disabled={metricQueries.length >= MAX_METRICS_ALLOWED}
-              label={t('Add Metric')}
-            />
+            <Flex direction="row" gap="sm" align="center" minWidth={0} width="100%">
+              <ToolbarVisualizeAddChart
+                display="button"
+                add={addMetricQuery}
+                disabled={metricQueries.length >= MAX_METRICS_ALLOWED}
+                label={t('Add Metric')}
+              />
+              {hasEquations && (
+                <ToolbarVisualizeAddChart
+                  display="button"
+                  add={addEquationQuery}
+                  disabled={metricQueries.length >= MAX_METRICS_ALLOWED}
+                  label={t('Add Equation')}
+                />
+              )}
+            </Flex>
             <MetricSaveAs />
           </Flex>
         ) : null}
@@ -164,15 +193,28 @@ function MetricsQueryBuilderSection({
               setTraceMetric={metricQuery.setTraceMetric}
               removeMetric={metricQuery.removeMetric}
             >
-              <MetricToolbar traceMetric={metricQuery.metric} queryIndex={index} />
+              <MetricToolbar
+                traceMetric={metricQuery.metric}
+                queryIndex={index}
+                references={references}
+              />
             </MetricsQueryParamsProvider>
           );
         })}
-        <ToolbarVisualizeAddChart
-          add={addMetricQuery}
-          disabled={metricQueries.length >= MAX_METRICS_ALLOWED}
-          label={t('Add Metric')}
-        />
+        <Flex direction="row" gap="sm" align="center" minWidth={0} width="100%">
+          <ToolbarVisualizeAddChart
+            add={addMetricQuery}
+            disabled={metricQueries.length >= MAX_METRICS_ALLOWED}
+            label={t('Add Metric')}
+          />
+          {hasEquations && (
+            <ToolbarVisualizeAddChart
+              add={addEquationQuery}
+              disabled={metricQueries.length >= MAX_METRICS_ALLOWED}
+              label={t('Add Equation')}
+            />
+          )}
+        </Flex>
       </Flex>
     </MetricsQueryBuilderContainer>
   );

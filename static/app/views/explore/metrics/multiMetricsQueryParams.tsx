@@ -202,3 +202,19 @@ export function useAddMetricQuery() {
     navigate(target);
   };
 }
+
+export function useAddEquationQuery() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const {metricQueries} = useMultiMetricsQueryParamsContext();
+
+  return function () {
+    const target = {...location, query: {...location.query}};
+    target.query.metric = [...metricQueries, defaultMetricQuery({equation: true})]
+      .map((metricQuery: BaseMetricQuery) => encodeMetricQueryParams(metricQuery))
+      .filter(defined)
+      .filter(Boolean);
+
+    navigate(target);
+  };
+}
