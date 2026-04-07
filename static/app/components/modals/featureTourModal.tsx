@@ -1,4 +1,4 @@
-import {Component, Fragment} from 'react';
+import {Fragment, useRef, useState} from 'react';
 import styled from '@emotion/styled';
 
 import {Button, LinkButton} from '@sentry/scraps/button';
@@ -16,12 +16,8 @@ export type TourStep = {
   image?: React.ReactNode;
 };
 
-type ChildProps = {
-  showModal: () => void;
-};
-
 type Props = {
-  children: (props: ChildProps) => React.ReactNode;
+  children: (props: {showModal: () => void}) => React.ReactNode;
   /**
    * Provide a URL for the done state to open in a new tab.
    */
@@ -45,23 +41,6 @@ type Props = {
   onCloseModal?: (currentIndex: number, durationOpen: number) => void;
 };
 
-type State = {
-  /**
-   * The last known step
-   */
-  current: number;
-
-  /**
-   * The timestamp when the modal was shown.
-   * Used to calculate how long the modal was open
-   */
-  openedAt: number;
-};
-
-const defaultProps = {
-  doneText: t('Done'),
-};
-
 /**
  * Provide a showModal action to the child function that lets
  * a tour be triggered.
@@ -72,128 +51,120 @@ const defaultProps = {
  * trigger re-renders in the modal contents. This requires a bit of duplicate state
  * to be managed around the current step.
  */
-export class FeatureTourModal extends Component<Props, State> {
-  static defaultProps = defaultProps;
-
-  state: State = {
-    openedAt: 0,
-    current: 0,
-  };
+export function FeatureTourModal({
+  children,
+  steps,
+  doneText = t('Done'),
+  doneUrl,
+  onAdvance,
+  onCloseModal,
+}: Props) {
+  const openedAtRef = useRef(0);
+  const currentRef = useRef(0);
 
   // Record the step change and call the callback this component was given.
-  handleAdvance = (current: number, duration: number) => {
-    this.setState({current});
-    this.props.onAdvance?.(current, duration);
+  const handleAdvance = (current: number, duration: number) => {
+    currentRef.current = current;
+    onAdvance?.(current, duration);
   };
 
-  handleShow = () => {
-    this.setState({openedAt: Date.now()}, () => {
-      const modalProps = {
-        steps: this.props.steps,
-        onAdvance: this.handleAdvance,
-        openedAt: this.state.openedAt,
-        doneText: this.props.doneText,
-        doneUrl: this.props.doneUrl,
-      };
-      openModal(deps => <ModalContents {...deps} {...modalProps} />, {
-        onClose: this.handleClose,
-      });
-    });
-  };
-
-  handleClose = () => {
+  const handleClose = () => {
     // The bootstrap modal and modal store both call this callback.
     // We use the state flag to deduplicate actions to upstream components.
-    if (this.state.openedAt === 0) {
+    if (openedAtRef.current === 0) {
       return;
     }
-    const {onCloseModal} = this.props;
 
-    const duration = Date.now() - this.state.openedAt;
-    onCloseModal?.(this.state.current, duration);
+    const duration = Date.now() - openedAtRef.current;
+    onCloseModal?.(currentRef.current, duration);
 
     // Reset the state now that the modal is closed, used to deduplicate close actions.
-    this.setState({openedAt: 0, current: 0});
+    openedAtRef.current = 0;
+    currentRef.current = 0;
   };
 
-  render() {
-    const {children} = this.props;
-    return <Fragment>{children({showModal: this.handleShow})}</Fragment>;
-  }
+  const handleShow = () => {
+    openedAtRef.current = Date.now();
+    openModal(
+      deps => (
+        <ModalContents
+          {...deps}
+          steps={steps}
+          onAdvance={handleAdvance}
+          openedAt={openedAtRef.current}
+          doneText={doneText}
+          doneUrl={doneUrl}
+        />
+      ),
+      {onClose: handleClose}
+    );
+  };
+
+  return <Fragment>{children({showModal: handleShow})}</Fragment>;
 }
 
 type ContentsProps = ModalRenderProps &
-  Pick<Props, 'steps' | 'doneText' | 'doneUrl' | 'onAdvance'> &
-  Pick<State, 'openedAt'>;
-
-type ContentsState = {
-  current: number;
-  openedAt: number;
-};
-
-class ModalContents extends Component<ContentsProps, ContentsState> {
-  static defaultProps = defaultProps;
-
-  state: ContentsState = {
-    current: 0,
-    openedAt: Date.now(),
+  Pick<Props, 'steps' | 'doneText' | 'doneUrl' | 'onAdvance'> & {
+    openedAt: number;
   };
 
-  handleAdvance = () => {
-    const {onAdvance, openedAt} = this.props;
-    this.setState(
-      prevState => ({current: prevState.current + 1}),
-      () => {
-        const duration = Date.now() - openedAt;
-        onAdvance?.(this.state.current, duration);
-      }
-    );
+function ModalContents({
+  Body,
+  steps,
+  doneText = t('Done'),
+  doneUrl,
+  openedAt,
+  onAdvance,
+  closeModal,
+}: ContentsProps) {
+  const [current, setCurrent] = useState(0);
+
+  const handleAdvance = () => {
+    const nextStep = current + 1;
+    setCurrent(nextStep);
+    const duration = Date.now() - openedAt;
+    onAdvance?.(nextStep, duration);
   };
 
-  render() {
-    const {Body, steps, doneText, doneUrl, closeModal} = this.props;
-    const {current} = this.state;
+  const step = steps[current] === undefined ? steps[steps.length - 1]! : steps[current];
+  const hasNext = steps[current + 1] !== undefined;
 
-    const step = steps[current] === undefined ? steps[steps.length - 1]! : steps[current];
-    const hasNext = steps[current + 1] !== undefined;
-
-    return (
-      <Body data-test-id="feature-tour">
-        <CloseButton
-          priority="transparent"
-          size="zero"
-          onClick={closeModal}
-          icon={<IconClose />}
-          aria-label={t('Close tour')}
-        />
-        <Stack align="center" margin="2xl 3xl md 3xl">
-          {step.image}
-          <TourHeader>{step.title}</TourHeader>
-          {step.body}
-          <TourButtonBar>
-            {step.actions && step.actions}
-            {hasNext && (
-              <Button priority="primary" onClick={this.handleAdvance}>
-                {t('Next')}
-              </Button>
-            )}
-            {!hasNext && (
-              <LinkButton
-                external
-                href={doneUrl}
-                onClick={closeModal}
-                priority="primary"
-                aria-label={t('Complete tour')}
-              >
-                {doneText}
-              </LinkButton>
-            )}
-          </TourButtonBar>
-          <StepCounter>{t('%s of %s', current + 1, steps.length)}</StepCounter>
-        </Stack>
-      </Body>
-    );
-  }
+  return (
+    <Body data-test-id="feature-tour">
+      <CloseButton
+        priority="transparent"
+        size="zero"
+        onClick={closeModal}
+        icon={<IconClose />}
+        aria-label={t('Close tour')}
+      />
+      <Stack align="center" margin="2xl 3xl md 3xl">
+        {step.image}
+        <TourHeader>{step.title}</TourHeader>
+        {step.body}
+        <TourButtonBar>
+          {step.actions && step.actions}
+          {hasNext && (
+            <Button priority="primary" onClick={handleAdvance}>
+              {t('Next')}
+            </Button>
+          )}
+          {!hasNext && (
+            <LinkButton
+              external
+              href={doneUrl}
+              onClick={closeModal}
+              priority="primary"
+              aria-label={t('Complete tour')}
+            >
+              {doneText}
+            </LinkButton>
+          )}
+        </TourButtonBar>
+        <StepCounter>{t('%s of %s', current + 1, steps.length)}</StepCounter>
+      </Stack>
+    </Body>
+  );
 }
 
 const CloseButton = styled(Button)`
