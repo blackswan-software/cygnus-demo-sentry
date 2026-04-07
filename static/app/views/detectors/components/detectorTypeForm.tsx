@@ -69,7 +69,6 @@ interface DetectorTypeOption {
 }
 
 function MonitorTypeField() {
-  const organization = useOrganization();
   const [selectedDetectorType, setDetectorType] = useDetectorTypeQueryState();
 
   const useMetricDetectorLimit =
@@ -121,7 +120,6 @@ function MonitorTypeField() {
       name: getDetectorTypeLabel('preprod_size_analysis'),
       description: t('Monitor mobile app build sizes and detect regressions.'),
       visualization: null,
-      show: !!organization?.features?.includes('preprod-size-monitors-frontend'),
     },
   ];
 

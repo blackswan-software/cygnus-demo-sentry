@@ -6,7 +6,6 @@ import {LoadingError} from 'sentry/components/loadingError';
 import {t} from 'sentry/locale';
 import type {Detector, DetectorType} from 'sentry/types/workflowEngine/detectors';
 import {unreachable} from 'sentry/utils/unreachable';
-import {useOrganization} from 'sentry/utils/useOrganization';
 import {
   EditExistingCronDetectorForm,
   NewCronDetectorForm,
@@ -41,8 +40,6 @@ function PlaceholderForm() {
 }
 
 export function NewDetectorForm({detectorType}: {detectorType: DetectorType}) {
-  const organization = useOrganization();
-
   switch (detectorType) {
     case 'metric_issue':
       return <NewMetricDetectorForm />;
@@ -55,9 +52,6 @@ export function NewDetectorForm({detectorType}: {detectorType: DetectorType}) {
     case 'issue_stream':
       return <PlaceholderForm />;
     case 'preprod_size_analysis':
-      if (!organization.features.includes('preprod-size-monitors-frontend')) {
-        return <PlaceholderForm />;
-      }
       return <NewPreprodDetectorForm />;
     default:
       unreachable(detectorType);
