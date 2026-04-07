@@ -779,7 +779,6 @@ static/app/components/loadingIndicator.tsx
 static/app/components/loadingMask.tsx
 static/app/components/logoSentry.stories.tsx
 static/app/components/logoSentry.tsx
-static/app/components/markdownTextArea.tsx
 static/app/components/menuItem.tsx
 static/app/components/metrics/chart/chart.tsx
 static/app/components/modals/addTempestCredentialsModal.tsx
