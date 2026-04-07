@@ -78,6 +78,7 @@ import {
 } from 'sentry/utils/platform';
 import {getReplayIdFromEvent} from 'sentry/utils/replays/getReplayIdFromEvent';
 import {useOrganization} from 'sentry/utils/useOrganization';
+import {SourceMapIssueDetails} from 'sentry/views/issueDetails/configurationIssues/sourceMapIssues/sourceMapIssueDetails';
 import {MetricIssuesSection} from 'sentry/views/issueDetails/metricIssues/metricIssuesSection';
 import {
   getHangProfileData,
@@ -158,6 +159,10 @@ export function EventDetailsContent({
   const showFeedback = !isPromptDismissed || promptError || hasStreamlinedUI;
 
   const issueTypeConfig = getConfigForIssueType(group, group.project);
+
+  if (group.issueType === IssueType.SOURCEMAP_CONFIGURATION) {
+    return <SourceMapIssueDetails group={group} event={event} project={project} />;
+  }
 
   return (
     <Fragment>

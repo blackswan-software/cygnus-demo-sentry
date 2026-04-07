@@ -33,7 +33,7 @@ interface SourceMapDebugBlueThunderResponseFrame {
   };
 }
 
-interface SourceMapDebugBlueThunderResponse {
+export interface SourceMapDebugBlueThunderResponse {
   dist: string | null;
   exceptions: Array<{
     frames: SourceMapDebugBlueThunderResponseFrame[];
@@ -49,11 +49,16 @@ interface SourceMapDebugBlueThunderResponse {
   min_debug_id_sdk_version?: string | null;
 }
 
-export function useSourceMapDebuggerData(event: Event, projectSlug: string) {
-  const isSdkThatShouldShowSourceMapsDebugger =
-    !!event.sdk?.name?.startsWith('sentry.javascript.');
+export function useSourceMapDebugQuery(
+  projectSlug: string,
+  eventId: string,
+  options?: {sdkName?: string | null}
+) {
   const organization = useOrganization({allowNull: true});
-  const {data: sourceMapDebuggerData} = useApiQuery<SourceMapDebugBlueThunderResponse>(
+  const isSdkThatShouldShowSourceMapsDebugger = options?.sdkName
+    ? options.sdkName.startsWith('sentry.javascript.')
+    : true;
+  return useApiQuery<SourceMapDebugBlueThunderResponse>(
     [
       getApiUrl(
         '/projects/$organizationIdOrSlug/$projectIdOrSlug/events/$eventId/source-map-debug-blue-thunder-edition/',
@@ -61,7 +66,7 @@ export function useSourceMapDebuggerData(event: Event, projectSlug: string) {
           path: {
             organizationIdOrSlug: organization!.slug,
             projectIdOrSlug: projectSlug,
-            eventId: event.id,
+            eventId,
           },
         }
       ),
@@ -73,7 +78,6 @@ export function useSourceMapDebuggerData(event: Event, projectSlug: string) {
       refetchOnWindowFocus: false,
     }
   );
-  return sourceMapDebuggerData;
 }
 
 function getDebugIdProgress(

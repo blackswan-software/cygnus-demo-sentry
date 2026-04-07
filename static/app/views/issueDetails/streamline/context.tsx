@@ -103,6 +103,10 @@ export const enum SectionKey {
 
   PROFILE_PREVIEW = 'profile-preview',
   STACKTRACE_FLAMEGRAPH = 'stacktrace-flamegraph',
+
+  CONFIGURATION_PROBLEM = 'configuration-problem',
+  CONFIGURATION_DIAGNOSIS = 'configuration-diagnosis',
+  CONFIGURATION_TROUBLESHOOTING = 'configuration-troubleshooting',
 }
 
 /**

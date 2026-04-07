@@ -74,6 +74,8 @@ export type IssueTypeConfig = {
    * Configuration for the issue-level information header
    */
   header: {
+    // Controls the "X in this issue" event navigation row (First/Latest/Recommended)
+    eventNavigation: DisabledWithReasonConfig;
     filterBar: DisabledWithReasonConfig & {
       // Display the environment filter in an inactive, locked state
       fixedEnvironment?: boolean;
