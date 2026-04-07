@@ -210,6 +210,7 @@ function SolutionNextStep({autofix, group, runId, section, referrer}: NextStepPr
 function CodeChangesNextStep({autofix, group, runId, section, referrer}: NextStepProps) {
   const organization = useOrganization();
   const {isPolling, createPR, startStep} = autofix;
+  const [creatingPR, setCreatingPR] = useState(false);
 
   const hasPR = useMemo(() => {
     const prStates = autofix.runState?.repo_pr_states ?? {};
@@ -217,6 +218,7 @@ function CodeChangesNextStep({autofix, group, runId, section, referrer}: NextSte
   }, [autofix.runState?.repo_pr_states]);
 
   const handleYesClick = useCallback(() => {
+    setCreatingPR(true);
     createPR(runId);
     trackAnalytics('autofix.create_pr_clicked', {
       organization,
@@ -253,6 +255,14 @@ function CodeChangesNextStep({autofix, group, runId, section, referrer}: NextSte
 
   if (!defined(artifact) || allInSync) {
     return null;
+  }
+
+  if (creatingPR) {
+    return (
+      <Text variant="muted">
+        {hasPR ? t('Updating PR\u2026') : t('Creating PR\u2026')}
+      </Text>
+    );
   }
 
   const yesLabel = hasPR ? t('Yes, update the PR') : t('Yes, draft a PR');
