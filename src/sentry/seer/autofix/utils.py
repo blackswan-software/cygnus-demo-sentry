@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any, NotRequired, TypedDict
@@ -702,6 +702,25 @@ def build_repo_definition_from_project_repo(
     )
 
 
+def _build_automation_handoff(
+    get_option: Callable[[str], Any],
+) -> SeerAutomationHandoffConfiguration | None:
+    """Build a SeerAutomationHandoffConfiguration from option values, or None if incomplete."""
+    handoff_point = get_option("sentry:seer_automation_handoff_point")
+    handoff_target = get_option("sentry:seer_automation_handoff_target")
+    handoff_integration_id = get_option("sentry:seer_automation_handoff_integration_id")
+
+    if handoff_point is None or handoff_target is None or handoff_integration_id is None:
+        return None
+
+    return SeerAutomationHandoffConfiguration(
+        handoff_point=handoff_point,
+        target=handoff_target,
+        integration_id=handoff_integration_id,
+        auto_create_pr=get_option("sentry:seer_automation_handoff_auto_create_pr"),
+    )
+
+
 def read_preference_from_sentry_db(project: Project) -> SeerProjectPreference | None:
     """Read a single project's Seer preferences from Sentry DB."""
     seer_project_repo_qs = (
@@ -720,29 +739,12 @@ def read_preference_from_sentry_db(project: Project) -> SeerProjectPreference | 
     if not repo_definitions and not has_configured_options:
         return None
 
-    handoff_point = project.get_option("sentry:seer_automation_handoff_point")
-    handoff_target = project.get_option("sentry:seer_automation_handoff_target")
-    handoff_integration_id = project.get_option("sentry:seer_automation_handoff_integration_id")
-
-    automation_handoff = None
-    if (
-        handoff_point is not None
-        and handoff_target is not None
-        and handoff_integration_id is not None
-    ):
-        automation_handoff = SeerAutomationHandoffConfiguration(
-            handoff_point=handoff_point,
-            target=handoff_target,
-            integration_id=handoff_integration_id,
-            auto_create_pr=project.get_option("sentry:seer_automation_handoff_auto_create_pr"),
-        )
-
     return SeerProjectPreference(
         organization_id=project.organization_id,
         project_id=project.id,
         repositories=repo_definitions,
         automated_run_stopping_point=project.get_option("sentry:seer_automated_run_stopping_point"),
-        automation_handoff=automation_handoff,
+        automation_handoff=_build_automation_handoff(project.get_option),
     )
 
 
@@ -788,23 +790,6 @@ def bulk_read_preferences_from_sentry_db(
                 return projectoptions.lookup_well_known_key(key).default
             return value
 
-        handoff_point = get_project_option("sentry:seer_automation_handoff_point")
-        handoff_target = get_project_option("sentry:seer_automation_handoff_target")
-        handoff_integration_id = get_project_option("sentry:seer_automation_handoff_integration_id")
-
-        automation_handoff = None
-        if (
-            handoff_point is not None
-            and handoff_target is not None
-            and handoff_integration_id is not None
-        ):
-            automation_handoff = SeerAutomationHandoffConfiguration(
-                handoff_point=handoff_point,
-                target=handoff_target,
-                integration_id=handoff_integration_id,
-                auto_create_pr=get_project_option("sentry:seer_automation_handoff_auto_create_pr"),
-            )
-
         result[project.id] = SeerProjectPreference(
             organization_id=project.organization_id,
             project_id=project.id,
@@ -812,7 +797,7 @@ def bulk_read_preferences_from_sentry_db(
             automated_run_stopping_point=get_project_option(
                 "sentry:seer_automated_run_stopping_point"
             ),
-            automation_handoff=automation_handoff,
+            automation_handoff=_build_automation_handoff(get_project_option),
         )
 
     return result
