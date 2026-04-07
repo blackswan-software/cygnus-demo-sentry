@@ -212,6 +212,22 @@ describe('BackendJsonSubmitForm', () => {
       expect(onSubmit).not.toHaveBeenCalled();
     });
 
+    it('blocks submission when required fields contain only whitespace', async () => {
+      render(
+        <BackendJsonSubmitForm
+          fields={[{name: 'title', type: 'string', label: 'Title', required: true}]}
+          onSubmit={onSubmit}
+          submitLabel="Create"
+        />,
+        {organization: org}
+      );
+
+      await userEvent.type(screen.getByRole('textbox', {name: /title/i}), '   ');
+      await userEvent.click(screen.getByRole('button', {name: 'Create'}));
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
     it('shows error toast on submit failure', async () => {
       const error = new RequestError('POST', '/api/test/', new Error('Bad Request'));
       error.responseJSON = {detail: 'Something went wrong'};

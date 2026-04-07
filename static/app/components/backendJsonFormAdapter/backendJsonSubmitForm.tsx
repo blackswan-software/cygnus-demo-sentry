@@ -86,11 +86,18 @@ function buildValidationSchema(fields: JsonFormAdapterFieldConfig[]) {
       continue;
     }
     if (field.required) {
-      shape[field.name] = z
-        .any()
-        .refine(val => val !== null && val !== undefined && val !== '', {
-          message: t('This field is required'),
-        });
+      shape[field.name] = z.any().refine(
+        val => {
+          if (val === null || val === undefined) {
+            return false;
+          }
+          if (typeof val === 'string') {
+            return val.trim() !== '';
+          }
+          return true;
+        },
+        {message: t('This field is required')}
+      );
     }
   }
   return z.object(shape).passthrough();
