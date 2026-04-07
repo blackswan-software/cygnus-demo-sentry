@@ -1,6 +1,8 @@
 import sentry_sdk
 from django.db import router, transaction
-from jwt import DecodeError, ExpiredSignatureError, InvalidAlgorithmError, InvalidSignatureError
+from jwt import (
+    InvalidKeyError,
+)
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -20,9 +22,6 @@ from sentry.integrations.utils.metrics import (
     IntegrationPipelineViewType,
 )
 from sentry.utils import jwt
-
-# Atlassian sends scanner bots to "test" Atlassian apps and they often hit this endpoint with a bad kid causing errors
-INVALID_KEY_IDS = ["fake-kid"]
 
 
 @control_silo_endpoint
@@ -57,36 +56,17 @@ class JiraSentryInstalledWebhook(JiraWebhookBase):
                 }
             )
 
-            if key_id:
-                if key_id in INVALID_KEY_IDS:
-                    lifecycle.record_halt(halt_reason="JWT contained invalid key_id (kid)")
-                    return self.respond(
-                        {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
-                    )
-                decoded_claims = authenticate_asymmetric_jwt(token, key_id)
-            else:
-                shared_secret = state.get("sharedSecret")
-                if not shared_secret:
-                    return self.respond(
-                        {"detail": "Missing shared secret"}, status=status.HTTP_400_BAD_REQUEST
-                    )
-                try:
-                    decoded_claims = jwt.decode(token, shared_secret, audience=False)
-                except (
-                    InvalidSignatureError,
-                    ExpiredSignatureError,
-                    DecodeError,
-                    InvalidAlgorithmError,
-                ):
-                    return self.respond(
-                        {"detail": "Invalid JWT"}, status=status.HTTP_400_BAD_REQUEST
-                    )
-
-            if decoded_claims.get("iss") != state.get("clientKey"):
-                lifecycle.record_halt(halt_reason="JWT issuer does not match client key")
+            if not key_id:
+                lifecycle.record_halt(halt_reason="Missing key_id (kid)")
                 return self.respond(
-                    {"detail": "JWT issuer does not match client key"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {"detail": "Missing key id"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            try:
+                decoded_claims = authenticate_asymmetric_jwt(token, key_id)
+            except InvalidKeyError:
+                lifecycle.record_halt(halt_reason="JWT contained invalid key_id (kid)")
+                return self.respond(
+                    {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
                 )
 
             verify_claims(decoded_claims, request.path, request.GET, method="POST")

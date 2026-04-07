@@ -111,19 +111,6 @@ class JiraInstalledTest(APITestCase):
             status_code=status.HTTP_409_CONFLICT,
         )
 
-    @patch("sentry.integrations.utils.metrics.EventLifecycle.record_event")
-    @patch("sentry_sdk.set_tag")
-    def test_with_shared_secret(self, mock_set_tag: MagicMock, mock_record_event) -> None:
-        self.get_success_response(
-            **self.body(),
-            extra_headers=dict(HTTP_AUTHORIZATION="JWT " + self.jwt_token_secret()),
-        )
-        integration = Integration.objects.get(provider="jira", external_id=self.external_id)
-
-        mock_set_tag.assert_any_call("integration_id", integration.id)
-        assert integration.status == ObjectStatus.ACTIVE
-        mock_record_event.assert_called_with(EventLifecycleOutcome.SUCCESS, None, False, None)
-
     @patch("sentry_sdk.set_tag")
     @responses.activate
     def test_with_key_id(self, mock_set_tag: MagicMock) -> None:
