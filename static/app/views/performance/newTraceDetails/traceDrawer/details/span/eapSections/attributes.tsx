@@ -22,7 +22,6 @@ import {generateProfileFlamechartRoute} from 'sentry/utils/profiling/routes';
 import {ellipsize} from 'sentry/utils/string/ellipsize';
 import {looksLikeAJSONArray} from 'sentry/utils/string/looksLikeAJSONArray';
 import {looksLikeAJSONObject} from 'sentry/utils/string/looksLikeAJSONObject';
-import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {AssertionFailureTree} from 'sentry/views/alerts/rules/uptime/assertions/assertionFailure/assertionFailureTree';
 import type {AttributesFieldRendererProps} from 'sentry/views/explore/components/traceItemAttributes/attributesTree';
@@ -138,9 +137,6 @@ export function Attributes({
       );
     },
     [FieldKey.TRACE]: (props: CustomRenderersProps) => {
-      if (isPartialSpanOrTraceData(node.value.start_timestamp)) {
-        return <Text variant="muted">{props.item.value}</Text>;
-      }
       const traceSlug = String(props.item.value);
       const target = getTraceDetailsUrl({
         organization,
