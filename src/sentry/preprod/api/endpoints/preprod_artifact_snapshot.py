@@ -56,6 +56,7 @@ from sentry.preprod.snapshots.models import (
 from sentry.preprod.snapshots.tasks import compare_snapshots
 from sentry.preprod.snapshots.utils import find_base_snapshot_artifact
 from sentry.preprod.url_utils import get_preprod_artifact_url
+from sentry.preprod.vcs.pr_comments.snapshot_tasks import create_preprod_snapshot_pr_comment_task
 from sentry.preprod.vcs.status_checks.snapshots.tasks import (
     create_preprod_snapshot_status_check_task,
 )
@@ -569,6 +570,12 @@ class ProjectPreprodSnapshotEndpoint(ProjectEndpoint):
                 logger.exception("Failed to record bundles_per_commit metric")
 
         create_preprod_snapshot_status_check_task.apply_async(
+            kwargs={
+                "preprod_artifact_id": artifact.id,
+                "caller": "upload_completion",
+            },
+        )
+        create_preprod_snapshot_pr_comment_task.apply_async(
             kwargs={
                 "preprod_artifact_id": artifact.id,
                 "caller": "upload_completion",
