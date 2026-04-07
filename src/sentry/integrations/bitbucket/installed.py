@@ -43,7 +43,12 @@ class BitbucketInstalledEndpoint(Endpoint):
                 {"detail": "Missing authorization header"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        key_id = jwt.peek_header(token).get("kid")
+        try:
+            key_id = jwt.peek_header(token).get("kid")
+        except jwt.DecodeError:
+            return self.respond(
+                {"detail": "Invalid JWT token"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if not key_id:
             return self.respond({"detail": "Missing key id"}, status=status.HTTP_400_BAD_REQUEST)
 
