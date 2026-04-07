@@ -4,6 +4,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.exceptions import ParseError
 from rest_framework.request import Request
 from rest_framework.response import Response
+from sentry_protos.snuba.v1.trace_item_filter_pb2 import TraceItemFilter
 
 from sentry.api.api_owners import ApiOwner
 from sentry.api.api_publish_status import ApiPublishStatus
@@ -72,8 +73,10 @@ class ProjectEventsEndpoint(ProjectEndpoint):
 
         query = request.GET.get("query")
         conditions = []
+        eap_conditions: TraceItemFilter | None = TraceItemFilter()
         if query:
             conditions.append([["positionCaseInsensitive", ["message", f"'{query}'"]], "!=", 0])
+            eap_conditions = None  # Function condition not representable in EAP
 
         try:
             start, end = get_date_range_from_params(
@@ -95,6 +98,7 @@ class ProjectEventsEndpoint(ProjectEndpoint):
         data_fn = partial(
             eventstore.backend.get_events,
             filter=event_filter,
+            eap_conditions=eap_conditions,
             referrer="api.project-events",
             tenant_ids={"organization_id": project.organization_id},
         )
