@@ -296,6 +296,13 @@ export function PageOverviewWebVitalsDetailPanel({
           view: domainViewFilters.view,
           source: TraceViewSources.WEB_VITALS_MODULE,
         });
+      if (isOld) {
+        return (
+          <Tooltip showUnderline title={t('Trace is older than 30 days')}>
+            <NoOverflow>{getShortEventId(row.trace)}</NoOverflow>
+          </Tooltip>
+        );
+      }
       return (
         <NoOverflow>
           {eventTarget ? (
