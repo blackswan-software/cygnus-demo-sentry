@@ -117,16 +117,20 @@ function QueryClippedBox({group, children}: TruncatedQueryClipBoxProps) {
 
   return (
     <StyledClippedBox
-      btnText={t('View full query')}
+      btnText={group ? t('View full query') : undefined}
       clipHeight={500}
-      buttonProps={{
-        icon: <IconOpen />,
-        onClick: () =>
-          navigate({
-            pathname: `${databaseURL}/spans/span/${group}`,
-            query: {...location.query, isExpanded: true},
-          }),
-      }}
+      buttonProps={
+        group
+          ? {
+              icon: <IconOpen />,
+              onClick: () =>
+                navigate({
+                  pathname: `${databaseURL}/spans/span/${group}`,
+                  query: {...location.query, isExpanded: true},
+                }),
+            }
+          : undefined
+      }
     >
       {children}
     </StyledClippedBox>
