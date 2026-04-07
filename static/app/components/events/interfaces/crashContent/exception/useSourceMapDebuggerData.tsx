@@ -49,15 +49,20 @@ export interface SourceMapDebugBlueThunderResponse {
   min_debug_id_sdk_version?: string | null;
 }
 
+interface UseSourceMapDebugQueryOptions {
+  shouldFetchWhenSdkNameMissing?: boolean;
+}
+
 export function useSourceMapDebugQuery(
   projectSlug: string,
   eventId: string,
-  sdkName: string | null = null
+  sdkName: string | null = null,
+  {shouldFetchWhenSdkNameMissing = false}: UseSourceMapDebugQueryOptions = {}
 ) {
   const organization = useOrganization({allowNull: true});
   const isSdkThatShouldShowSourceMapsDebugger = sdkName
     ? sdkName.startsWith('sentry.javascript.')
-    : true;
+    : shouldFetchWhenSdkNameMissing;
   return useApiQuery<SourceMapDebugBlueThunderResponse>(
     [
       getApiUrl(
@@ -72,7 +77,10 @@ export function useSourceMapDebugQuery(
       ),
     ],
     {
-      enabled: isSdkThatShouldShowSourceMapsDebugger && organization !== null,
+      enabled:
+        isSdkThatShouldShowSourceMapsDebugger &&
+        organization !== null &&
+        Boolean(eventId),
       staleTime: Infinity,
       retry: false,
       refetchOnWindowFocus: false,
