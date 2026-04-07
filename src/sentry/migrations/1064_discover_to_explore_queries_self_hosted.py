@@ -57,7 +57,6 @@ def migrate_transactions_discover_queries_self_hosted(
                     for discover_project in discover_projects_qs
                 ]
                 ExploreSavedQueryProject.objects.bulk_create(projects_to_create)
-            new_explore_query.save()
         except Exception as e:
             sentry_sdk.capture_exception(e)
 
@@ -92,7 +91,7 @@ class Migration(CheckedMigration):
                     "sentry_discoversavedquery",
                     "sentry_discoversavedqueryproject",
                     "explore_exploresavedqueryproject",
-                    "explpre_exploresavedquery",
+                    "explore_exploresavedquery",
                 ]
             },
         )
