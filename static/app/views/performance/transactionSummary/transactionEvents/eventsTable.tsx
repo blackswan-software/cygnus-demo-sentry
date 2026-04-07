@@ -234,13 +234,13 @@ export function EventsTable({
         const isIssue = !!issueId;
         const isOld = dataRow.timestamp && isPartialSpanOrTraceData(dataRow.timestamp);
         let target: LocationDescriptor | null = null;
-        if (isOld) {
-          // Trace data older than 30 days is no longer available
-          target = null;
-        } else if (isIssue && !isRegressionIssue && field === 'id') {
+        if (isIssue && !isRegressionIssue && field === 'id') {
           target = {
             pathname: `/organizations/${organization.slug}/issues/${issueId}/events/${dataRow.id}/`,
           };
+        } else if (isOld) {
+          // Trace data older than 30 days is no longer available
+          target = null;
         } else if (field === 'id') {
           target = generateLinkToEventInTraceView({
             traceSlug: dataRow.trace?.toString()!,
