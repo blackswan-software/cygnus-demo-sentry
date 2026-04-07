@@ -9,7 +9,7 @@ import {Tooltip} from '@sentry/scraps/tooltip';
 import {DateTime} from 'sentry/components/dateTime';
 import {Duration} from 'sentry/components/duration/duration';
 import {useStacktraceLink} from 'sentry/components/events/interfaces/frame/useStacktraceLink';
-import {DisabledTraceLink} from 'sentry/components/links/disabledTraceLink';
+import {DisabledTraceLink} from 'sentry/components/explore/disabledTraceLink';
 import {Version} from 'sentry/components/version';
 import {IconPlay} from 'sentry/icons';
 import {tct} from 'sentry/locale';

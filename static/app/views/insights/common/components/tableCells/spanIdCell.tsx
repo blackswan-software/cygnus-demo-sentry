@@ -2,7 +2,7 @@ import type {Location} from 'history';
 
 import {Link} from '@sentry/scraps/link';
 
-import {DisabledTraceLink} from 'sentry/components/links/disabledTraceLink';
+import {DisabledTraceLink} from 'sentry/components/explore/disabledTraceLink';
 import {trackAnalytics} from 'sentry/utils/analytics';
 import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';

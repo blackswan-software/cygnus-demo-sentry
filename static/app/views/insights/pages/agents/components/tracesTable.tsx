@@ -9,7 +9,7 @@ import {Link} from '@sentry/scraps/link';
 import {Text} from '@sentry/scraps/text';
 import {Tooltip} from '@sentry/scraps/tooltip';
 
-import {DisabledTraceLink} from 'sentry/components/links/disabledTraceLink';
+import {DisabledTraceLink} from 'sentry/components/explore/disabledTraceLink';
 import {normalizeDateTimeParams} from 'sentry/components/pageFilters/parse';
 import {usePageFilters} from 'sentry/components/pageFilters/usePageFilters';
 import {Pagination} from 'sentry/components/pagination';
