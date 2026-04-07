@@ -1319,6 +1319,10 @@ class TestBulkReadPreferencesFromSentryDb(TestCase):
         result = bulk_read_preferences_from_sentry_db(self.organization.id, [])
         assert result == {}
 
+    def test_unconfigured_project_returns_none(self):
+        result = bulk_read_preferences_from_sentry_db(self.organization.id, [self.project1.id])
+        assert result == {self.project1.id: None}
+
     def test_bulk_returns_correct_preferences(self):
         SeerProjectRepository.objects.create(
             project=self.project1, repository=self.repo, branch_name="main"
@@ -1346,22 +1350,9 @@ class TestBulkReadPreferencesFromSentryDb(TestCase):
         assert pref2.automated_run_stopping_point == "open_pr"
         assert pref2.automation_handoff is not None
         assert pref2.automation_handoff.handoff_point == "root_cause"
+        assert pref2.automation_handoff.target == "cursor_background_agent"
         assert pref2.automation_handoff.integration_id == 99
-
-    def test_only_configured_projects_returned(self):
-        SeerProjectRepository.objects.create(
-            project=self.project1, repository=self.repo, branch_name="main"
-        )
-        self.project2.update_option("sentry:seer_automated_run_stopping_point", "open_pr")
-
-        result = bulk_read_preferences_from_sentry_db(
-            self.organization.id,
-            [self.project1.id, self.project2.id, self.project3.id],
-        )
-
-        assert self.project1.id in result
-        assert self.project2.id in result
-        assert self.project3.id not in result
+        assert pref2.automation_handoff.auto_create_pr is False
 
     def test_wrong_organization_excluded(self):
         other_org = self.create_organization()

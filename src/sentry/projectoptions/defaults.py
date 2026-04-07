@@ -196,7 +196,7 @@ register(key="sentry:seer_automation_handoff_target", default=None)
 register(key="sentry:seer_automation_handoff_integration_id", default=None)
 register(key="sentry:seer_automation_handoff_auto_create_pr", default=False)
 
-SEER_PREFERENCE_OPTION_KEYS = [
+SEER_PROJECT_PREFERENCE_OPTION_KEYS = [
     "sentry:seer_automated_run_stopping_point",
     "sentry:seer_automation_handoff_point",
     "sentry:seer_automation_handoff_target",
