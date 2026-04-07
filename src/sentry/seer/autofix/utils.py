@@ -767,6 +767,8 @@ def bulk_read_preferences_from_sentry_db(
             build_repo_definition_from_project_repo(project_repo)
         )
 
+    # get_value_bulk_id returns None for missing options, unlike project.get_option
+    # which automatically falls back to the registered well-known key default.
     project_options: dict[str, Mapping[int, Any]] = {
         key: ProjectOption.objects.get_value_bulk_id(project_ids, key)
         for key in SEER_PROJECT_PREFERENCE_OPTION_KEYS
@@ -782,8 +784,6 @@ def bulk_read_preferences_from_sentry_db(
             result[project.id] = None
             continue
 
-        # get_value_bulk_id returns None for missing options, unlike project.get_option
-        # which automatically falls back to the registered well-known key default.
         def get_project_option(key: str) -> Any:
             value = project_options[key][project.id]
             if value is None:
