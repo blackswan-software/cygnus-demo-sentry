@@ -51,6 +51,7 @@ class BackfillSupergroupsLightweightForOrgTest(TestCase):
             data={"message": "error in project2", "level": "error"},
             project_id=project2.id,
         )
+        assert event2.group is not None
         event2.group.substatus = GroupSubStatus.NEW
         event2.group.save(update_fields=["substatus"])
 
@@ -77,6 +78,7 @@ class BackfillSupergroupsLightweightForOrgTest(TestCase):
                 },
                 project_id=self.project.id,
             )
+            assert evt.group is not None
             evt.group.substatus = GroupSubStatus.NEW
             evt.group.save(update_fields=["substatus"])
 
@@ -130,6 +132,7 @@ class BackfillSupergroupsLightweightForOrgTest(TestCase):
             data={"message": "second error", "level": "error", "fingerprint": ["group2"]},
             project_id=self.project.id,
         )
+        assert event2.group is not None
         event2.group.substatus = GroupSubStatus.NEW
         event2.group.save(update_fields=["substatus"])
 
