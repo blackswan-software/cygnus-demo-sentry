@@ -112,9 +112,12 @@ class TestSeerRpc(APITestCase):
         path = self._get_path("get_organization_slug")
         data: dict[str, Any] = {"args": {"org_id": 1}, "meta": {}}
 
-        with patch(
-            "sentry.seer.endpoints.seer_rpc.SeerRpcServiceEndpoint._dispatch_to_local_method"
-        ) as mock_dispatch:
+        with (
+            patch(
+                "sentry.seer.endpoints.seer_rpc.SeerRpcServiceEndpoint._dispatch_to_local_method"
+            ) as mock_dispatch,
+            patch("sentry.seer.endpoints.seer_rpc.in_test_environment", return_value=False),
+        ):
             mock_dispatch.side_effect = RuntimeError("Unexpected internal error")
 
             response = self.client.post(
