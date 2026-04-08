@@ -278,7 +278,7 @@ class OrganizationIntegrationReposTest(APITestCase):
         response = self.client.get(self.path, format="json", data={"paginate": "true"})
 
         assert response.status_code == 200, response.content
-        get_repositories_page.assert_called_once_with(page=1, per_page=25)
+        get_repositories_page.assert_called_once_with(page=1, per_page=100)
         assert response.data == {
             "repos": [
                 {
@@ -309,11 +309,11 @@ class OrganizationIntegrationReposTest(APITestCase):
             False,
         )
         response = self.client.get(
-            self.path, format="json", data={"paginate": "true", "cursor": "0:25:0"}
+            self.path, format="json", data={"paginate": "true", "cursor": "0:100:0"}
         )
 
         assert response.status_code == 200, response.content
-        get_repositories_page.assert_called_once_with(page=2, per_page=25)
+        get_repositories_page.assert_called_once_with(page=2, per_page=100)
         # next cursor should indicate no more results
         assert 'rel="next"; results="false"' in response["Link"]
         # prev cursor should indicate results exist

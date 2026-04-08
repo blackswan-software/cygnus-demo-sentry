@@ -102,7 +102,7 @@ class OrganizationIntegrationReposEndpoint(CellOrganizationIntegrationBaseEndpoi
         cursor_param = request.GET.get("cursor")
         try:
             cursor = Cursor.from_string(cursor_param) if cursor_param else Cursor(0, 0, False)
-            per_page = min(int(request.GET.get("per_page", 25)), 100)
+            per_page = min(int(request.GET.get("per_page", 100)), 100)
         except (ValueError, TypeError):
             return self.respond({"detail": "Invalid cursor or per_page parameter."}, status=400)
         page_number = (cursor.offset // per_page) + 1

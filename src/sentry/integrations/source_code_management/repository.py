@@ -63,7 +63,7 @@ class BaseRepositoryIntegration(ABC):
     def get_repositories_page(
         self,
         page: int = 1,
-        per_page: int = 25,
+        per_page: int = 100,
     ) -> tuple[list[dict[str, Any]], bool] | None:
         """
         Fetch a single page of repositories. Override to support
