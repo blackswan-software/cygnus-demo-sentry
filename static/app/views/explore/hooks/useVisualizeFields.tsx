@@ -115,9 +115,11 @@ function getSupportedAttributes({
       return {...numberTags, ...stringTags, ...booleanTags};
     }
 
-    if (functionName) {
+    if (
+      functionName === AggregationKey.PERFORMANCE_SCORE ||
+      functionName === AggregationKey.OPPORTUNITY_SCORE
+    ) {
       const fieldDef = getFieldDefinition(functionName, 'span');
-      // TODO: explore only supports single parameter functions rn
       const param = fieldDef?.parameters?.[0];
       if (param?.kind === 'column' && typeof param.columnTypes === 'function') {
         const filtered: TagCollection = {};
