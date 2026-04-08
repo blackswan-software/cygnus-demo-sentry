@@ -44,6 +44,12 @@ interface BuildCompareHeaderContentProps {
   onRerunComparison?: () => void;
 }
 
+const buildCompareFeedbackOptions = {
+  tags: {
+    'feedback.source': 'preprod.buildDetails',
+  },
+};
+
 export function BuildCompareHeaderContent(props: BuildCompareHeaderContentProps) {
   const {buildDetails, headArtifactId, baseArtifactId, onRerunComparison, isRerunning} =
     props;
@@ -146,24 +152,12 @@ export function BuildCompareHeaderContent(props: BuildCompareHeaderContentProps)
       <Flex align="center" gap="sm">
         {hasPageFrameFeature ? (
           <TopBar.Slot name="feedback">
-            <FeedbackButton
-              feedbackOptions={{
-                tags: {
-                  'feedback.source': 'preprod.buildDetails',
-                },
-              }}
-            >
+            <FeedbackButton feedbackOptions={buildCompareFeedbackOptions}>
               {null}
             </FeedbackButton>
           </TopBar.Slot>
         ) : (
-          <FeedbackButton
-            feedbackOptions={{
-              tags: {
-                'feedback.source': 'preprod.buildDetails',
-              },
-            }}
-          />
+          <FeedbackButton feedbackOptions={buildCompareFeedbackOptions} />
         )}
         {isSentryEmployee &&
           headArtifactId &&

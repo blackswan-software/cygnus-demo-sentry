@@ -8,12 +8,12 @@ import {t} from 'sentry/locale';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useParams} from 'sentry/utils/useParams';
 import {useRoutes} from 'sentry/utils/useRoutes';
-import {TopBar} from 'sentry/views/navigation/topBar';
-import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {SettingsBreadcrumb} from 'sentry/views/settings/components/settingsBreadcrumb';
 import type {RouteWithName} from 'sentry/views/settings/components/settingsBreadcrumb/types';
 import {SettingsHeader} from 'sentry/views/settings/components/settingsHeader';
 import {SettingsSearch} from 'sentry/views/settings/components/settingsSearch';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 export default function SubscriptionSettingsLayout() {
   const location = useLocation();
@@ -29,6 +29,15 @@ export default function SubscriptionSettingsLayout() {
     }
   }
 
+  const feedbackOptions = {
+    formTitle: t('Give feedback'),
+    messagePlaceholder: t('How can we make the %s page better for you?', feedbackSource),
+    tags: {
+      ['feedback.source']: feedbackSource,
+      ['feedback.owner']: 'billing',
+    },
+  };
+
   return (
     <SettingsColumn direction="column" flex={1} minWidth="0">
       <StyledSettingsHeader>
@@ -37,36 +46,10 @@ export default function SubscriptionSettingsLayout() {
           <Flex align="center" gap="xl">
             {hasPageFrameFeature ? (
               <TopBar.Slot name="feedback">
-                <FeedbackButton
-                  feedbackOptions={{
-                    formTitle: t('Give feedback'),
-                    messagePlaceholder: t(
-                      'How can we make the %s page better for you?',
-                      feedbackSource
-                    ),
-                    tags: {
-                      ['feedback.source']: feedbackSource,
-                      ['feedback.owner']: 'billing',
-                    },
-                  }}
-                >
-                  {null}
-                </FeedbackButton>
+                <FeedbackButton feedbackOptions={feedbackOptions}>{null}</FeedbackButton>
               </TopBar.Slot>
             ) : (
-              <FeedbackButton
-                feedbackOptions={{
-                  formTitle: t('Give feedback'),
-                  messagePlaceholder: t(
-                    'How can we make the %s page better for you?',
-                    feedbackSource
-                  ),
-                  tags: {
-                    ['feedback.source']: feedbackSource,
-                    ['feedback.owner']: 'billing',
-                  },
-                }}
-              />
+              <FeedbackButton feedbackOptions={feedbackOptions} />
             )}
             <SettingsSearch />
           </Flex>

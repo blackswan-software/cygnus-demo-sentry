@@ -75,6 +75,14 @@ function useTraceSummary(traceSlug: string) {
   };
 }
 
+const traceSummaryFeedbackOptions = {
+  messagePlaceholder: t('How can we make the trace summary better for you?'),
+  tags: {
+    ['feedback.source']: 'trace-summary',
+    ['feedback.owner']: 'ml-ai',
+  },
+};
+
 export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
   const traceContent = useTraceSummary(traceSlug);
   const {feedback} = useFeedbackSDKIntegration();
@@ -92,31 +100,12 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
         <div>{t('Error loading Trace Summary')}</div>
         {hasPageFrameFeature ? (
           <TopBar.Slot name="feedback">
-            <FeedbackButton
-              feedbackOptions={{
-                messagePlaceholder: t(
-                  'How can we make the trace summary better for you?'
-                ),
-                tags: {
-                  ['feedback.source']: 'trace-summary',
-                  ['feedback.owner']: 'ml-ai',
-                },
-              }}
-            >
+            <FeedbackButton feedbackOptions={traceSummaryFeedbackOptions}>
               {null}
             </FeedbackButton>
           </TopBar.Slot>
         ) : (
-          <FeedbackButton
-            size="xs"
-            feedbackOptions={{
-              messagePlaceholder: t('How can we make the trace summary better for you?'),
-              tags: {
-                ['feedback.source']: 'trace-summary',
-                ['feedback.owner']: 'ml-ai',
-              },
-            }}
-          />
+          <FeedbackButton size="xs" feedbackOptions={traceSummaryFeedbackOptions} />
         )}
       </Flex>
     );
@@ -184,33 +173,12 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
         <Flex justify="end" marginTop="xl">
           {hasPageFrameFeature ? (
             <TopBar.Slot name="feedback">
-              <FeedbackButton
-                size="xs"
-                feedbackOptions={{
-                  messagePlaceholder: t(
-                    'How can we make the trace summary better for you?'
-                  ),
-                  tags: {
-                    ['feedback.source']: 'trace-summary',
-                    ['feedback.owner']: 'ml-ai',
-                  },
-                }}
-              >
+              <FeedbackButton feedbackOptions={traceSummaryFeedbackOptions}>
                 {null}
               </FeedbackButton>
             </TopBar.Slot>
           ) : (
-            <FeedbackButton
-              feedbackOptions={{
-                messagePlaceholder: t(
-                  'How can we make the trace summary better for you?'
-                ),
-                tags: {
-                  ['feedback.source']: 'trace-summary',
-                  ['feedback.owner']: 'ml-ai',
-                },
-              }}
-            />
+            <FeedbackButton feedbackOptions={traceSummaryFeedbackOptions} />
           )}
         </Flex>
       )}

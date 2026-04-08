@@ -71,6 +71,14 @@ export default function MetricsContent() {
   );
 }
 
+const metricsFeedbackOptions = {
+  messagePlaceholder: t('How can we make metrics work better for you?'),
+  tags: {
+    ['feedback.source']: 'metrics-listing',
+    ['feedback.owner']: 'performance',
+  },
+};
+
 function MetricsHeader() {
   const location = useLocation();
   const pageId = getIdFromLocation(location, ID_KEY);
@@ -102,28 +110,10 @@ function MetricsHeader() {
       <Layout.HeaderActions>
         {hasPageFrameFeature ? (
           <TopBar.Slot name="feedback">
-            <FeedbackButton
-              feedbackOptions={{
-                messagePlaceholder: t('How can we make metrics work better for you?'),
-                tags: {
-                  ['feedback.source']: 'metrics-listing',
-                  ['feedback.owner']: 'performance',
-                },
-              }}
-            >
-              {null}
-            </FeedbackButton>
+            <FeedbackButton feedbackOptions={metricsFeedbackOptions}>{null}</FeedbackButton>
           </TopBar.Slot>
         ) : (
-          <FeedbackButton
-            feedbackOptions={{
-              messagePlaceholder: t('How can we make metrics work better for you?'),
-              tags: {
-                ['feedback.source']: 'metrics-listing',
-                ['feedback.owner']: 'performance',
-              },
-            }}
-          />
+          <FeedbackButton feedbackOptions={metricsFeedbackOptions} />
         )}
       </Layout.HeaderActions>
     </Layout.Header>

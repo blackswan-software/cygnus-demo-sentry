@@ -41,6 +41,14 @@ export interface TraceMetadataHeaderProps {
   project?: Project;
 }
 
+const traceViewFeedbackOptions = {
+  messagePlaceholder: t('How can we make the trace view better for you?'),
+  tags: {
+    ['feedback.source']: 'trace-view',
+    ['feedback.owner']: 'performance',
+  },
+};
+
 export function TraceMetaDataHeader(props: TraceMetadataHeaderProps) {
   const location = useLocation();
   const {view} = useDomainViewFilters();
@@ -94,31 +102,12 @@ export function TraceMetaDataHeader(props: TraceMetadataHeaderProps) {
           <Grid flow="column" align="center" gap="md">
             {hasPageFrameFeature ? (
               <TopBar.Slot name="feedback">
-                <FeedbackButton
-                  feedbackOptions={{
-                    messagePlaceholder: t(
-                      'How can we make the trace view better for you?'
-                    ),
-                    tags: {
-                      ['feedback.source']: 'trace-view',
-                      ['feedback.owner']: 'performance',
-                    },
-                  }}
-                >
+                <FeedbackButton feedbackOptions={traceViewFeedbackOptions}>
                   {null}
                 </FeedbackButton>
               </TopBar.Slot>
             ) : (
-              <FeedbackButton
-                size="xs"
-                feedbackOptions={{
-                  messagePlaceholder: t('How can we make the trace view better for you?'),
-                  tags: {
-                    ['feedback.source']: 'trace-view',
-                    ['feedback.owner']: 'performance',
-                  },
-                }}
-              />
+              <FeedbackButton size="xs" feedbackOptions={traceViewFeedbackOptions} />
             )}
           </Grid>
         </TraceHeaderComponents.HeaderRow>

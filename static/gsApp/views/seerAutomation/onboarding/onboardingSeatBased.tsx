@@ -25,6 +25,14 @@ import {SeerOnboardingProvider} from './hooks/seerOnboardingContext';
 import {StepsManager} from './stepsManager';
 import {Steps} from './types';
 
+const seerFeedbackOptions = {
+  messagePlaceholder: t('How can we make Seer better for you?'),
+  tags: {
+    ['feedback.source']: 'seer-settings-wizard',
+    ['feedback.owner']: 'coding-workflows',
+  },
+};
+
 export function SeerOnboardingSeatBased() {
   const organization = useOrganization();
   const canWrite = useCanWriteSettings();
@@ -86,29 +94,10 @@ export function SeerOnboardingSeatBased() {
         action={
           hasPageFrameFeature ? (
             <TopBar.Slot name="feedback">
-              <FeedbackButton
-                feedbackOptions={{
-                  messagePlaceholder: t('How can we make Seer better for you?'),
-                  tags: {
-                    ['feedback.source']: 'seer-settings-wizard',
-                    ['feedback.owner']: 'coding-workflows',
-                  },
-                }}
-              >
-                {null}
-              </FeedbackButton>
+              <FeedbackButton feedbackOptions={seerFeedbackOptions}>{null}</FeedbackButton>
             </TopBar.Slot>
           ) : (
-            <FeedbackButton
-              size="md"
-              feedbackOptions={{
-                messagePlaceholder: t('How can we make Seer better for you?'),
-                tags: {
-                  ['feedback.source']: 'seer-settings-wizard',
-                  ['feedback.owner']: 'coding-workflows',
-                },
-              }}
-            />
+            <FeedbackButton size="md" feedbackOptions={seerFeedbackOptions} />
           )
         }
       />
