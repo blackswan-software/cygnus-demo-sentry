@@ -7,6 +7,7 @@ import {Stack} from '@sentry/scraps/layout';
 import {Link} from '@sentry/scraps/link';
 import {Text} from '@sentry/scraps/text';
 
+import {DisabledTraceLink} from 'sentry/components/explore/disabledTraceLink';
 import {normalizeDateTimeParams} from 'sentry/components/pageFilters/parse';
 import {usePageFilters} from 'sentry/components/pageFilters/usePageFilters';
 import {SearchBar as BaseSearchBar} from 'sentry/components/searchBar';
@@ -22,6 +23,7 @@ import {generateProfileFlamechartRoute} from 'sentry/utils/profiling/routes';
 import {ellipsize} from 'sentry/utils/string/ellipsize';
 import {looksLikeAJSONArray} from 'sentry/utils/string/looksLikeAJSONArray';
 import {looksLikeAJSONObject} from 'sentry/utils/string/looksLikeAJSONObject';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {AssertionFailureTree} from 'sentry/views/alerts/rules/uptime/assertions/assertionFailure/assertionFailureTree';
 import type {AttributesFieldRendererProps} from 'sentry/views/explore/components/traceItemAttributes/attributesTree';
@@ -138,6 +140,12 @@ export function Attributes({
     },
     [FieldKey.TRACE]: (props: CustomRenderersProps) => {
       const traceSlug = String(props.item.value);
+      const isOld = isPartialSpanOrTraceData(node.value.start_timestamp);
+
+      if (isOld) {
+        return <DisabledTraceLink type="trace">{props.item.value}</DisabledTraceLink>;
+      }
+
       const target = getTraceDetailsUrl({
         organization,
         traceSlug,

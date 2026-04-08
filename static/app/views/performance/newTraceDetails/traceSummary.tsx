@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import {Flex} from '@sentry/scraps/layout';
 import {Link} from '@sentry/scraps/link';
 
+import {DisabledTraceLink} from 'sentry/components/explore/disabledTraceLink';
 import {FeedbackButton} from 'sentry/components/feedbackButton/feedbackButton';
 import {useFeedbackSDKIntegration} from 'sentry/components/feedbackButton/useFeedbackSDKIntegration';
 import {LoadingIndicator} from 'sentry/components/loadingIndicator';
@@ -15,6 +16,7 @@ import {getApiUrl} from 'sentry/utils/api/getApiUrl';
 import {MarkedText} from 'sentry/utils/marked/markedText';
 import type {ApiQueryKey} from 'sentry/utils/queryClient';
 import {useApiQuery, useQueryClient} from 'sentry/utils/queryClient';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {getTraceDetailsUrl} from 'sentry/views/performance/traceDetails/utils';
@@ -78,6 +80,8 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
   const {feedback} = useFeedbackSDKIntegration();
   const organization = useOrganization();
   const location = useLocation();
+  const isOld =
+    !!location.query.timestamp && isPartialSpanOrTraceData(location.query.timestamp);
 
   if (traceContent.isPending) {
     return <LoadingIndicator />;
@@ -140,17 +144,21 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
         <StyledList>
           {investigations.map((span, idx) => (
             <StyledListItem key={span.spanId || idx}>
-              <StyledLink
-                to={getTraceDetailsUrl({
-                  organization,
-                  traceSlug,
-                  location,
-                  spanId: span.spanId,
-                  dateSelection: {},
-                })}
-              >
-                {span.spanOp}
-              </StyledLink>
+              {isOld ? (
+                <DisabledTraceLink type="span">{span.spanOp}</DisabledTraceLink>
+              ) : (
+                <StyledLink
+                  to={getTraceDetailsUrl({
+                    organization,
+                    traceSlug,
+                    location,
+                    spanId: span.spanId,
+                    dateSelection: {},
+                  })}
+                >
+                  {span.spanOp}
+                </StyledLink>
+              )}
               - {span.explanation}
             </StyledListItem>
           ))}

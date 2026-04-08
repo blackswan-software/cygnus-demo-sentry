@@ -1,5 +1,6 @@
 import type {Location} from 'history';
 
+import {DisabledTraceLink} from 'sentry/components/explore/disabledTraceLink';
 import {t} from 'sentry/locale';
 import type {Organization} from 'sentry/types/organization';
 import {
@@ -8,6 +9,7 @@ import {
 } from 'sentry/utils/discover/fieldRenderers';
 import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import type {Theme} from 'sentry/utils/theme';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {
   AttributesTree,
@@ -79,8 +81,16 @@ export function TraceSpanLinks({
   const linksAsAttributes: TraceItemResponseAttribute[] = links.flatMap(
     (link, linkIndex) => {
       const prefix = `span_link_${linkIndex + 1}`;
+      const isCrossTraceLink = !tree || link.traceId !== traceId;
+      const isOld = isPartialSpanOrTraceData(node.value.start_timestamp);
 
       customRenderers[`${prefix}.trace_id`] = () => {
+        const traceLabel = traceIdRenderer({trace: link.traceId}, renderBaggage);
+
+        if (isOld && isCrossTraceLink) {
+          return <DisabledTraceLink type="trace">{traceLabel}</DisabledTraceLink>;
+        }
+
         const traceTarget = generateLinkToEventInTraceView({
           organization,
           location,
@@ -94,18 +104,24 @@ export function TraceSpanLinks({
             onClick={() => {
               // If we are outside the traceview, or the link is to a different trace, we navigate to the trace
               // otherwise we do nothing
-              if (!tree || link.traceId !== traceId) {
+              if (isCrossTraceLink) {
                 closeSpanDetailsDrawer();
                 navigate(traceTarget);
               }
             }}
           >
-            {traceIdRenderer({trace: link.traceId}, renderBaggage)}
+            {traceLabel}
           </a>
         );
       };
 
       customRenderers[`${prefix}.span_id`] = () => {
+        const spanLabel = spanIdRenderer({span_id: link.itemId}, renderBaggage);
+
+        if (isOld && isCrossTraceLink) {
+          return <DisabledTraceLink type="span">{spanLabel}</DisabledTraceLink>;
+        }
+
         const spanTarget = generateLinkToEventInTraceView({
           organization,
           location,
@@ -119,7 +135,7 @@ export function TraceSpanLinks({
           <a
             onClick={() => {
               // If we are outside the trace waterfall, or the link is to a span in a different trace, we navigate
-              if (!tree || link.traceId !== traceId) {
+              if (isCrossTraceLink) {
                 closeSpanDetailsDrawer();
                 navigate(spanTarget);
                 return;
@@ -132,7 +148,7 @@ export function TraceSpanLinks({
               }
             }}
           >
-            {spanIdRenderer({span_id: link.itemId}, renderBaggage)}
+            {spanLabel}
           </a>
         );
       };
