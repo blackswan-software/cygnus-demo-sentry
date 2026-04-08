@@ -25,6 +25,19 @@ export function NoOrganizationDropdown() {
     ? localizeDomain(ConfigStore.get('links').sentryUrl) + '/organizations/new/'
     : '/organizations/new/';
 
+  const items = configFeatures.has('organizations:create')
+    ? [
+        {
+          key: 'create-organization',
+          leadingItems: <IconAdd />,
+          label: t('Create a new organization'),
+          ...(configFeatures.has('system:multi-region')
+            ? {externalHref: createOrgUrl}
+            : {to: createOrgUrl}),
+        },
+      ]
+    : [];
+
   return (
     <DropdownMenu
       usePortal
@@ -44,17 +57,7 @@ export function NoOrganizationDropdown() {
       )}
       position="right-start"
       minMenuWidth={200}
-      items={[
-        {
-          key: 'create-organization',
-          leadingItems: <IconAdd />,
-          label: t('Create a new organization'),
-          ...(configFeatures.has('system:multi-region')
-            ? {externalHref: createOrgUrl}
-            : {to: createOrgUrl}),
-          hidden: !configFeatures.has('organizations:create'),
-        },
-      ]}
+      items={items}
     />
   );
 }
