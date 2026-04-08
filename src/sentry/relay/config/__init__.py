@@ -62,7 +62,6 @@ EXPOSABLE_FEATURES = [
     "organizations:session-replay-recording-scrubbing",
     "organizations:session-replay-video-disabled",
     "organizations:session-replay",
-    "organizations:standalone-span-ingestion",
     "projects:discard-transaction",
     "projects:span-metrics-extraction",
     "projects:span-metrics-extraction-addons",
