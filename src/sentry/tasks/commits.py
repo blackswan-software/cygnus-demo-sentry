@@ -33,7 +33,7 @@ from sentry.users.services.user import RpcUser
 from sentry.users.services.user.service import user_service
 from sentry.utils.cache import cache
 from sentry.utils.email import MessageBuilder
-from sentry.utils.hashlib import md5_text
+from sentry.utils.hashlib import hash_values
 from sentry.utils.http import absolute_uri
 
 logger = logging.getLogger(__name__)
@@ -94,9 +94,10 @@ def get_github_compare_commits_cache_key(
     start_sha: str | None,
     end_sha: str,
 ) -> str:
-    digest = md5_text(
-        organization_id, repository_id, provider or "", start_sha or "", end_sha
-    ).hexdigest()
+    digest = hash_values(
+        [organization_id, repository_id, provider or "", start_sha or "", end_sha],
+        seed="fetch-commits:compare-commits",
+    )
     return f"fetch-commits:compare-commits:v1:{digest}"
 
 

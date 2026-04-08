@@ -13,7 +13,11 @@ from sentry.models.release import Release
 from sentry.models.releaseheadcommit import ReleaseHeadCommit
 from sentry.models.repository import Repository
 from sentry.silo.base import SiloMode
-from sentry.tasks.commits import fetch_commits, handle_invalid_identity
+from sentry.tasks.commits import (
+    fetch_commits,
+    get_github_compare_commits_cache_key,
+    handle_invalid_identity,
+)
 from sentry.testutils.asserts import assert_slo_metric
 from sentry.testutils.cases import TestCase
 from sentry.testutils.silo import assume_test_silo_mode, control_silo_test
@@ -29,6 +33,14 @@ class FetchCommitsTest(TestCase):
             {"id": "58de626b7c7cfb8e77efb4273b1a3df4123e6345", "repository": repo_name},
             {"id": end_sha, "repository": repo_name},
         ]
+
+    def test_github_compare_commits_cache_key_avoids_ambiguous_id_collisions(
+        self, mock_record: MagicMock
+    ) -> None:
+        key_one = get_github_compare_commits_cache_key(1, 23, "integrations:github", "a", "b")
+        key_two = get_github_compare_commits_cache_key(12, 3, "integrations:github", "a", "b")
+
+        assert key_one != key_two
 
     def _test_simple_action(self, user, org):
         repo = Repository.objects.create(name="example", provider="dummy", organization_id=org.id)
