@@ -21,7 +21,7 @@ import {ResolveActions} from 'sentry/components/actions/resolve';
 import {renderArchiveReason} from 'sentry/components/archivedBox';
 import {openConfirmModal} from 'sentry/components/confirm';
 import {DropdownMenu} from 'sentry/components/dropdownMenu';
-import {ResolutionReason} from 'sentry/components/resolutionBox';
+import {ResolutionReason} from 'sentry/components/resolutionReason';
 import {
   IconCheckmark,
   IconEllipsis,
