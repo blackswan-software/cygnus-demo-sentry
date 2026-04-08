@@ -225,7 +225,7 @@ class ExploreSavedQuerySerializer(serializers.Serializer):
                     )
 
                 # the metrics field is only required for non-equation queries
-                has_equations = any(
+                has_equations = all(
                     is_equation(y_axis)
                     for aggregate_field in q.get("aggregateField") or []
                     for y_axis in aggregate_field.get("yAxes") or []
