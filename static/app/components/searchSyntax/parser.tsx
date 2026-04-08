@@ -1513,14 +1513,9 @@ export const defaultConfig: SearchConfig = {
   },
 };
 
-interface SearchParseConfig {
-  [i: string]: any;
-  config: SearchConfig;
-}
-
-function tryParseSearch(query: string, config: SearchParseConfig): ParseResult | null {
+function tryParseSearch(...args: Parameters<typeof parse>): ParseResult | null {
   try {
-    return parse(query, config);
+    return parse(...args);
   } catch (e: any) {
     Sentry.logger.error('Search syntax parse error', {
       message: e.message?.slice(-100),
