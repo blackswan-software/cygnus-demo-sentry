@@ -373,7 +373,7 @@ describe('SentryAppExternalInstallation', () => {
 
       render(<SentryAppExternalInstallation />, {
         initialRouterConfig: {
-          route: `/sentry-apps/:sentryAppSlug/external-install/`,
+          route: '/sentry-apps/:sentryAppSlug/external-install/',
           location: {
             pathname: `/sentry-apps/${sentryApp.slug}/external-install/`,
           },
