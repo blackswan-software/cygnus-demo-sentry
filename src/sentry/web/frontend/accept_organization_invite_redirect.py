@@ -14,14 +14,14 @@ from sentry.web.frontend.react_page import GenericReactPageView
 class AcceptOrganizationInviteRedirectView(GenericReactPageView):
     auth_required = False
 
-    def handle(self, request: HttpRequest, member_id: int, token: str, **kwargs) -> HttpResponse:
+    def handle(self, request: HttpRequest, member_id: str, token: str, **kwargs) -> HttpResponse:
         if request.user.is_authenticated and not is_demo_user(request.user):
             user_id: int | None = request.user.id
         else:
             user_id = None
 
         invite_context = get_invite_state(
-            member_id=member_id,
+            member_id=int(member_id),
             organization_id_or_slug=None,
             user_id=user_id,
             request=request,
