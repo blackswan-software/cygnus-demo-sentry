@@ -8,6 +8,10 @@ import {LoadingError} from 'sentry/components/loadingError';
 import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {normalizeDateTimeParams} from 'sentry/components/pageFilters/parse';
 import {
+  addInstallableFilter,
+  removeInstallableFilter,
+} from 'sentry/components/preprod/installableQueryUtils';
+import {
   getPreprodBuildsDisplay,
   PreprodBuildsDisplay,
 } from 'sentry/components/preprod/preprodBuildsDisplay';
@@ -93,12 +97,23 @@ export function MobileBuilds({organization, selectedProjectIds}: Props) {
 
   const handleDisplayChange = useCallback(
     (display: PreprodBuildsDisplay) => {
+      const currentQuery = (searchQuery ?? '').trim();
+      const updatedQuery =
+        display === PreprodBuildsDisplay.DISTRIBUTION
+          ? addInstallableFilter(currentQuery)
+          : removeInstallableFilter(currentQuery);
+
       navigate({
         ...location,
-        query: {...location.query, cursor: undefined, display},
+        query: {
+          ...location.query,
+          cursor: undefined,
+          display,
+          query: updatedQuery || undefined,
+        },
       });
     },
-    [location, navigate]
+    [location, navigate, searchQuery]
   );
 
   const builds = buildsResponse?.json ?? [];
