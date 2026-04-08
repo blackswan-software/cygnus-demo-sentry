@@ -34,7 +34,6 @@ import {MetricToolbar} from 'sentry/views/explore/metrics/metricToolbar';
 import {MetricSaveAs} from 'sentry/views/explore/metrics/metricToolbar/metricSaveAs';
 import {
   MultiMetricsQueryParamsProvider,
-  useAddEquationQuery,
   useAddMetricQuery,
   useMultiMetricsQueryParams,
 } from 'sentry/views/explore/metrics/multiMetricsQueryParams';
@@ -121,17 +120,19 @@ function MetricsQueryBuilderSection({
   const organization = useOrganization();
   const metricQueries = useMultiMetricsQueryParams();
   const addMetricQuery = useAddMetricQuery();
-  const addEquationQuery = useAddEquationQuery();
+  const addEquationQuery = useAddMetricQuery({type: 'equation'});
   const hasEquations = useHasMetricEquations();
   const references = useMemo(() => {
     return new Set(
       metricQueries
-        .filter(metricQuery =>
+        .map((metricQuery, queryIndex) => ({metricQuery, queryIndex}))
+        .filter(({metricQuery}) =>
           metricQuery.queryParams.visualizes.some(isVisualizeFunction)
         )
-        .map((_metricQuery, index) => getVisualizeLabel(index))
+        .map(({queryIndex}) => getVisualizeLabel(queryIndex))
     );
   }, [metricQueries]);
+
   if (canUseMetricsUIRefresh(organization)) {
     return (
       <ExploreControlSection expanded={controlSectionExpanded ?? true}>

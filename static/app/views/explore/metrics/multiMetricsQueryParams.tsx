@@ -186,10 +186,13 @@ export function useMultiMetricsQueryParams() {
   return metricQueries;
 }
 
-export function useAddMetricQuery() {
+export function useAddMetricQuery({
+  type = 'aggregate',
+}: {type?: 'aggregate' | 'equation'} = {}) {
   const location = useLocation();
   const navigate = useNavigate();
-  const {metricQueries} = useMultiMetricsQueryParamsContext();
+  const {metricQueries}: {metricQueries: BaseMetricQuery[]} =
+    useMultiMetricsQueryParamsContext();
   const hasEquations = useHasMetricEquations();
 
   return function () {
@@ -197,40 +200,16 @@ export function useAddMetricQuery() {
     const equationStart = metricQueries.findIndex(metricQuery =>
       isVisualizeEquation(metricQuery.queryParams.visualizes[0]!)
     );
-
-    let newMetricQueries: BaseMetricQuery[] = [];
-    if (hasEquations && equationStart !== -1) {
-      // new metric queries need to be added before the first equation to
-      // maintain the order of references
-      newMetricQueries = [
-        ...metricQueries.slice(0, equationStart),
-        defaultMetricQuery(),
-        ...metricQueries.slice(equationStart),
-      ];
-    } else {
-      newMetricQueries = [
-        ...metricQueries,
-        metricQueries[metricQueries.length - 1] ?? defaultMetricQuery(),
-      ];
-    }
-
+    const insertAt =
+      hasEquations && equationStart !== -1 && type === 'aggregate'
+        ? equationStart
+        : metricQueries.length;
+    const newQuery =
+      type === 'equation'
+        ? defaultMetricQuery({type})
+        : (metricQueries.at(insertAt - 1) ?? defaultMetricQuery({type}));
+    const newMetricQueries = metricQueries.toSpliced(insertAt, 0, newQuery);
     target.query.metric = newMetricQueries
-      .map((metricQuery: BaseMetricQuery) => encodeMetricQueryParams(metricQuery))
-      .filter(defined)
-      .filter(Boolean);
-
-    navigate(target);
-  };
-}
-
-export function useAddEquationQuery() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const {metricQueries} = useMultiMetricsQueryParamsContext();
-
-  return function () {
-    const target = {...location, query: {...location.query}};
-    target.query.metric = [...metricQueries, defaultMetricQuery({equation: true})]
       .map((metricQuery: BaseMetricQuery) => encodeMetricQueryParams(metricQuery))
       .filter(defined)
       .filter(Boolean);

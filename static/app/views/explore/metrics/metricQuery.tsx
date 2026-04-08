@@ -105,8 +105,8 @@ export function encodeMetricQueryParams(metricQuery: BaseMetricQuery): string {
 }
 
 export function defaultMetricQuery({
-  equation,
-}: {equation?: boolean} = {}): BaseMetricQuery {
+  type = 'aggregate',
+}: {type?: 'aggregate' | 'equation'} = {}): BaseMetricQuery {
   return {
     metric: {name: '', type: ''},
     queryParams: new ReadableQueryParams({
@@ -119,9 +119,10 @@ export function defaultMetricQuery({
       sortBys: defaultSortBys(defaultFields()),
 
       aggregateCursor: '',
-      aggregateFields: equation ? [defaultAggregateEquation()] : defaultAggregateFields(),
+      aggregateFields:
+        type === 'equation' ? [defaultAggregateEquation()] : defaultAggregateFields(),
       aggregateSortBys: defaultAggregateSortBys(
-        equation ? [defaultAggregateEquation()] : defaultAggregateFields()
+        type === 'equation' ? [defaultAggregateEquation()] : defaultAggregateFields()
       ),
     }),
   };

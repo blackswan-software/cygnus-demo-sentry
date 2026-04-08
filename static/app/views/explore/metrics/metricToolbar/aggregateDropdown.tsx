@@ -20,10 +20,7 @@ import {
   useSetMetricVisualizes,
 } from 'sentry/views/explore/metrics/metricsQueryParams';
 import {updateVisualizeYAxis} from 'sentry/views/explore/metrics/utils';
-import {
-  isVisualizeFunction,
-  VisualizeFunction,
-} from 'sentry/views/explore/queryParams/visualize';
+import {isVisualizeFunction} from 'sentry/views/explore/queryParams/visualize';
 
 const MULTI_SELECT_GROUP_KEYS = new Set(['percentiles', 'stats']);
 
@@ -36,6 +33,7 @@ export function AggregateDropdown({traceMetric}: {traceMetric: TraceMetric}) {
     return null;
   }
 
+  const narrowedVisualize = visualize;
   const groups = GROUPED_OPTIONS_BY_TYPE[traceMetric.type] ?? [];
   const selectedNames = new Set(
     visualizes.map(v => (isVisualizeFunction(v) ? (v.parsedFunction?.name ?? '') : ''))
@@ -45,7 +43,7 @@ export function AggregateDropdown({traceMetric}: {traceMetric: TraceMetric}) {
     if (selectedOptions.length === 0) {
       setMetricVisualizes([
         updateVisualizeYAxis(
-          visualize as VisualizeFunction,
+          narrowedVisualize,
           DEFAULT_YAXIS_BY_TYPE[traceMetric.type]!,
           traceMetric
         ),
@@ -53,7 +51,7 @@ export function AggregateDropdown({traceMetric}: {traceMetric: TraceMetric}) {
     } else {
       setMetricVisualizes(
         selectedOptions.map(o =>
-          updateVisualizeYAxis(visualize as VisualizeFunction, o.value, traceMetric)
+          updateVisualizeYAxis(narrowedVisualize, o.value, traceMetric)
         )
       );
     }
