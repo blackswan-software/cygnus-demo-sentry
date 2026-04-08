@@ -177,6 +177,9 @@ def launch_coding_agents(
             failures.append(failure)
             continue
 
+        if user_id is not None:
+            coding_agent_state.user_id = user_id
+
         states_to_store.append(coding_agent_state)
         successes.append(
             {

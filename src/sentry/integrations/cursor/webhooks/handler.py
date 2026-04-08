@@ -22,6 +22,7 @@ from sentry.api.base import Endpoint, cell_silo_endpoint
 from sentry.integrations.cursor.integration import CursorAgentIntegration
 from sentry.integrations.services.integration import integration_service
 from sentry.integrations.utils.webhook_viewer_context import webhook_viewer_context
+from sentry.seer.autofix.coding_agent import attempt_assign_coding_agent_pr
 from sentry.seer.autofix.utils import (
     CodingAgentResult,
     CodingAgentStatus,
@@ -60,7 +61,7 @@ class CursorWebhookEndpoint(Endpoint):
             raise PermissionDenied("Invalid signature")
 
         with webhook_viewer_context(organization_id):
-            self._process_webhook(payload)
+            self._process_webhook(payload, organization_id)
         logger.info("cursor_webhook.success", extra={"event_type": event_type})
         return self.respond(status=204)
 
@@ -128,23 +129,20 @@ class CursorWebhookEndpoint(Endpoint):
 
         return is_valid
 
-    def _process_webhook(self, payload: dict[str, Any]) -> None:
+    def _process_webhook(self, payload: dict[str, Any], organization_id: int) -> None:
         """Process webhook payload based on event type."""
         event_type = payload.get("event", "unknown")
 
-        handlers = {
-            "unknown": self._handle_unknown_event,
-            "statusChange": self._handle_status_change,
-        }
-
-        handler = handlers.get(event_type, self._handle_unknown_event)
-        handler(payload)
+        if event_type == "statusChange":
+            self._handle_status_change(payload, organization_id)
+        else:
+            self._handle_unknown_event(payload)
 
     def _handle_unknown_event(self, payload: dict[str, Any]) -> None:
         """Handle unknown event types."""
         logger.warning("cursor_webhook.unknown_event", extra=payload)
 
-    def _handle_status_change(self, payload: dict[str, Any]) -> None:
+    def _handle_status_change(self, payload: dict[str, Any], organization_id: int) -> None:
         """Handle status change events."""
         agent_id = payload.get("id")
         cursor_status = payload.get("status")
@@ -225,6 +223,17 @@ class CursorWebhookEndpoint(Endpoint):
             agent_url=agent_url,
             result=result,
         )
+
+        if status == CodingAgentStatus.COMPLETED and pr_url and agent_id:
+            from django.core.cache import cache
+
+            cached_user_id = cache.get(f"coding_agent_user:{agent_id}")
+            if cached_user_id:
+                attempt_assign_coding_agent_pr(
+                    user_id=cached_user_id,
+                    organization_id=organization_id,
+                    pr_url=pr_url,
+                )
 
     def _update_coding_agent_status(
         self,

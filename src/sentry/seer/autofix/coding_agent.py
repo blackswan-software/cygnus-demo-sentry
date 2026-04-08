@@ -116,6 +116,18 @@ def store_coding_agent_states_to_seer(
     if response.status >= 400:
         raise SeerApiError(response.data.decode("utf-8"), response.status)
 
+    # Cache agent_id → user_id so the Cursor webhook handler (which only
+    # receives agent_id) can look up the triggering user for PR assignment.
+    from django.core.cache import cache
+
+    for state in coding_agent_states:
+        if state.user_id is not None:
+            cache.set(
+                f"coding_agent_user:{state.id}",
+                state.user_id,
+                timeout=60 * 60 * 24 * 7,  # 7 days
+            )
+
     logger.info(
         "coding_agent.states_stored_to_seer",
         extra={
@@ -124,6 +136,103 @@ def store_coding_agent_states_to_seer(
             "num_states": len(coding_agent_states),
         },
     )
+
+
+def attempt_assign_coding_agent_pr(
+    user_id: int,
+    organization_id: int,
+    pr_url: str,
+) -> None:
+    """
+    Best-effort assignment of a coding-agent-created PR to the Sentry user who
+    triggered the coding changes.  Resolves the user's GitHub username via
+    ExternalActor and calls the GitHub Issues API to set the assignee.
+
+    All errors are logged and swallowed so this never interrupts the main flow.
+    """
+    from django.core.cache import cache
+
+    pr_match = re.match(r"https://github\.com/([^/]+/[^/]+)/pull/(\d+)", pr_url)
+    if not pr_match:
+        return
+
+    # Deduplicate: polling can discover the same PR many times.
+    assign_cache_key = f"coding_agent_pr_assigned:{pr_url}"
+    if cache.get(assign_cache_key):
+        return
+
+    repo_full_name = pr_match.group(1)
+    pr_number = pr_match.group(2)
+
+    try:
+        from sentry.constants import ObjectStatus
+        from sentry.integrations.github.client import GitHubApiClient
+        from sentry.integrations.models.external_actor import ExternalActor
+        from sentry.integrations.types import ExternalProviders
+
+        integrations = integration_service.get_integrations(
+            organization_id=organization_id,
+            providers=["github"],
+            status=ObjectStatus.ACTIVE,
+        )
+        if not integrations:
+            logger.info(
+                "coding_agent.pr_assign.no_github_integration",
+                extra={"organization_id": organization_id},
+            )
+            return
+
+        github_integration = integrations[0]
+
+        org_integration = integration_service.get_organization_integration(
+            organization_id=organization_id,
+            integration_id=github_integration.id,
+        )
+        if not org_integration:
+            return
+
+        external_actor = ExternalActor.objects.filter(
+            provider=ExternalProviders.GITHUB.value,
+            user_id=user_id,
+            integration_id=github_integration.id,
+            organization_id=organization_id,
+        ).first()
+
+        if not external_actor:
+            logger.info(
+                "coding_agent.pr_assign.no_github_identity",
+                extra={"user_id": user_id, "organization_id": organization_id},
+            )
+            return
+
+        github_username = external_actor.external_name.lstrip("@").lower()
+
+        client = GitHubApiClient(
+            integration=github_integration,
+            org_integration_id=org_integration.id,
+        )
+        client.update_issue_assignees(repo_full_name, pr_number, [github_username])
+
+        cache.set(assign_cache_key, True, timeout=60 * 60 * 24 * 7)
+
+        logger.info(
+            "coding_agent.pr_assigned",
+            extra={
+                "user_id": user_id,
+                "organization_id": organization_id,
+                "pr_url": pr_url,
+                "github_username": github_username,
+            },
+        )
+    except Exception:
+        logger.exception(
+            "coding_agent.pr_assign_error",
+            extra={
+                "user_id": user_id,
+                "organization_id": organization_id,
+                "pr_url": pr_url,
+            },
+        )
 
 
 def _validate_and_get_integration(organization, integration_id: int):
@@ -220,6 +329,7 @@ def _launch_agents_for_repos(
     client: CodingAgentClient | None = None,
     webhook_url: str = "",
     installation: CodingAgentIntegration | None = None,
+    user_id: int | None = None,
 ) -> dict[str, list]:
     """
     Launch coding agents for all repositories in the solution.
@@ -387,6 +497,9 @@ def _launch_agents_for_repos(
             failures.append(failure)
             continue
 
+        if user_id is not None:
+            coding_agent_state.user_id = user_id
+
         states_to_store.append(coding_agent_state)
 
         successes.append(
@@ -496,6 +609,7 @@ def launch_coding_agents_for_run(
         client=client,
         webhook_url=webhook_url,
         installation=installation,
+        user_id=user_id,
     )
 
     if not results["successes"] and not results["failures"]:
@@ -590,6 +704,15 @@ def poll_github_copilot_agents(
                         status=new_status,
                         result=result,
                     )
+
+                    if is_task_done and pr_url and agent_state.user_id:
+                        org_id = autofix_state.request.organization_id if autofix_state else None
+                        if org_id:
+                            attempt_assign_coding_agent_pr(
+                                user_id=agent_state.user_id,
+                                organization_id=org_id,
+                                pr_url=pr_url,
+                            )
 
                     logger.info(
                         "coding_agent.github_copilot.pr_update",
@@ -688,6 +811,18 @@ def poll_claude_agent(clients, agent_id, org_id, agent_state: CodingAgentState) 
                 agent_id=agent_id,
                 status=new_status,
                 result=result,
+            )
+
+        if (
+            new_status == CodingAgentStatus.COMPLETED
+            and result
+            and result.pr_url
+            and agent_state.user_id
+        ):
+            attempt_assign_coding_agent_pr(
+                user_id=agent_state.user_id,
+                organization_id=org_id,
+                pr_url=result.pr_url,
             )
 
         logger.info(
