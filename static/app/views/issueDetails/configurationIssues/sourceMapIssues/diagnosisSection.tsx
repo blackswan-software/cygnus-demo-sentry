@@ -150,10 +150,10 @@ interface DiagnosisSectionProps {
 }
 
 export function DiagnosisSection({sourceMapQuery}: DiagnosisSectionProps) {
-  const {data, isPending, isError} = sourceMapQuery;
+  const {data, isLoading, isError} = sourceMapQuery;
 
   function renderContent(): ReactNode {
-    if (isPending) {
+    if (isLoading) {
       return <LoadingIndicator mini />;
     }
     if (isError) {
