@@ -87,6 +87,7 @@ const TableContainer = styled('div')`
   margin-top: ${p => p.theme.space.xl};
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-height: 0;
 `;
 
