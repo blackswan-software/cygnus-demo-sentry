@@ -67,15 +67,25 @@ class JiraSentryInstalledWebhook(JiraWebhookBase):
                 return self.respond(
                     {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
                 )
-            except (InvalidSignatureError, ExpiredSignatureError):
-                lifecycle.record_halt(halt_reason="JWT contained invalid or expired signature")
+            except ExpiredSignatureError as e:
+                lifecycle.record_failure(e)
                 return self.respond(
-                    {"detail": "Invalid or expired signature"}, status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "Expired signature"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            except InvalidSignatureError:
+                lifecycle.record_halt(halt_reason="JWT contained invalid signature")
+                return self.respond(
+                    {"detail": "Invalid signature"}, status=status.HTTP_400_BAD_REQUEST
                 )
             except DecodeError:
                 lifecycle.record_halt(halt_reason="Could not decode JWT token")
                 return self.respond(
                     {"detail": "Could not decode JWT token"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            except Exception:
+                lifecycle.record_halt("JWT authentication failed")
+                return self.respond(
+                    {"detail": "JWT authentication failed"}, status=status.HTTP_400_BAD_REQUEST
                 )
 
             data = JiraIntegrationProvider().build_integration(state)
