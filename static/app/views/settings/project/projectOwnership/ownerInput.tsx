@@ -1,11 +1,15 @@
-import {Fragment, useState} from 'react';
 import styled from '@emotion/styled';
 
 import {Button} from '@sentry/scraps/button';
+import {defaultFormOptions, useScrapsForm} from '@sentry/scraps/form';
 import {Grid} from '@sentry/scraps/layout';
 import {TextArea} from '@sentry/scraps/textarea';
 
-import {addErrorMessage, addSuccessMessage} from 'sentry/actionCreators/indicator';
+import {
+  addErrorMessage,
+  addLoadingMessage,
+  addSuccessMessage,
+} from 'sentry/actionCreators/indicator';
 import {Panel} from 'sentry/components/panels/panel';
 import {PanelBody} from 'sentry/components/panels/panelBody';
 import {PanelHeader} from 'sentry/components/panels/panelHeader';
@@ -14,7 +18,6 @@ import {t} from 'sentry/locale';
 import type {IssueOwnership} from 'sentry/types/group';
 import type {Organization} from 'sentry/types/organization';
 import type {Project} from 'sentry/types/project';
-import {defined} from 'sentry/utils';
 import {trackIntegrationAnalytics} from 'sentry/utils/integrationUtil';
 import {fetchMutation, useMutation} from 'sentry/utils/queryClient';
 import type {RequestError} from 'sentry/utils/requestError/requestError';
@@ -57,23 +60,22 @@ export function OwnerInput({
   page,
   project,
 }: Props) {
-  const [text, setText] = useState<string | null>(null);
-
-  const mutation = useMutation<IssueOwnership, RequestError, string>({
-    mutationFn: (textToSave: string) =>
+  const mutation = useMutation<IssueOwnership, RequestError, {raw: string}>({
+    mutationFn: data =>
       fetchMutation({
         method: 'PUT',
         url: `/projects/${organization.slug}/${project.slug}/ownership/`,
-        data: {raw: textToSave},
+        data,
       }),
     onSuccess: (ownership, variables) => {
       addSuccessMessage(t('Updated issue ownership rules'));
+      form.reset({raw: ownership.raw ?? ''});
       onSave?.(ownership);
       trackIntegrationAnalytics('project_ownership.saved', {
         page,
         organization,
         net_change:
-          variables.split('\n').filter(x => x).length -
+          variables.raw.split('\n').filter(x => x).length -
           initialText.split('\n').filter(x => x).length,
       });
     },
@@ -98,23 +100,22 @@ export function OwnerInput({
     },
   });
 
-  const hasChanges = text !== null && text !== initialText;
-
-  const handleUpdateOwnership = () => {
-    mutation.mutate(text ?? initialText);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setText(e.target.value);
-  };
+  const form = useScrapsForm({
+    ...defaultFormOptions,
+    defaultValues: {raw: initialText},
+    onSubmit: ({value}) => {
+      addLoadingMessage();
+      return mutation.mutateAsync(value).catch(() => {});
+    },
+  });
 
   return (
-    <Fragment>
+    <form.AppForm form={form}>
       <div
         style={{position: 'relative'}}
         onKeyDown={e => {
           if (e.metaKey && e.key === 'Enter') {
-            handleUpdateOwnership();
+            form.handleSubmit();
           }
         }}
       >
@@ -129,24 +130,28 @@ export function OwnerInput({
             )}
           </PanelHeader>
           <PanelBody>
-            <StyledTextArea
-              aria-label={t('Ownership Rules')}
-              placeholder={
-                '#example usage\n' +
-                'path:src/example/pipeline/* person@sentry.io #infra\n' +
-                'module:com.module.name.example #sdks\n' +
-                'url:http://example.com/settings/* #product\n' +
-                'tags.sku_class:enterprise #enterprise'
-              }
-              monospace
-              onChange={handleChange}
-              disabled={disabled}
-              value={defined(text) ? text : initialText}
-              spellCheck="false"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-            />
+            <form.AppField name="raw">
+              {field => (
+                <StyledTextArea
+                  aria-label={t('Ownership Rules')}
+                  placeholder={
+                    '#example usage\n' +
+                    'path:src/example/pipeline/* person@sentry.io #infra\n' +
+                    'module:com.module.name.example #sdks\n' +
+                    'url:http://example.com/settings/* #product\n' +
+                    'tags.sku_class:enterprise #enterprise'
+                  }
+                  monospace
+                  onChange={e => field.handleChange(e.target.value)}
+                  disabled={disabled}
+                  value={field.state.value}
+                  spellCheck="false"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                />
+              )}
+            </form.AppField>
           </PanelBody>
         </Panel>
         <ActionBar>
@@ -157,18 +162,13 @@ export function OwnerInput({
             <Button type="button" size="sm" onClick={onCancel}>
               {t('Cancel')}
             </Button>
-            <Button
-              size="sm"
-              priority="primary"
-              onClick={handleUpdateOwnership}
-              disabled={disabled || !hasChanges}
-            >
+            <form.SubmitButton size="sm" disabled={disabled}>
               {t('Save')}
-            </Button>
+            </form.SubmitButton>
           </Grid>
         </ActionBar>
       </div>
-    </Fragment>
+    </form.AppForm>
   );
 }
 
