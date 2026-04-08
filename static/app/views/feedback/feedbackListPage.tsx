@@ -165,10 +165,15 @@ export default function FeedbackListPage() {
               <Flex gap="lg">
                 {hasPageFrameFeature ? (
                   <TopBar.Slot name="feedback">
-                    <FeedbackButton feedbackOptions={userFeedbackFeedbackOptions}>{null}</FeedbackButton>
+                    <FeedbackButton feedbackOptions={userFeedbackFeedbackOptions}>
+                      {null}
+                    </FeedbackButton>
                   </TopBar.Slot>
                 ) : (
-                  <FeedbackButton size="sm" feedbackOptions={userFeedbackFeedbackOptions} />
+                  <FeedbackButton
+                    size="sm"
+                    feedbackOptions={userFeedbackFeedbackOptions}
+                  />
                 )}
                 <LinkButton
                   size="sm"

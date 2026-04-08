@@ -94,7 +94,9 @@ export function SeerOnboardingSeatBased() {
         action={
           hasPageFrameFeature ? (
             <TopBar.Slot name="feedback">
-              <FeedbackButton feedbackOptions={seerFeedbackOptions}>{null}</FeedbackButton>
+              <FeedbackButton feedbackOptions={seerFeedbackOptions}>
+                {null}
+              </FeedbackButton>
             </TopBar.Slot>
           ) : (
             <FeedbackButton size="md" feedbackOptions={seerFeedbackOptions} />

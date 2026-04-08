@@ -621,10 +621,15 @@ export function CheckoutSuccess({
             </LinkButton>
             {hasPageFrameFeature ? (
               <TopBar.Slot name="feedback">
-                <FeedbackButton feedbackOptions={checkoutSuccessFeedbackOptions}>{null}</FeedbackButton>
+                <FeedbackButton feedbackOptions={checkoutSuccessFeedbackOptions}>
+                  {null}
+                </FeedbackButton>
               </TopBar.Slot>
             ) : (
-              <FeedbackButton feedbackOptions={checkoutSuccessFeedbackOptions} size="md" />
+              <FeedbackButton
+                feedbackOptions={checkoutSuccessFeedbackOptions}
+                size="md"
+              />
             )}
           </Flex>
         </Flex>

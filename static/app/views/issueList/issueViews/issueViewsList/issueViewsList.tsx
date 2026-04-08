@@ -25,8 +25,6 @@ import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {getIssueViewQueryParams} from 'sentry/views/issueList/issueViews/getIssueViewQueryParams';
-import {TopBar} from 'sentry/views/navigation/topBar';
-import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {IssueViewsTable} from 'sentry/views/issueList/issueViews/issueViewsList/issueViewsTable';
 import {
   DEFAULT_ENVIRONMENTS,
@@ -46,6 +44,8 @@ import {
   type GroupSearchView,
 } from 'sentry/views/issueList/types';
 import {IssueSortOptions} from 'sentry/views/issueList/utils';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 type IssueViewSectionProps = {
   createdBy: GroupSearchViewCreatedBy;
@@ -379,7 +379,9 @@ export default function IssueViewsList() {
             <Grid flow="column" align="center" gap="md">
               {hasPageFrameFeature ? (
                 <TopBar.Slot name="feedback">
-                  <FeedbackButton feedbackOptions={issueViewsFeedbackOptions}>{null}</FeedbackButton>
+                  <FeedbackButton feedbackOptions={issueViewsFeedbackOptions}>
+                    {null}
+                  </FeedbackButton>
                 </TopBar.Slot>
               ) : (
                 <FeedbackButton size="sm" feedbackOptions={issueViewsFeedbackOptions} />

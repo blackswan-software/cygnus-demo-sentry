@@ -110,7 +110,9 @@ function MetricsHeader() {
       <Layout.HeaderActions>
         {hasPageFrameFeature ? (
           <TopBar.Slot name="feedback">
-            <FeedbackButton feedbackOptions={metricsFeedbackOptions}>{null}</FeedbackButton>
+            <FeedbackButton feedbackOptions={metricsFeedbackOptions}>
+              {null}
+            </FeedbackButton>
           </TopBar.Slot>
         ) : (
           <FeedbackButton feedbackOptions={metricsFeedbackOptions} />
