@@ -438,7 +438,7 @@ describe('BackendJsonSubmitForm', () => {
       // Simulate backend returning HTML error page or non-array response
       MockApiClient.addMockResponse({
         url: '/search',
-        body: '<html>502 Bad Gateway</html>' as any,
+        body: '<html>502 Bad Gateway</html>',
       });
 
       render(
