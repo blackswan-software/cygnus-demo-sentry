@@ -56,6 +56,10 @@ class BitbucketApiClient(ApiClient, RepositoryClient):
 
     integration_name = IntegrationProviderSlug.BITBUCKET.value
 
+    # Bitbucket Cloud defaults to pagelen=10 and caps at 100.
+    page_size = 100
+    page_number_limit = 50
+
     def __init__(self, integration: RpcIntegration | Integration):
         self.base_url = integration.metadata["base_url"]
         self.shared_secret = integration.metadata["shared_secret"]
@@ -108,10 +112,6 @@ class BitbucketApiClient(ApiClient, RepositoryClient):
 
     def get_repo(self, repo):
         return self.get(BitbucketAPIPath.repository.format(repo=repo))
-
-    # Bitbucket Cloud defaults to pagelen=10 and caps at 100.
-    page_size = 100
-    page_number_limit = 50
 
     def _get_all_from_paginated(
         self,
