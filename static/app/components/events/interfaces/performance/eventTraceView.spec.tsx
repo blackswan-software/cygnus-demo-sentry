@@ -1,8 +1,10 @@
 import {EventFixture} from 'sentry-fixture/event';
 import {GroupFixture} from 'sentry-fixture/group';
+import {OrganizationFixture} from 'sentry-fixture/organization';
 
 import {initializeData} from 'sentry-test/performance/initializePerformanceData';
-import {render, screen} from 'sentry-test/reactTestingLibrary';
+import {render, screen, userEvent} from 'sentry-test/reactTestingLibrary';
+import {resetMockDate, setMockDate} from 'sentry-test/utils';
 
 import {EntryType} from 'sentry/types/event';
 import type {TraceEventResponse} from 'sentry/views/issueDetails/traceTimeline/useTraceTimelineEvents';
@@ -37,6 +39,10 @@ describe('EventTraceView', () => {
       url: `/organizations/${organization.slug}/events/`,
       body: issuePlatformBody,
     });
+  });
+
+  afterEach(() => {
+    resetMockDate();
   });
 
   it('renders a trace', async () => {
@@ -145,5 +151,28 @@ describe('EventTraceView', () => {
     render(<EventTraceView group={group} event={event} organization={organization} />);
 
     expect(await screen.findByText('Trace Preview')).toBeInTheDocument();
+  });
+
+  it('disables the trace preview button when the trace is older than 30 days', async () => {
+    setMockDate(new Date('2025-10-06T00:00:00').getTime());
+
+    render(
+      <EventTraceView
+        group={group}
+        event={EventFixture({
+          ...event,
+          dateCreated: '2025-08-01T00:00:00Z',
+        })}
+        organization={OrganizationFixture({features: []})}
+      />
+    );
+
+    const button = screen.getByRole('button', {name: 'View Full Trace'});
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+
+    await userEvent.hover(button);
+    expect(
+      await screen.findByText('Trace data is only available for the last 30 days')
+    ).toBeInTheDocument();
   });
 });

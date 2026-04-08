@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 
 import {LinkButton} from '@sentry/scraps/button';
 import {Grid} from '@sentry/scraps/layout';
+import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {
   isWebVitalsEvent,
@@ -16,6 +17,7 @@ import {type Group} from 'sentry/types/group';
 import type {Organization} from 'sentry/types/organization';
 import {getConfigForIssueType} from 'sentry/utils/issueTypeConfig';
 import {useRouteAnalyticsParams} from 'sentry/utils/routeAnalytics/useRouteAnalyticsParams';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {SectionKey} from 'sentry/views/issueDetails/streamline/context';
 import {InterimSection} from 'sentry/views/issueDetails/streamline/interimSection';
@@ -175,6 +177,8 @@ export function EventTraceView({group, event, organization}: EventTraceViewProps
   );
 
   const hasTracePreviewFeature = organization.features.includes('profiling');
+  const eventTimestamp = getEventTimestampInSeconds(event);
+  const isOld = eventTimestamp ? isPartialSpanOrTraceData(eventTimestamp) : false;
 
   return (
     <InterimSection
@@ -182,14 +186,20 @@ export function EventTraceView({group, event, organization}: EventTraceViewProps
       title={t('Trace Preview')}
       actions={
         <Grid flow="column" align="center" gap="md">
-          <LinkButton
-            size="xs"
-            to={getTraceLinkForIssue(traceTarget)}
-            analyticsEventName="Issue Details: View Full Trace Action Button Clicked"
-            analyticsEventKey="issue_details.view_full_trace_action_button_clicked"
+          <Tooltip
+            title={t('Trace data is only available for the last 30 days')}
+            disabled={!isOld}
           >
-            {t('View Full Trace')}
-          </LinkButton>
+            <LinkButton
+              size="xs"
+              to={getTraceLinkForIssue(traceTarget)}
+              analyticsEventName="Issue Details: View Full Trace Action Button Clicked"
+              analyticsEventKey="issue_details.view_full_trace_action_button_clicked"
+              disabled={isOld}
+            >
+              {t('View Full Trace')}
+            </LinkButton>
+          </Tooltip>
         </Grid>
       }
     >

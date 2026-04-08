@@ -7,10 +7,12 @@ import * as qs from 'query-string';
 
 import {Link} from '@sentry/scraps/link';
 
+import {getEventTimestampInSeconds} from 'sentry/components/events/interfaces/utils';
 import {generateTraceTarget} from 'sentry/components/quickTrace/utils';
 import type {Event} from 'sentry/types/event';
 import {defined} from 'sentry/utils';
 import {trackAnalytics} from 'sentry/utils/analytics';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {isCollapsedNode} from 'sentry/views/performance/newTraceDetails/traceGuards';
@@ -130,6 +132,12 @@ export function IssueTraceWaterfallOverlay({
     ? [`span-${spanId}`, `txn-${event.eventID}`]
     : [`txn-${event.eventID}`];
   const baseLink = getTraceLinkForIssue(traceTarget, baseNodePath);
+
+  const eventTimestamp = getEventTimestampInSeconds(event);
+  const isOld = eventTimestamp ? isPartialSpanOrTraceData(eventTimestamp) : false;
+  if (isOld) {
+    return null;
+  }
 
   return (
     <OverlayWrapper>
