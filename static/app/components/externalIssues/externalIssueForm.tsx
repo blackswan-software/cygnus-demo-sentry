@@ -324,9 +324,9 @@ export function ExternalIssueForm({
     return (config ?? []) as JsonFormAdapterFieldConfig[];
   }, [integrationDetails, action]);
 
-  const hasFormErrors = useMemo(() => {
-    return formFields.some(field => field.name === 'error' && field.type === 'blank');
-  }, [formFields]);
+  const hasFormErrors = formFields.some(
+    field => field.name === 'error' && field.type === 'blank'
+  );
 
   // Key changes when field config changes, forcing the form to remount with fresh defaults.
   // Includes field names and defaults so the form resets even when only defaults change.
