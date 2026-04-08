@@ -3,12 +3,16 @@ import logging
 
 from django.db import migrations
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+from django.db.models import Exists, OuterRef
 from django.db.migrations.state import StateApps
 
 from sentry.new_migrations.migrations import CheckedMigration
-from sentry.utils.query import bulk_delete_objects
+from sentry.utils.iterators import chunked
+from sentry.utils.query import RangeQuerySetWrapper, bulk_delete_objects
 
 logger = logging.getLogger(__name__)
+
+CHUNK_SIZE = 10000
 
 
 def delete_redundant_error_detector_workflows(
@@ -20,40 +24,32 @@ def delete_redundant_error_detector_workflows(
     2. There exists another DetectorWorkflow with the same workflow_id
        connected to an "issue_stream" detector
 
-    Uses batched deletion (10k rows at a time) for efficiency with ~2.4M rows.
+    Processes error detector IDs in chunks using RangeQuerySetWrapper to avoid
+    loading millions of IDs into a single query.
     """
     Detector = apps.get_model("workflow_engine", "Detector")
     DetectorWorkflow = apps.get_model("workflow_engine", "DetectorWorkflow")
 
-    # Get error detector IDs (one per project)
-    error_detector_ids = set(Detector.objects.filter(type="error").values_list("id", flat=True))
+    error_detectors = Detector.objects.filter(type="error")
 
-    # Get workflow IDs that have issue_stream detector connections
-    issue_stream_detector_ids = Detector.objects.filter(type="issue_stream").values_list(
-        "id", flat=True
-    )
-    issue_stream_workflow_ids = set(
-        DetectorWorkflow.objects.filter(detector_id__in=issue_stream_detector_ids).values_list(
-            "workflow_id", flat=True
+    for chunk in chunked(RangeQuerySetWrapper(error_detectors, step=CHUNK_SIZE), CHUNK_SIZE):
+        chunk_ids = [d.id for d in chunk]
+
+        issue_stream_exists = DetectorWorkflow.objects.filter(
+            workflow_id=OuterRef("workflow_id"),
+            detector__type="issue_stream",
         )
-    )
 
-    logger.info(
-        "Starting deletion of redundant error detector workflows",
-        extra={
-            "error_detector_count": len(error_detector_ids),
-            "issue_stream_workflow_count": len(issue_stream_workflow_ids),
-        },
-    )
+        to_delete = DetectorWorkflow.objects.filter(
+            detector_id__in=chunk_ids,
+        ).filter(Exists(issue_stream_exists))
 
-    # Delete in batches using bulk_delete_objects
-    while bulk_delete_objects(
-        DetectorWorkflow,
-        logger=logger,
-        detector_id__in=error_detector_ids,
-        workflow_id__in=issue_stream_workflow_ids,
-    ):
-        pass
+        while bulk_delete_objects(
+            DetectorWorkflow,
+            logger=logger,
+            id__in=to_delete.values_list("id", flat=True),
+        ):
+            pass
 
 
 class Migration(CheckedMigration):
