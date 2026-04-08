@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 import sentry_sdk
+from django.db.models import F
 
 from sentry import features, options
 from sentry.constants import ObjectStatus
@@ -26,7 +27,7 @@ logger = logging.getLogger("sentry.tasks.seer.night_shift")
 NIGHT_SHIFT_DISPATCH_STEP_SECONDS = 37
 NIGHT_SHIFT_SPREAD_DURATION = timedelta(hours=4)
 NIGHT_SHIFT_MAX_CANDIDATES = 10
-NIGHT_SHIFT_ISSUES_PER_PROJECT = 50
+NIGHT_SHIFT_ISSUE_FETCH_LIMIT = 100
 
 # Weights for candidate scoring. Set to 0 to disable a signal.
 WEIGHT_FIXABILITY = 1.0
@@ -213,7 +214,10 @@ def _fixability_score_strategy(
             status=GroupStatus.UNRESOLVED,
             seer_autofix_last_triggered__isnull=True,
             seer_explorer_autofix_last_triggered__isnull=True,
-        ).order_by("-seer_fixability_score", "-times_seen")[:NIGHT_SHIFT_ISSUES_PER_PROJECT]
+        ).order_by(
+            F("seer_fixability_score").desc(nulls_last=True),
+            F("times_seen").desc(),
+        )[:NIGHT_SHIFT_ISSUE_FETCH_LIMIT]
 
         for group in groups:
             if not is_issue_category_eligible(group):

@@ -72,35 +72,27 @@ class TestScheduleNightShift(TestCase):
 
 @django_db_all
 class TestGetEligibleProjects(TestCase):
-    def _connect_repo(self, project):
-        repo = self.create_repo(project=project, provider="github")
-        SeerProjectRepository.objects.create(project=project, repository=repo)
-
-    def test_skips_projects_with_automation_off(self) -> None:
+    def test_filters_by_automation_and_repos(self) -> None:
         org = self.create_organization()
-        project = self.create_project(organization=org)
-        project.update_option(
-            "sentry:autofix_automation_tuning", AutofixAutomationTuningSettings.OFF
-        )
-        self._connect_repo(project)
 
-        assert _get_eligible_projects(org) == []
-
-    def test_skips_projects_without_connected_repos(self) -> None:
-        org = self.create_organization()
-        self.create_project(organization=org)
-
-        assert _get_eligible_projects(org) == []
-
-    def test_returns_eligible_projects(self) -> None:
-        org = self.create_organization()
-        project = self.create_project(organization=org)
-        project.update_option(
+        # Eligible: automation on + connected repo
+        eligible = self.create_project(organization=org)
+        eligible.update_option(
             "sentry:autofix_automation_tuning", AutofixAutomationTuningSettings.MEDIUM
         )
-        self._connect_repo(project)
+        repo = self.create_repo(project=eligible, provider="github")
+        SeerProjectRepository.objects.create(project=eligible, repository=repo)
 
-        assert _get_eligible_projects(org) == [project]
+        # Automation off (even with repo)
+        off = self.create_project(organization=org)
+        off.update_option("sentry:autofix_automation_tuning", AutofixAutomationTuningSettings.OFF)
+        repo2 = self.create_repo(project=off, provider="github")
+        SeerProjectRepository.objects.create(project=off, repository=repo2)
+
+        # No connected repo
+        self.create_project(organization=org)
+
+        assert _get_eligible_projects(org) == [eligible]
 
 
 @django_db_all
@@ -126,7 +118,7 @@ class TestRunNightShiftForOrg(TestCase):
             mock_logger.info.assert_called_once()
             assert mock_logger.info.call_args.args[0] == "night_shift.no_eligible_projects"
 
-    def test_selects_candidates_by_fixability(self) -> None:
+    def test_selects_candidates_and_skips_triggered(self) -> None:
         org = self.create_organization()
         project = self.create_project(organization=org)
         self._make_eligible(project)
@@ -143,6 +135,13 @@ class TestRunNightShiftForOrg(TestCase):
             seer_fixability_score=0.2,
             times_seen=100,
         )
+        # Already triggered — should be excluded
+        self.create_group(
+            project=project,
+            status=GroupStatus.UNRESOLVED,
+            seer_fixability_score=0.95,
+            seer_autofix_last_triggered=timezone.now(),
+        )
 
         with patch("sentry.tasks.seer.night_shift.logger") as mock_logger:
             run_night_shift_for_org(org.id)
@@ -152,30 +151,6 @@ class TestRunNightShiftForOrg(TestCase):
             candidates = call_extra["candidates"]
             assert candidates[0]["group_id"] == high_fix.id
             assert candidates[1]["group_id"] == low_fix.id
-
-    def test_skips_already_triggered_issues(self) -> None:
-        org = self.create_organization()
-        project = self.create_project(organization=org)
-        self._make_eligible(project)
-
-        self.create_group(
-            project=project,
-            status=GroupStatus.UNRESOLVED,
-            seer_fixability_score=0.9,
-            seer_autofix_last_triggered=timezone.now(),
-        )
-        untriggered = self.create_group(
-            project=project,
-            status=GroupStatus.UNRESOLVED,
-            seer_fixability_score=0.5,
-        )
-
-        with patch("sentry.tasks.seer.night_shift.logger") as mock_logger:
-            run_night_shift_for_org(org.id)
-
-            call_extra = mock_logger.info.call_args.kwargs["extra"]
-            assert call_extra["num_candidates"] == 1
-            assert call_extra["candidates"][0]["group_id"] == untriggered.id
 
     def test_global_ranking_across_projects(self) -> None:
         org = self.create_organization()
@@ -207,10 +182,15 @@ class TestRunNightShiftForOrg(TestCase):
 
 @django_db_all
 class TestFixabilityScoreStrategy(TestCase):
-    def test_ranks_by_fixability(self) -> None:
+    @patch("sentry.tasks.seer.night_shift.NIGHT_SHIFT_ISSUE_FETCH_LIMIT", 3)
+    def test_ranks_and_captures_signals(self) -> None:
         project = self.create_project()
         high = self.create_group(
-            project=project, status=GroupStatus.UNRESOLVED, seer_fixability_score=0.9, times_seen=1
+            project=project,
+            status=GroupStatus.UNRESOLVED,
+            seer_fixability_score=0.9,
+            times_seen=5,
+            priority=75,
         )
         low = self.create_group(
             project=project,
@@ -218,40 +198,20 @@ class TestFixabilityScoreStrategy(TestCase):
             seer_fixability_score=0.2,
             times_seen=500,
         )
+        # NULL-scored issues should sort after scored ones even with a tight DB limit.
+        # Without nulls_last these would fill the limit and exclude scored issues.
+        for _ in range(3):
+            self.create_group(
+                project=project,
+                status=GroupStatus.UNRESOLVED,
+                seer_fixability_score=None,
+                times_seen=100,
+            )
 
         result = _fixability_score_strategy([project])
 
         assert result[0].group_id == high.id
-        assert result[1].group_id == low.id
-
-    def test_captures_raw_signals(self) -> None:
-        project = self.create_project()
-        self.create_group(
-            project=project,
-            status=GroupStatus.UNRESOLVED,
-            seer_fixability_score=0.7,
-            times_seen=100,
-            priority=75,
-        )
-
-        result = _fixability_score_strategy([project])
-
-        assert len(result) == 1
-        assert result[0].fixability == 0.7
-        assert result[0].times_seen == 100
+        assert result[0].fixability == 0.9
+        assert result[0].times_seen == 5
         assert result[0].severity == 1.0
-
-    def test_includes_issues_without_fixability_score(self) -> None:
-        project = self.create_project()
-        self.create_group(
-            project=project,
-            status=GroupStatus.UNRESOLVED,
-            seer_fixability_score=None,
-            times_seen=50,
-        )
-
-        result = _fixability_score_strategy([project])
-
-        assert len(result) == 1
-        assert result[0].fixability == 0.0
-        assert result[0].times_seen == 50
+        assert result[1].group_id == low.id
