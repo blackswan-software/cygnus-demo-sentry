@@ -37,11 +37,14 @@ import {useDetectorsQuery} from 'sentry/views/detectors/hooks';
 import {makeMonitorTypePathname} from 'sentry/views/detectors/pathnames';
 import {OverviewTimeline} from 'sentry/views/insights/uptime/components/overviewTimeline';
 import {MODULE_DESCRIPTION, MODULE_DOC_LINK} from 'sentry/views/insights/uptime/settings';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 export default function UptimeOverview() {
   const organization = useOrganization();
   const navigate = useNavigate();
   const location = useLocation();
+  const hasPageFrameFeature = useHasPageFrameFeature();
   const project = decodeList(location.query?.project);
   const {projects} = useProjects();
 
@@ -80,9 +83,8 @@ export default function UptimeOverview() {
             />
           </Layout.Title>
         </Layout.HeaderContent>
-        <Layout.HeaderActions>
-          <Grid flow="column" align="center" gap="md">
-            <FeedbackButton />
+        {hasPageFrameFeature ? (
+          <TopBar.Slot name="actions">
             <LinkButton
               size="sm"
               priority="primary"
@@ -93,8 +95,24 @@ export default function UptimeOverview() {
             >
               {t('Add Uptime Monitor')}
             </LinkButton>
-          </Grid>
-        </Layout.HeaderActions>
+          </TopBar.Slot>
+        ) : (
+          <Layout.HeaderActions>
+            <Grid flow="column" align="center" gap="md">
+              <FeedbackButton />
+              <LinkButton
+                size="sm"
+                priority="primary"
+                to={makeAlertsPathname({path: `/new/uptime/`, organization})}
+                icon={<IconAdd />}
+                disabled={!canCreateAlert}
+                tooltipProps={{title: canCreateAlert ? undefined : permissionTooltipText}}
+              >
+                {t('Add Uptime Monitor')}
+              </LinkButton>
+            </Grid>
+          </Layout.HeaderActions>
+        )}
       </Layout.Header>
       <Layout.Body>
         <Layout.Main width="full">

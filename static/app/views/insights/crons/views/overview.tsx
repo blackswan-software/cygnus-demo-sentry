@@ -45,6 +45,8 @@ import {useCronsUpsertGuideState} from 'sentry/views/insights/crons/components/u
 import {MODULE_DESCRIPTION, MODULE_DOC_LINK} from 'sentry/views/insights/crons/settings';
 import type {Monitor} from 'sentry/views/insights/crons/types';
 import {makeMonitorListQueryKey} from 'sentry/views/insights/crons/utils';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 const CronsListPageHeader = HookOrDefault({
   hookName: 'component:crons-list-page-header',
@@ -55,6 +57,7 @@ function CronsOverview() {
   const navigate = useNavigate();
   const location = useLocation();
   const {guideVisible} = useCronsUpsertGuideState();
+  const hasPageFrameFeature = useHasPageFrameFeature();
   const project = decodeList(location.query?.project);
 
   const queryKey = makeMonitorListQueryKey(organization, location.query);
@@ -94,9 +97,8 @@ function CronsOverview() {
             />
           </Layout.Title>
         </Layout.HeaderContent>
-        <Layout.HeaderActions>
-          <Grid flow="column" align="center" gap="md">
-            <FeedbackButton />
+        {hasPageFrameFeature ? (
+          <TopBar.Slot name="actions">
             <Button
               icon={<IconList />}
               size="sm"
@@ -115,8 +117,32 @@ function CronsOverview() {
                 {t('Add Cron Monitor')}
               </NewMonitorButton>
             )}
-          </Grid>
-        </Layout.HeaderActions>
+          </TopBar.Slot>
+        ) : (
+          <Layout.HeaderActions>
+            <Grid flow="column" align="center" gap="md">
+              <FeedbackButton />
+              <Button
+                icon={<IconList />}
+                size="sm"
+                onClick={() =>
+                  openBulkEditMonitorsModal({
+                    onClose: () => refetch(),
+                  })
+                }
+                analyticsEventKey="crons.bulk_edit_modal_button_clicked"
+                analyticsEventName="Crons: Bulk Edit Modal Button Clicked"
+              >
+                {t('Manage Monitors')}
+              </Button>
+              {!guideVisible && (
+                <NewMonitorButton size="sm" icon={<IconAdd />}>
+                  {t('Add Cron Monitor')}
+                </NewMonitorButton>
+              )}
+            </Grid>
+          </Layout.HeaderActions>
+        )}
       </Layout.Header>
       <Layout.Body>
         <Layout.Main width="full">

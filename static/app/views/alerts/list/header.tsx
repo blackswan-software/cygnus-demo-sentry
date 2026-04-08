@@ -15,6 +15,8 @@ import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {makeAlertsPathname} from 'sentry/views/alerts/pathnames';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 type Props = {
   activeTab: 'stream' | 'rules';
@@ -25,6 +27,7 @@ export function AlertHeader({activeTab}: Props) {
   const location = useLocation();
   const organization = useOrganization();
   const {selection} = usePageFilters();
+  const hasPageFrameFeature = useHasPageFrameFeature();
   /**
    * Incidents list is currently at the organization level, but the link needs to
    * go down to a specific project scope.
@@ -63,8 +66,8 @@ export function AlertHeader({activeTab}: Props) {
           />
         </Layout.Title>
       </Layout.HeaderContent>
-      <Layout.HeaderActions>
-        <Grid flow="column" align="center" gap="md">
+      {hasPageFrameFeature ? (
+        <TopBar.Slot name="actions">
           <CreateAlertButton
             organization={organization}
             iconProps={{size: 'sm'}}
@@ -79,7 +82,6 @@ export function AlertHeader({activeTab}: Props) {
           >
             {t('Create Alert')}
           </CreateAlertButton>
-          <FeedbackButton />
           <LinkButton
             size="sm"
             onClick={handleNavigateToSettings}
@@ -87,8 +89,35 @@ export function AlertHeader({activeTab}: Props) {
             icon={<IconSettings size="sm" />}
             aria-label={t('Settings')}
           />
-        </Grid>
-      </Layout.HeaderActions>
+        </TopBar.Slot>
+      ) : (
+        <Layout.HeaderActions>
+          <Grid flow="column" align="center" gap="md">
+            <CreateAlertButton
+              organization={organization}
+              iconProps={{size: 'sm'}}
+              size="sm"
+              priority="primary"
+              referrer="alert_stream"
+              projectSlug={
+                selection.projects.length === 1
+                  ? ProjectsStore.getById(`${selection.projects[0]}`)?.slug
+                  : undefined
+              }
+            >
+              {t('Create Alert')}
+            </CreateAlertButton>
+            <FeedbackButton />
+            <LinkButton
+              size="sm"
+              onClick={handleNavigateToSettings}
+              href="#"
+              icon={<IconSettings size="sm" />}
+              aria-label={t('Settings')}
+            />
+          </Grid>
+        </Layout.HeaderActions>
+      )}
       <Layout.HeaderTabs value={activeTab}>
         <TabList>
           {alertRulesLink}

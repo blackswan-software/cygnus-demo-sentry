@@ -13,6 +13,8 @@ import {trackAnalytics} from 'sentry/utils/analytics';
 import {generateLinkToEventInTraceView} from 'sentry/utils/discover/urls';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 interface ContinuousProfileHeader {
   transaction: Event | null;
@@ -21,6 +23,7 @@ interface ContinuousProfileHeader {
 export function ContinuousProfileHeader({transaction}: ContinuousProfileHeader) {
   const location = useLocation();
   const organization = useOrganization();
+  const hasPageFrameFeature = useHasPageFrameFeature();
 
   // @TODO add breadcrumbs when other views are implemented
   const breadCrumbs = useMemo((): ProfilingBreadcrumbsProps['trails'] => {
@@ -50,14 +53,24 @@ export function ContinuousProfileHeader({transaction}: ContinuousProfileHeader) 
           <ProfilingBreadcrumbs organization={organization} trails={breadCrumbs} />
         </SmallerProfilingBreadcrumbsWrapper>
       </SmallerHeaderContent>
-      <StyledHeaderActions>
-        <FeedbackButton />
-        {transactionTarget && (
-          <LinkButton size="sm" onClick={handleGoToTransaction} to={transactionTarget}>
-            {t('Go to Trace')}
-          </LinkButton>
-        )}
-      </StyledHeaderActions>
+      {hasPageFrameFeature ? (
+        <TopBar.Slot name="actions">
+          {transactionTarget && (
+            <LinkButton size="sm" onClick={handleGoToTransaction} to={transactionTarget}>
+              {t('Go to Trace')}
+            </LinkButton>
+          )}
+        </TopBar.Slot>
+      ) : (
+        <StyledHeaderActions>
+          <FeedbackButton />
+          {transactionTarget && (
+            <LinkButton size="sm" onClick={handleGoToTransaction} to={transactionTarget}>
+              {t('Go to Trace')}
+            </LinkButton>
+          )}
+        </StyledHeaderActions>
+      )}
     </SmallerLayoutHeader>
   );
 }

@@ -1,3 +1,5 @@
+import {Fragment} from 'react';
+
 import {LinkButton} from '@sentry/scraps/button';
 import {Grid} from '@sentry/scraps/layout';
 
@@ -33,6 +35,8 @@ import {
 } from 'sentry/views/explore/queryParams/context';
 import {TraceItemDataset} from 'sentry/views/explore/types';
 import {useOnboardingProject} from 'sentry/views/insights/common/queries/useOnboardingProject';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 export default function LogsContent() {
   const organization = useOrganization();
@@ -99,6 +103,7 @@ function LogsHeader() {
   const organization = useOrganization();
   const {data: savedQuery} = useGetSavedQuery(pageId);
   const onboardingProject = useOnboardingProject({property: 'hasLogs'});
+  const hasPageFrameFeature = useHasPageFrameFeature();
 
   const hasSavedQueryTitle =
     defined(pageId) && defined(savedQuery) && savedQuery.name.length > 0;
@@ -118,20 +123,43 @@ function LogsHeader() {
 
         <Layout.Title>{title ? title : t('Logs')}</Layout.Title>
       </Layout.HeaderContent>
-      <Layout.HeaderActions>
-        <Grid flow="column" align="center" gap="md">
-          <FeedbackButton
-            feedbackOptions={{
-              messagePlaceholder: t('How can we make logs work better for you?'),
-              tags: {
-                ['feedback.source']: 'logs-listing',
-                ['feedback.owner']: 'performance',
-              },
-            }}
-          />
-          {defined(onboardingProject) && <SetupLogsButton />}
-        </Grid>
-      </Layout.HeaderActions>
+      {hasPageFrameFeature ? (
+        <Fragment>
+          {defined(onboardingProject) && (
+            <TopBar.Slot name="actions">
+              <SetupLogsButton />
+            </TopBar.Slot>
+          )}
+          <TopBar.Slot name="feedback">
+            <FeedbackButton
+              feedbackOptions={{
+                messagePlaceholder: t('How can we make logs work better for you?'),
+                tags: {
+                  ['feedback.source']: 'logs-listing',
+                  ['feedback.owner']: 'performance',
+                },
+              }}
+            >
+              {null}
+            </FeedbackButton>
+          </TopBar.Slot>
+        </Fragment>
+      ) : (
+        <Layout.HeaderActions>
+          <Grid flow="column" align="center" gap="md">
+            <FeedbackButton
+              feedbackOptions={{
+                messagePlaceholder: t('How can we make logs work better for you?'),
+                tags: {
+                  ['feedback.source']: 'logs-listing',
+                  ['feedback.owner']: 'performance',
+                },
+              }}
+            />
+            {defined(onboardingProject) && <SetupLogsButton />}
+          </Grid>
+        </Layout.HeaderActions>
+      )}
     </Layout.Header>
   );
 }

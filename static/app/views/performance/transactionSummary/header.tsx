@@ -32,6 +32,8 @@ import {FRONTEND_LANDING_SUB_PATH} from 'sentry/views/insights/pages/frontend/se
 import {MobileHeader} from 'sentry/views/insights/pages/mobile/mobilePageHeader';
 import {MOBILE_LANDING_SUB_PATH} from 'sentry/views/insights/pages/mobile/settings';
 import {useDomainViewFilters} from 'sentry/views/insights/pages/useFilters';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {Breadcrumb, getTabCrumbs} from 'sentry/views/performance/breadcrumb';
 import {useTransactionSummaryEAP} from 'sentry/views/performance/eap/useTransactionSummaryEAP';
 import {TAB_ANALYTICS} from 'sentry/views/performance/transactionSummary/pageLayout';
@@ -72,6 +74,7 @@ export function TransactionHeader({
 }: Props) {
   const {isInDomainView, view} = useDomainViewFilters();
   const navigate = useNavigate();
+  const hasPageFrameFeature = useHasPageFrameFeature();
 
   const getNewRoute = useCallback(
     (newTab: Tab) => {
@@ -278,8 +281,8 @@ export function TransactionHeader({
           </Tooltip>
         </Layout.Title>
       </Layout.HeaderContent>
-      <Layout.HeaderActions>
-        <Grid flow="column" align="center" gap="md">
+      {hasPageFrameFeature ? (
+        <TopBar.Slot name="actions">
           <Feature organization={organization} features="incidents">
             {({hasFeature}) =>
               hasFeature &&
@@ -314,9 +317,51 @@ export function TransactionHeader({
               onChangeThreshold={onChangeThreshold}
             />
           </GuideAnchor>
-          <FeedbackButton />
-        </Grid>
-      </Layout.HeaderActions>
+        </TopBar.Slot>
+      ) : (
+        <Layout.HeaderActions>
+          <Grid flow="column" align="center" gap="md">
+            <Feature organization={organization} features="incidents">
+              {({hasFeature}) =>
+                hasFeature &&
+                !metricsCardinality?.isLoading &&
+                !deprecateTransactionAlerts(organization) ? (
+                  <CreateAlertFromViewButton
+                    size="sm"
+                    eventView={eventView}
+                    organization={organization}
+                    projects={projects}
+                    onClick={handleCreateAlertSuccess}
+                    referrer="performance"
+                    alertType="trans_duration"
+                    aria-label={t('Create Alert')}
+                    disableMetricDataset={
+                      metricsCardinality?.outcome?.forceTransactionsOnly
+                    }
+                  />
+                ) : null
+              }
+            </Feature>
+            <TeamKeyTransactionButton
+              transactionName={transactionName}
+              eventView={eventView}
+              organization={organization}
+            />
+            <GuideAnchor
+              target="project_transaction_threshold_override"
+              position="bottom"
+            >
+              <TransactionThresholdButton
+                organization={organization}
+                transactionName={transactionName}
+                eventView={eventView}
+                onChangeThreshold={onChangeThreshold}
+              />
+            </GuideAnchor>
+            <FeedbackButton />
+          </Grid>
+        </Layout.HeaderActions>
+      )}
       <TabList
         outerWrapStyles={{
           gridColumn: '1 / -1',
