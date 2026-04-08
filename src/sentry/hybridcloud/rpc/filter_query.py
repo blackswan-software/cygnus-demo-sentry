@@ -121,7 +121,7 @@ class FilterQueryDatabaseImpl(
         if as_user is None and auth_context:
             as_user = auth_context.user
 
-        result = self.query_many(filter=filter)
+        result = self.query_many(filter=filter, select_related=False)
         return serialize(
             list(result),
             user=as_user,

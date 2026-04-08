@@ -1,3 +1,6 @@
+from django.db import connections
+from django.test.utils import CaptureQueriesContext
+
 from sentry.silo.base import SiloMode
 from sentry.testutils.cases import TestCase
 from sentry.testutils.silo import all_silo_test, assume_test_silo_mode
@@ -73,6 +76,21 @@ class UserServiceTest(TestCase):
         # Test adding the same permission again returns False
         created = user_service.add_permission(user_id=self.user.id, permission="superuser.write")
         assert created is False
+
+    def test_serialize_many_does_not_use_extra_subqueries(self) -> None:
+        """serialize_many goes through the API serializer path which does its own
+        queries in get_attrs(). The correlated subqueries from base_query()
+        (permissions, roles, useremails, authenticators, useravatar) should not
+        be included since they are only needed for the get_many/serialize_rpc path."""
+        with assume_test_silo_mode(SiloMode.CONTROL):
+            # Warm up any caches
+            user_service.serialize_many(filter={"user_ids": [self.user.id]})
+
+            with CaptureQueriesContext(connections["control"]) as ctx:
+                user_service.serialize_many(filter={"user_ids": [self.user.id]})
+
+            all_sql = " ".join(q["sql"] for q in ctx.captured_queries)
+            assert "array_agg" not in all_sql
 
     def test_remove_permission(self) -> None:
         # Create a permission first
