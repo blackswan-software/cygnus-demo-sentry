@@ -8,7 +8,9 @@ from sentry.testutils.silo import control_silo_test
 class AcceptOrganizationInviteRedirectViewTest(TestCase):
     def test_redirects_legacy_invite_to_org_scoped_route(self) -> None:
         organization = self.create_organization()
-        member = self.create_member(organization=organization, email="newuser@example.com")
+        member = self.create_member(
+            organization=organization, email="newuser@example.com", token="abc"
+        )
 
         response = self.client.get(
             reverse("sentry-accept-invite", args=[member.id, member.token]) + "?referrer=email"
