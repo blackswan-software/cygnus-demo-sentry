@@ -305,7 +305,7 @@ describe('ProjectAlerts -> TicketRuleModal', () => {
           link=""
           ticketType=""
           instance={{
-            integration: 1 as any,
+            integration: '1',
             reporter: 'saved-user-id',
             // Saved field configs with choices from previous async search
             dynamic_form_fields: [
