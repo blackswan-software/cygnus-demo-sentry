@@ -32,9 +32,9 @@ import {
   useQueryParamsTitle,
 } from 'sentry/views/explore/queryParams/context';
 import {TraceItemDataset} from 'sentry/views/explore/types';
+import {useOnboardingProject} from 'sentry/views/insights/common/queries/useOnboardingProject';
 import {TopBar} from 'sentry/views/navigation/topBar';
 import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
-import {useOnboardingProject} from 'sentry/views/insights/common/queries/useOnboardingProject';
 
 export default function LogsContent() {
   const organization = useOrganization();
@@ -133,7 +133,9 @@ function LogsHeader() {
                     ['feedback.owner']: 'performance',
                   },
                 }}
-              >{null}</FeedbackButton>
+              >
+                {null}
+              </FeedbackButton>
             </TopBar.Slot>
           ) : (
             <FeedbackButton

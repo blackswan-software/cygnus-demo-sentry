@@ -22,8 +22,6 @@ import {useIsLaravelInsightsAvailable} from 'sentry/views/insights/pages/platfor
 import {useIsNextJsInsightsAvailable} from 'sentry/views/insights/pages/platform/nextjs/features';
 import {OVERVIEW_PAGE_TITLE} from 'sentry/views/insights/pages/settings';
 import {useDomainViewFilters} from 'sentry/views/insights/pages/useFilters';
-import {TopBar} from 'sentry/views/navigation/topBar';
-import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {
   isModuleConsideredNew,
   isModuleEnabled,
@@ -31,6 +29,8 @@ import {
   isModuleVisible,
 } from 'sentry/views/insights/pages/utils';
 import {ModuleName} from 'sentry/views/insights/types';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 export type Props = {
   domainBaseUrl: string;

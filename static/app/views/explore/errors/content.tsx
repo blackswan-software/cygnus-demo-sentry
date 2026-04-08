@@ -2,8 +2,6 @@ import {FeatureBadge} from '@sentry/scraps/badge';
 
 import {FeedbackButton} from 'sentry/components/feedbackButton/feedbackButton';
 import * as Layout from 'sentry/components/layouts/thirds';
-import {TopBar} from 'sentry/views/navigation/topBar';
-import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {PageFiltersContainer} from 'sentry/components/pageFilters/container';
 import {SentryDocumentTitle} from 'sentry/components/sentryDocumentTitle';
 import {t} from 'sentry/locale';
@@ -18,6 +16,8 @@ import {
 } from 'sentry/views/explore/errors/body';
 import {ErrorsFilterSection} from 'sentry/views/explore/errors/filterContent';
 import {useControlSectionExpanded} from 'sentry/views/explore/hooks/useControlSectionExpanded';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 export default function ErrorsContent() {
   const organization = useOrganization();

@@ -17,7 +17,9 @@ export function MonitorFeedbackButton() {
               ['feedback.owner']: 'aci',
             },
           }}
-        >{null}</FeedbackButton>
+        >
+          {null}
+        </FeedbackButton>
       </TopBar.Slot>
     );
   }

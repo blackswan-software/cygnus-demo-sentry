@@ -94,7 +94,9 @@ export function SeerOnboardingSeatBased() {
                     ['feedback.owner']: 'coding-workflows',
                   },
                 }}
-              >{null}</FeedbackButton>
+              >
+                {null}
+              </FeedbackButton>
             </TopBar.Slot>
           ) : (
             <FeedbackButton

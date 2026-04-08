@@ -623,7 +623,9 @@ export function CheckoutSuccess({
                       ['feedback.owner']: 'billing',
                     },
                   }}
-                >{null}</FeedbackButton>
+                >
+                  {null}
+                </FeedbackButton>
               </TopBar.Slot>
             ) : (
               <FeedbackButton

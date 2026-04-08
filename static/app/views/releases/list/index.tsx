@@ -41,13 +41,13 @@ import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {useProjects} from 'sentry/utils/useProjects';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {ReleaseArchivedNotice} from 'sentry/views/releases/detail/overview/releaseArchivedNotice';
 import {MobileBuilds} from 'sentry/views/releases/list/mobileBuilds';
 import {ReleaseHealthCTA} from 'sentry/views/releases/list/releaseHealthCTA';
 import {ReleaseListInner} from 'sentry/views/releases/list/releaseListInner';
 import {isMobileRelease} from 'sentry/views/releases/utils';
-import {TopBar} from 'sentry/views/navigation/topBar';
-import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 import {ReleasesDisplayOption, ReleasesDisplayOptions} from './releasesDisplayOptions';
 import {ReleasesSortOptions} from './releasesSortOptions';
@@ -439,7 +439,9 @@ export default function ReleasesList() {
                             ['feedback.source']: 'releases-list-header',
                           },
                         }}
-                      >{null}</FeedbackButton>
+                      >
+                        {null}
+                      </FeedbackButton>
                     </TopBar.Slot>
                   ) : (
                     <FeedbackButton

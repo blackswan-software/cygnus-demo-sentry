@@ -25,8 +25,6 @@ import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {getIssueViewQueryParams} from 'sentry/views/issueList/issueViews/getIssueViewQueryParams';
-import {TopBar} from 'sentry/views/navigation/topBar';
-import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 import {IssueViewsTable} from 'sentry/views/issueList/issueViews/issueViewsList/issueViewsTable';
 import {
   DEFAULT_ENVIRONMENTS,
@@ -46,6 +44,8 @@ import {
   type GroupSearchView,
 } from 'sentry/views/issueList/types';
 import {IssueSortOptions} from 'sentry/views/issueList/utils';
+import {TopBar} from 'sentry/views/navigation/topBar';
+import {useHasPageFrameFeature} from 'sentry/views/navigation/useHasPageFrameFeature';
 
 type IssueViewSectionProps = {
   createdBy: GroupSearchViewCreatedBy;
@@ -373,13 +373,17 @@ export default function IssueViewsList() {
                   <FeedbackButton
                     feedbackOptions={{
                       formTitle: t('Give Feedback'),
-                      messagePlaceholder: t('How can we make issue views better for you?'),
+                      messagePlaceholder: t(
+                        'How can we make issue views better for you?'
+                      ),
                       tags: {
                         ['feedback.source']: 'custom_views',
                         ['feedback.owner']: 'issues',
                       },
                     }}
-                  >{null}</FeedbackButton>
+                  >
+                    {null}
+                  </FeedbackButton>
                 </TopBar.Slot>
               ) : (
                 <FeedbackButton

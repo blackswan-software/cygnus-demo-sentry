@@ -110,7 +110,9 @@ function MetricsHeader() {
                   ['feedback.owner']: 'performance',
                 },
               }}
-            >{null}</FeedbackButton>
+            >
+              {null}
+            </FeedbackButton>
           </TopBar.Slot>
         ) : (
           <FeedbackButton

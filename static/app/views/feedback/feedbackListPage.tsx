@@ -167,7 +167,9 @@ export default function FeedbackListPage() {
                           ['feedback.source']: 'feedback-list',
                         },
                       }}
-                    >{null}</FeedbackButton>
+                    >
+                      {null}
+                    </FeedbackButton>
                   </TopBar.Slot>
                 ) : (
                   <FeedbackButton

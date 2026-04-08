@@ -17,7 +17,9 @@ export function AutomationFeedbackButton() {
               ['feedback.owner']: 'aci',
             },
           }}
-        >{null}</FeedbackButton>
+        >
+          {null}
+        </FeedbackButton>
       </TopBar.Slot>
     );
   }
