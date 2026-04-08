@@ -80,8 +80,10 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
   const {feedback} = useFeedbackSDKIntegration();
   const organization = useOrganization();
   const location = useLocation();
-  const isOld =
-    !!location.query.timestamp && isPartialSpanOrTraceData(location.query.timestamp);
+  const timestamp = Array.isArray(location.query.timestamp)
+    ? location.query.timestamp[0]
+    : location.query.timestamp;
+  const isOld = !!timestamp && isPartialSpanOrTraceData(timestamp);
 
   if (traceContent.isPending) {
     return <LoadingIndicator />;
