@@ -12,7 +12,7 @@ import type {Organization} from 'sentry/types/organization';
 import type {Project} from 'sentry/types/project';
 import {getApiUrl} from 'sentry/utils/api/getApiUrl';
 import {uniq} from 'sentry/utils/array/uniq';
-import {useApiQuery} from 'sentry/utils/queryClient';
+import {setApiQueryData, useApiQuery, useQueryClient} from 'sentry/utils/queryClient';
 import {safeURL} from 'sentry/utils/url/safeURL';
 import {useUser} from 'sentry/utils/useUser';
 import {OwnerInput} from 'sentry/views/settings/project/projectOwnership/ownerInput';
@@ -128,20 +128,20 @@ export function ProjectOwnershipModal({
     {staleTime: 0}
   );
 
+  const queryClient = useQueryClient();
+  const ownershipQueryKey = [
+    getApiUrl(`/projects/$organizationIdOrSlug/$projectIdOrSlug/ownership/`, {
+      path: {organizationIdOrSlug: organization.slug, projectIdOrSlug: project.slug},
+    }),
+  ] as const;
+
   const {
     data: ownership,
     isPending: isOwnershipPending,
     isError: isOwnershipError,
-  } = useApiQuery<IssueOwnershipResponse>(
-    [
-      getApiUrl(`/projects/$organizationIdOrSlug/$projectIdOrSlug/ownership/`, {
-        path: {organizationIdOrSlug: organization.slug, projectIdOrSlug: project.slug},
-      }),
-    ],
-    {
-      staleTime: 0,
-    }
-  );
+  } = useApiQuery<IssueOwnershipResponse>(ownershipQueryKey, {
+    staleTime: 0,
+  });
 
   if (isOwnershipPending || isUrlTagDataPending) {
     return <LoadingIndicator />;
@@ -184,6 +184,9 @@ export function ProjectOwnershipModal({
         initialText={ownership?.raw || ''}
         dateUpdated={ownership.lastUpdated}
         onCancel={onCancel}
+        onSave={newOwnership => {
+          setApiQueryData(queryClient, ownershipQueryKey, () => newOwnership);
+        }}
         page="issue_details"
       />
     </Fragment>

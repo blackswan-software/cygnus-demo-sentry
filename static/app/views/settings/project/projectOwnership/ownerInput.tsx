@@ -58,28 +58,26 @@ export function OwnerInput({
   project,
 }: Props) {
   const [text, setText] = useState<string | null>(null);
-  const [error, setError] = useState<InputError | null>(null);
 
-  const mutation = useMutation<IssueOwnership, RequestError>({
-    mutationFn: () =>
+  const mutation = useMutation<IssueOwnership, RequestError, string>({
+    mutationFn: (textToSave: string) =>
       fetchMutation({
         method: 'PUT',
         url: `/projects/${organization.slug}/${project.slug}/ownership/`,
-        data: {raw: text ?? initialText},
+        data: {raw: textToSave},
       }),
-    onSuccess: ownership => {
+    onSuccess: (ownership, variables) => {
       addSuccessMessage(t('Updated issue ownership rules'));
       onSave?.(ownership);
       trackIntegrationAnalytics('project_ownership.saved', {
         page,
         organization,
         net_change:
-          (text ?? initialText).split('\n').filter(x => x).length -
+          variables.split('\n').filter(x => x).length -
           initialText.split('\n').filter(x => x).length,
       });
     },
     onError: (caught: RequestError) => {
-      setError(caught.responseJSON as InputError);
       if (caught.status === 403) {
         addErrorMessage(
           t("You don't have permission to modify issue ownership rules for this project")
@@ -100,11 +98,10 @@ export function OwnerInput({
     },
   });
 
-  const hasChanges = (text ?? initialText) !== (mutation.data?.raw ?? initialText);
+  const hasChanges = text !== null && text !== initialText;
 
   const handleUpdateOwnership = () => {
-    setError(null);
-    mutation.mutate();
+    mutation.mutate(text ?? initialText);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -153,7 +150,9 @@ export function OwnerInput({
           </PanelBody>
         </Panel>
         <ActionBar>
-          <div>{parseError(error)}</div>
+          <div>
+            {parseError((mutation.error?.responseJSON as InputError | undefined) ?? null)}
+          </div>
           <Grid flow="column" align="center" gap="md">
             <Button type="button" size="sm" onClick={onCancel}>
               {t('Cancel')}
