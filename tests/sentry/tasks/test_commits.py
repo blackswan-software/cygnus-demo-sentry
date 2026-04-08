@@ -34,6 +34,29 @@ class FetchCommitsTest(TestCase):
             {"id": end_sha, "repository": repo_name},
         ]
 
+    def _setup_github_compare_commits_cache_context(self):
+        org = self.create_organization(owner=self.user, name="baz")
+        repo = Repository.objects.create(
+            name="example",
+            provider="integrations:github",
+            organization_id=org.id,
+        )
+        previous_release = Release.objects.create(organization_id=org.id, version="old-release")
+        previous_commit = Commit.objects.create(
+            organization_id=org.id, repository_id=repo.id, key="a" * 40
+        )
+        ReleaseHeadCommit.objects.create(
+            organization_id=org.id,
+            repository_id=repo.id,
+            release=previous_release,
+            commit=previous_commit,
+        )
+
+        refs = [{"repository": repo.name, "commit": "b" * 40}]
+        first_release = Release.objects.create(organization_id=org.id, version="new-release-1")
+        second_release = Release.objects.create(organization_id=org.id, version="new-release-2")
+        return org, repo, previous_release, first_release, second_release, refs
+
     def test_github_compare_commits_cache_key_avoids_ambiguous_id_collisions(
         self, mock_record: MagicMock
     ) -> None:
@@ -113,28 +136,10 @@ class FetchCommitsTest(TestCase):
         self.login_as(user=self.user)
         cache.clear()
 
-        org = self.create_organization(owner=self.user, name="baz")
-        repo = Repository.objects.create(
-            name="example",
-            provider="integrations:github",
-            organization_id=org.id,
+        _, repo, previous_release, first_release, second_release, refs = (
+            self._setup_github_compare_commits_cache_context()
         )
-        previous_release = Release.objects.create(organization_id=org.id, version="old-release")
-        previous_commit = Commit.objects.create(
-            organization_id=org.id, repository_id=repo.id, key="a" * 40
-        )
-        ReleaseHeadCommit.objects.create(
-            organization_id=org.id,
-            repository_id=repo.id,
-            release=previous_release,
-            commit=previous_commit,
-        )
-
-        refs = [{"repository": repo.name, "commit": "b" * 40}]
         mock_compare_commits.return_value = self._github_compare_commits_result(repo.name, "b" * 40)
-
-        first_release = Release.objects.create(organization_id=org.id, version="new-release-1")
-        second_release = Release.objects.create(organization_id=org.id, version="new-release-2")
 
         with self.tasks():
             fetch_commits(
@@ -159,28 +164,10 @@ class FetchCommitsTest(TestCase):
         self.login_as(user=self.user)
         cache.clear()
 
-        org = self.create_organization(owner=self.user, name="baz")
-        repo = Repository.objects.create(
-            name="example",
-            provider="integrations:github",
-            organization_id=org.id,
+        org, repo, previous_release, first_release, second_release, refs = (
+            self._setup_github_compare_commits_cache_context()
         )
-        previous_release = Release.objects.create(organization_id=org.id, version="old-release")
-        previous_commit = Commit.objects.create(
-            organization_id=org.id, repository_id=repo.id, key="a" * 40
-        )
-        ReleaseHeadCommit.objects.create(
-            organization_id=org.id,
-            repository_id=repo.id,
-            release=previous_release,
-            commit=previous_commit,
-        )
-
-        refs = [{"repository": repo.name, "commit": "b" * 40}]
         mock_compare_commits.return_value = self._github_compare_commits_result(repo.name, "b" * 40)
-
-        first_release = Release.objects.create(organization_id=org.id, version="new-release-1")
-        second_release = Release.objects.create(organization_id=org.id, version="new-release-2")
 
         with self.feature(
             {"organizations:integrations-github-fetch-commits-compare-cache": [org.slug]}
@@ -208,32 +195,14 @@ class FetchCommitsTest(TestCase):
         self.login_as(user=self.user)
         cache.clear()
 
-        org = self.create_organization(owner=self.user, name="baz")
-        repo = Repository.objects.create(
-            name="example",
-            provider="integrations:github",
-            organization_id=org.id,
+        org, repo, previous_release, first_release, second_release, refs_first = (
+            self._setup_github_compare_commits_cache_context()
         )
-        previous_release = Release.objects.create(organization_id=org.id, version="old-release")
-        previous_commit = Commit.objects.create(
-            organization_id=org.id, repository_id=repo.id, key="a" * 40
-        )
-        ReleaseHeadCommit.objects.create(
-            organization_id=org.id,
-            repository_id=repo.id,
-            release=previous_release,
-            commit=previous_commit,
-        )
-
-        refs_first = [{"repository": repo.name, "commit": "b" * 40}]
         refs_second = [{"repository": repo.name, "commit": "c" * 40}]
         mock_compare_commits.side_effect = [
             self._github_compare_commits_result(repo.name, "b" * 40),
             self._github_compare_commits_result(repo.name, "c" * 40),
         ]
-
-        first_release = Release.objects.create(organization_id=org.id, version="new-release-1")
-        second_release = Release.objects.create(organization_id=org.id, version="new-release-2")
 
         with self.feature(
             {"organizations:integrations-github-fetch-commits-compare-cache": [org.slug]}
