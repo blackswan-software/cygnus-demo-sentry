@@ -33,7 +33,7 @@ describe('EventsSearchBar', () => {
       method: 'POST',
     });
     MockApiClient.addMockResponse({
-      url: `/organizations/org-slug/tags/`,
+      url: '/organizations/org-slug/tags/',
       body: [
         {key: 'environment', name: 'environment', kind: FieldKind.FIELD},
         {key: 'transaction', name: 'transaction', kind: FieldKind.FIELD},
