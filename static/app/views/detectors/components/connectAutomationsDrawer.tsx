@@ -80,11 +80,12 @@ export function ConnectAutomationsDrawer({
   const [localWorkflowIds, setLocalWorkflowIds] = useState(initialWorkflowIds);
 
   const toggleConnected = ({automation}: {automation: Automation}) => {
-    const queryKey = automationsApiOptions(organization, {
-      ids: localWorkflowIds,
-    }).queryKey;
-
-    const oldAutomationsData = queryClient.getQueryData(queryKey)?.json ?? [];
+    const oldAutomationsData =
+      queryClient.getQueryData(
+        automationsApiOptions(organization, {
+          ids: localWorkflowIds,
+        }).queryKey
+      )?.json ?? [];
 
     const newAutomations = (
       oldAutomationsData.some(a => a.id === automation.id)
@@ -95,7 +96,7 @@ export function ConnectAutomationsDrawer({
 
     queryClient.setQueryData(
       automationsApiOptions(organization, {ids: newWorkflowIds}).queryKey,
-      old => (old ? {...old, json: newAutomations} : old)
+      old => ({headers: old?.headers ?? {}, json: newAutomations})
     );
 
     setLocalWorkflowIds(newWorkflowIds);
