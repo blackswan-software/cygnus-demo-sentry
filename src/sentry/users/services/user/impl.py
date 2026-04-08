@@ -62,7 +62,12 @@ class DatabaseBackedUserService(UserService):
         auth_context: AuthenticationContext | None = None,
         serializer: UserSerializeType | None = None,
     ) -> list[OpaqueSerializedResponse]:
-        return self._FQ.serialize_many(filter, as_user, auth_context, serializer)
+        # Pass select_related=False to skip the correlated subqueries in
+        # base_query() - they are only used by the get_many/serialize_rpc path.
+        # The API serializer fetches what it needs in get_attrs().
+        return self._FQ.serialize_many(
+            filter, as_user, auth_context, serializer, select_related=False
+        )
 
     def get_many(self, *, filter: UserFilterArgs) -> list[RpcUser]:
         return self._FQ.get_many(filter)
