@@ -18,7 +18,7 @@ import {
   addLoadingMessage,
   clearIndicators,
 } from 'sentry/actionCreators/indicator';
-import {openModal} from 'sentry/actionCreators/modal';
+import {openModal, type ModalRenderProps} from 'sentry/actionCreators/modal';
 import type {Client} from 'sentry/api';
 import {UnsupportedAlert} from 'sentry/components/alerts/unsupportedAlert';
 import {FeatureShowcase, useShowcaseContext} from 'sentry/components/featureShowcase';
@@ -168,6 +168,80 @@ type OnboardingProps = {
   project: Project;
 };
 
+interface PerformanceTourShowcaseProps extends ModalRenderProps {
+  organization: Organization;
+}
+
+function PerformanceTourShowcase(props: PerformanceTourShowcaseProps) {
+  const {organization, ...deps} = props;
+
+  function handleAdvance(step: number) {
+    trackAnalytics('performance_views.tour.advance', {
+      step,
+      organization,
+    });
+  }
+
+  function handleClose(step: number) {
+    trackAnalytics('performance_views.tour.close', {
+      step,
+      organization,
+    });
+  }
+
+  return (
+    <FeatureShowcase {...deps} onStepChange={handleAdvance} onClose={handleClose}>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={tourMetrics} alt={t('Track Application Metrics')} />
+        <FeatureShowcase.StepTitle>
+          {t('Track Application Metrics')}
+        </FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'Monitor your slowest pageloads and APIs to see which users are having the worst time.'
+          )}
+        </FeatureShowcase.StepContent>
+        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+      </FeatureShowcase.Step>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image
+          src={tourCorrelate}
+          alt={t('Correlate Errors and Traces')}
+        />
+        <FeatureShowcase.StepTitle>
+          {t('Correlate Errors and Traces')}
+        </FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'See what errors occurred within a transaction and the impact of those errors.'
+          )}
+        </FeatureShowcase.StepContent>
+        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+      </FeatureShowcase.Step>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={tourAlert} alt={t('Watch and Alert')} />
+        <FeatureShowcase.StepTitle>{t('Watch and Alert')}</FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'Highlight mission-critical pages and APIs and set latency alerts to notify you before things go wrong.'
+          )}
+        </FeatureShowcase.StepContent>
+        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+      </FeatureShowcase.Step>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={tourTrace} alt={t('Trace Across Systems')} />
+        <FeatureShowcase.StepTitle>{t('Trace Across Systems')}</FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            "Follow a trace from a user's session and drill down to identify any bottlenecks that occur."
+          )}
+        </FeatureShowcase.StepContent>
+        <SetupFooter />
+      </FeatureShowcase.Step>
+    </FeatureShowcase>
+  );
+}
+
 export function LegacyOnboarding({organization, project}: OnboardingProps) {
   const api = useApi();
   const {projects} = useProjects();
@@ -183,22 +257,6 @@ export function LegacyOnboarding({organization, project}: OnboardingProps) {
       OnboardingDrawerStore.open(OnboardingDrawerKey.PERFORMANCE_ONBOARDING);
     }
   }, [location.hash, projectsForOnboarding, project.id]);
-
-  function handleAdvance(step: number, duration: number) {
-    trackAnalytics('performance_views.tour.advance', {
-      step,
-      duration,
-      organization,
-    });
-  }
-
-  function handleClose(step: number, duration: number) {
-    trackAnalytics('performance_views.tour.close', {
-      step,
-      duration,
-      organization,
-    });
-  }
 
   const currentPlatform = project.platform;
   const hasPerformanceOnboarding = currentPlatform
@@ -260,69 +318,7 @@ export function LegacyOnboarding({organization, project}: OnboardingProps) {
           onClick={() => {
             trackAnalytics('performance_views.tour.start', {organization});
             openModal(deps => (
-              <FeatureShowcase
-                {...deps}
-                onStepChange={handleAdvance}
-                onClose={handleClose}
-              >
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image
-                    src={tourMetrics}
-                    alt={t('Track Application Metrics')}
-                  />
-                  <FeatureShowcase.StepTitle>
-                    {t('Track Application Metrics')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'Monitor your slowest pageloads and APIs to see which users are having the worst time.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-                </FeatureShowcase.Step>
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image
-                    src={tourCorrelate}
-                    alt={t('Correlate Errors and Traces')}
-                  />
-                  <FeatureShowcase.StepTitle>
-                    {t('Correlate Errors and Traces')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'See what errors occurred within a transaction and the impact of those errors.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-                </FeatureShowcase.Step>
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image src={tourAlert} alt={t('Watch and Alert')} />
-                  <FeatureShowcase.StepTitle>
-                    {t('Watch and Alert')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'Highlight mission-critical pages and APIs and set latency alerts to notify you before things go wrong.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-                </FeatureShowcase.Step>
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image
-                    src={tourTrace}
-                    alt={t('Trace Across Systems')}
-                  />
-                  <FeatureShowcase.StepTitle>
-                    {t('Trace Across Systems')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      "Follow a trace from a user's session and drill down to identify any bottlenecks that occur."
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <SetupFooter />
-                </FeatureShowcase.Step>
-              </FeatureShowcase>
+              <PerformanceTourShowcase {...deps} organization={organization} />
             ));
           }}
         >

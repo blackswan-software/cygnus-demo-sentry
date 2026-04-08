@@ -6,7 +6,7 @@ import tourTrace from 'sentry-images/spot/performance-tour-trace.svg';
 import {Button, LinkButton} from '@sentry/scraps/button';
 import {Flex, Grid} from '@sentry/scraps/layout';
 
-import {openModal} from 'sentry/actionCreators/modal';
+import {openModal, type ModalRenderProps} from 'sentry/actionCreators/modal';
 import {navigateTo} from 'sentry/actionCreators/navigation';
 import Feature from 'sentry/components/acl/feature';
 import {FeatureShowcase, useShowcaseContext} from 'sentry/components/featureShowcase';
@@ -51,6 +51,82 @@ type Props = {
   organization: Organization;
 };
 
+interface PerformanceShowcaseProps extends Props, ModalRenderProps {}
+
+function PerformanceShowcase(props: PerformanceShowcaseProps) {
+  const {organization, ...deps} = props;
+
+  function handleFeatureShowcaseAdvance(step: number) {
+    trackAnalytics('project_detail.performance_tour.advance', {
+      organization,
+      step,
+    });
+  }
+
+  function handleClose(step: number) {
+    trackAnalytics('project_detail.performance_tour.close', {
+      organization,
+      step,
+    });
+  }
+
+  return (
+    <FeatureShowcase
+      {...deps}
+      onStepChange={handleFeatureShowcaseAdvance}
+      onClose={handleClose}
+    >
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={tourMetrics} alt={t('Track Application Metrics')} />
+        <FeatureShowcase.StepTitle>
+          {t('Track Application Metrics')}
+        </FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'Monitor your slowest pageloads and APIs to see which users are having the worst time.'
+          )}
+        </FeatureShowcase.StepContent>
+        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+      </FeatureShowcase.Step>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image
+          src={tourCorrelate}
+          alt={t('Correlate Errors and Traces')}
+        />
+        <FeatureShowcase.StepTitle>
+          {t('Correlate Errors and Traces')}
+        </FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'See what errors occurred within a transaction and the impact of those errors.'
+          )}
+        </FeatureShowcase.StepContent>
+        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+      </FeatureShowcase.Step>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={tourAlert} alt={t('Watch and Alert')} />
+        <FeatureShowcase.StepTitle>{t('Watch and Alert')}</FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'Highlight mission-critical pages and APIs and set latency alerts to notify you before things go wrong.'
+          )}
+        </FeatureShowcase.StepContent>
+        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+      </FeatureShowcase.Step>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={tourTrace} alt={t('Trace Across Systems')} />
+        <FeatureShowcase.StepTitle>{t('Trace Across Systems')}</FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            "Follow a trace from a user's session and drill down to identify any bottlenecks that occur."
+          )}
+        </FeatureShowcase.StepContent>
+        <SetupFooter />
+      </FeatureShowcase.Step>
+    </FeatureShowcase>
+  );
+}
+
 export function MissingPerformanceButtons({organization}: Props) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,21 +135,6 @@ export function MissingPerformanceButtons({organization}: Props) {
     selection: {projects: selectedProjects},
   } = usePageFilters();
 
-  function handleFeatureShowcaseAdvance(step: number, duration: number) {
-    trackAnalytics('project_detail.performance_tour.advance', {
-      organization,
-      step,
-      duration,
-    });
-  }
-
-  function handleClose(step: number, duration: number) {
-    trackAnalytics('project_detail.performance_tour.close', {
-      organization,
-      step,
-      duration,
-    });
-  }
   const domainView = platformToDomainView(projects, selectedProjects);
 
   return (
@@ -106,69 +167,7 @@ export function MissingPerformanceButtons({organization}: Props) {
           analyticsEventName="Project Detail: Performance Get Tour Clicked"
           onClick={() => {
             openModal(deps => (
-              <FeatureShowcase
-                {...deps}
-                onStepChange={handleFeatureShowcaseAdvance}
-                onClose={handleClose}
-              >
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image
-                    src={tourMetrics}
-                    alt={t('Track Application Metrics')}
-                  />
-                  <FeatureShowcase.StepTitle>
-                    {t('Track Application Metrics')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'Monitor your slowest pageloads and APIs to see which users are having the worst time.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-                </FeatureShowcase.Step>
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image
-                    src={tourCorrelate}
-                    alt={t('Correlate Errors and Traces')}
-                  />
-                  <FeatureShowcase.StepTitle>
-                    {t('Correlate Errors and Traces')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'See what errors occurred within a transaction and the impact of those errors.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-                </FeatureShowcase.Step>
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image src={tourAlert} alt={t('Watch and Alert')} />
-                  <FeatureShowcase.StepTitle>
-                    {t('Watch and Alert')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'Highlight mission-critical pages and APIs and set latency alerts to notify you before things go wrong.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-                </FeatureShowcase.Step>
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image
-                    src={tourTrace}
-                    alt={t('Trace Across Systems')}
-                  />
-                  <FeatureShowcase.StepTitle>
-                    {t('Trace Across Systems')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      "Follow a trace from a user's session and drill down to identify any bottlenecks that occur."
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <SetupFooter />
-                </FeatureShowcase.Step>
-              </FeatureShowcase>
+              <PerformanceShowcase {...deps} organization={organization} />
             ));
           }}
         >

@@ -6,7 +6,7 @@ import statsImage from 'sentry-images/spot/releases-tour-stats.svg';
 import {Button, LinkButton} from '@sentry/scraps/button';
 import {Flex, Grid} from '@sentry/scraps/layout';
 
-import {openModal} from 'sentry/actionCreators/modal';
+import {openModal, type ModalRenderProps} from 'sentry/actionCreators/modal';
 import {FeatureShowcase, useShowcaseContext} from 'sentry/components/featureShowcase';
 import {releaseHealth} from 'sentry/data/platformCategories';
 import {t} from 'sentry/locale';
@@ -48,30 +48,82 @@ type Props = {
   projectId?: string;
 };
 
+interface ReleasesShowcaseProps extends Props, ModalRenderProps {}
+
+function ReleasesShowcase(props: ReleasesShowcaseProps) {
+  const {organization, projectId, ...deps} = props;
+  function handleFeatureShowcaseAdvance(step: number) {
+    trackAnalytics('project_detail.releases_tour.advance', {
+      organization,
+      project_id: projectId ?? '',
+      step,
+    });
+  }
+
+  function handleClose(step: number) {
+    trackAnalytics('project_detail.releases_tour.close', {
+      organization,
+      project_id: projectId ?? '',
+      step,
+    });
+  }
+
+  return (
+    <FeatureShowcase
+      {...deps}
+      onStepChange={handleFeatureShowcaseAdvance}
+      onClose={handleClose}
+    >
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={commitImage} alt={t('Suspect Commits')} />
+        <FeatureShowcase.StepTitle>{t('Suspect Commits')}</FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'Sentry suggests which commit caused an issue and who is likely responsible so you can triage.'
+          )}
+        </FeatureShowcase.StepContent>
+        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+      </FeatureShowcase.Step>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={statsImage} alt={t('Release Stats')} />
+        <FeatureShowcase.StepTitle>{t('Release Stats')}</FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'Get an overview of the commits in each release, and which issues were introduced or fixed.'
+          )}
+        </FeatureShowcase.StepContent>
+        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+      </FeatureShowcase.Step>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={resolutionImage} alt={t('Easily Resolve')} />
+        <FeatureShowcase.StepTitle>{t('Easily Resolve')}</FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'Automatically resolve issues by including the issue number in your commit message.'
+          )}
+        </FeatureShowcase.StepContent>
+        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+      </FeatureShowcase.Step>
+      <FeatureShowcase.Step>
+        <FeatureShowcase.Image src={emailImage} alt={t('Deploy Emails')} />
+        <FeatureShowcase.StepTitle>{t('Deploy Emails')}</FeatureShowcase.StepTitle>
+        <FeatureShowcase.StepContent>
+          {t(
+            'Receive email notifications about when your code gets deployed. This can be customized in settings.'
+          )}
+        </FeatureShowcase.StepContent>
+        <SetupFooter />
+      </FeatureShowcase.Step>
+    </FeatureShowcase>
+  );
+}
+
 export function MissingReleasesButtons({
   organization,
   health,
   projectId,
   platform,
 }: Props) {
-  function handleFeatureShowcaseAdvance(step: number, duration: number) {
-    trackAnalytics('project_detail.releases_tour.advance', {
-      organization,
-      project_id: projectId ?? '',
-      step,
-      duration,
-    });
-  }
-
-  function handleClose(step: number, duration: number) {
-    trackAnalytics('project_detail.releases_tour.close', {
-      organization,
-      project_id: projectId ?? '',
-      step,
-      duration,
-    });
-  }
-
   const isSelfHostedErrorsOnly = ConfigStore.get('isSelfHostedErrorsOnly');
   const setupDisabled =
     (health && platform && !releaseHealth.includes(platform)) || isSelfHostedErrorsOnly;
@@ -100,63 +152,11 @@ export function MissingReleasesButtons({
           analyticsEventName="Project Detail: Releases Get Tour Clicked"
           onClick={() => {
             openModal(deps => (
-              <FeatureShowcase
+              <ReleasesShowcase
                 {...deps}
-                onStepChange={handleFeatureShowcaseAdvance}
-                onClose={handleClose}
-              >
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image src={commitImage} alt={t('Suspect Commits')} />
-                  <FeatureShowcase.StepTitle>
-                    {t('Suspect Commits')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'Sentry suggests which commit caused an issue and who is likely responsible so you can triage.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-                </FeatureShowcase.Step>
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image src={statsImage} alt={t('Release Stats')} />
-                  <FeatureShowcase.StepTitle>
-                    {t('Release Stats')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'Get an overview of the commits in each release, and which issues were introduced or fixed.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-                </FeatureShowcase.Step>
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image
-                    src={resolutionImage}
-                    alt={t('Easily Resolve')}
-                  />
-                  <FeatureShowcase.StepTitle>
-                    {t('Easily Resolve')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'Automatically resolve issues by including the issue number in your commit message.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-                </FeatureShowcase.Step>
-                <FeatureShowcase.Step>
-                  <FeatureShowcase.Image src={emailImage} alt={t('Deploy Emails')} />
-                  <FeatureShowcase.StepTitle>
-                    {t('Deploy Emails')}
-                  </FeatureShowcase.StepTitle>
-                  <FeatureShowcase.StepContent>
-                    {t(
-                      'Receive email notifications about when your code gets deployed. This can be customized in settings.'
-                    )}
-                  </FeatureShowcase.StepContent>
-                  <SetupFooter />
-                </FeatureShowcase.Step>
-              </FeatureShowcase>
+                organization={organization}
+                projectId={projectId}
+              />
             ));
           }}
         >

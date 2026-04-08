@@ -110,11 +110,11 @@ type FeatureShowcaseProps = ModalRenderProps & {
   /**
    * Called when the showcase modal is closed (via dismiss or completion).
    */
-  onClose?: (step: number, duration: number) => void;
+  onClose?: (step: number) => void;
   /**
    * Called when the showcase advances to a new step.
    */
-  onStepChange?: (step: number, duration: number) => void;
+  onStepChange?: (step: number) => void;
 };
 
 /**
@@ -148,15 +148,12 @@ function FeatureShowcase({
   onClose,
 }: FeatureShowcaseProps) {
   const [current, setCurrent] = useState(0);
-  const openedAtRef = useRef(Date.now());
   const stateRef = useRef({current: 0, onClose});
   stateRef.current = {current, onClose};
 
   useEffect(() => {
-    const openedAt = openedAtRef.current;
     return () => {
-      const duration = Date.now() - openedAt;
-      stateRef.current.onClose?.(stateRef.current.current, duration);
+      stateRef.current.onClose?.(stateRef.current.current);
     };
   }, []);
 
@@ -167,8 +164,7 @@ function FeatureShowcase({
   const handleAdvance = () => {
     const nextStep = current + 1;
     setCurrent(nextStep);
-    const duration = Date.now() - openedAtRef.current;
-    onStepChange?.(nextStep, duration);
+    onStepChange?.(nextStep);
   };
 
   const handleBack = () => {
