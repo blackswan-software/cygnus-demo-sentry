@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import sentry_sdk
 from django.urls import reverse
@@ -45,7 +47,7 @@ GITHUB_CACHEABLE_REPOSITORY_PROVIDERS = frozenset(
 )
 
 
-def generate_invalid_identity_email(identity, commit_failure=False):
+def generate_invalid_identity_email(identity: Any, commit_failure: bool = False) -> MessageBuilder:
     new_context = {
         "identity": identity,
         "auth_url": absolute_uri(reverse("socialauth_associate", args=[identity.provider])),
@@ -60,7 +62,9 @@ def generate_invalid_identity_email(identity, commit_failure=False):
     )
 
 
-def generate_fetch_commits_error_email(release, repo, error_message):
+def generate_fetch_commits_error_email(
+    release: Release, repo: Repository, error_message: str
+) -> MessageBuilder:
     new_context = {"release": release, "error_message": error_message, "repo": repo}
 
     return MessageBuilder(
@@ -75,10 +79,14 @@ def generate_fetch_commits_error_email(release, repo, error_message):
 
 
 def get_github_compare_commits_cache_key(
-    organization_id: int, repository_id: int, provider: str, start_sha: str | None, end_sha: str
+    organization_id: int,
+    repository_id: int,
+    provider: str | None,
+    start_sha: str | None,
+    end_sha: str,
 ) -> str:
     digest = md5_text(
-        organization_id, repository_id, provider, start_sha or "", end_sha
+        organization_id, repository_id, provider or "", start_sha or "", end_sha
     ).hexdigest()
     return f"fetch-commits:compare-commits:v1:{digest}"
 
@@ -87,26 +95,17 @@ def fetch_compare_commits(
     *,
     cache_enabled: bool,
     repo: Repository,
-    provider,
+    provider: Any,
     is_integration_repo_provider: bool,
     start_sha: str | None,
     end_sha: str,
     user: RpcUser | None,
-    lifecycle,
-):
-    cache_key = None
-    provider = repo.provider
-    if (
-        cache_enabled
-        and isinstance(provider, str)
-        and provider in GITHUB_CACHEABLE_REPOSITORY_PROVIDERS
-        and start_sha is not None
-    ):
+    lifecycle: Any,
+) -> list[dict[str, Any]]:
+    if cache_enabled:
         cache_key = get_github_compare_commits_cache_key(
-            repo.organization_id, repo.id, provider, start_sha, end_sha
+            repo.organization_id, repo.id, repo.provider, start_sha, end_sha
         )
-
-    if cache_key is not None:
         cached_repo_commits = cache.get(cache_key)
         lifecycle.add_extra("compare_commits_cache_enabled", True)
         if cached_repo_commits is not None:
@@ -120,9 +119,10 @@ def fetch_compare_commits(
     if is_integration_repo_provider:
         repo_commits = provider.compare_commits(repo, start_sha, end_sha)
     else:
+        # XXX: This only works for plugins that support actor context
         repo_commits = provider.compare_commits(repo, start_sha, end_sha, actor=user)
 
-    if cache_key is not None:
+    if cache_enabled:
         cache.set(
             cache_key,
             repo_commits,
@@ -131,13 +131,56 @@ def fetch_compare_commits(
     return repo_commits
 
 
-def handle_invalid_identity(identity, commit_failure=False):
+def handle_invalid_identity(identity: Any, commit_failure: bool = False) -> None:
     # email the user
     msg = generate_invalid_identity_email(identity, commit_failure)
     msg.send_async(to=[identity.user.email])
 
     # now remove the identity, as its invalid
     identity.delete()
+
+
+def get_repo_and_provider_for_ref(
+    *,
+    release: Release,
+    ref: Mapping[str, str],
+    user_id: int,
+) -> tuple[Repository, Any, bool, str] | None:
+    repo = (
+        Repository.objects.filter(
+            organization_id=release.organization_id,
+            name=ref["repository"],
+            status=ObjectStatus.ACTIVE,
+        )
+        .order_by("-pk")
+        .first()
+    )
+    if not repo:
+        logger.info(
+            "repository.missing",
+            extra={
+                "organization_id": release.organization_id,
+                "user_id": user_id,
+                "repository": ref["repository"],
+            },
+        )
+        return None
+
+    is_integration_repo_provider = is_integration_provider(repo.provider)
+    binding_key = (
+        "integration-repository.provider" if is_integration_repo_provider else "repository.provider"
+    )
+    try:
+        provider_cls = bindings.get(binding_key).get(repo.provider)
+    except KeyError:
+        return None
+
+    provider = provider_cls(id=repo.provider)
+    provider_key = (
+        provider_cls.repo_provider if is_integration_repo_provider else provider_cls.auth_provider
+    )
+
+    return repo, provider, is_integration_repo_provider, provider_key
 
 
 @instrumented_task(
@@ -148,9 +191,15 @@ def handle_invalid_identity(identity, commit_failure=False):
     silo_mode=SiloMode.CELL,
 )
 @retry(exclude=(Release.DoesNotExist, User.DoesNotExist))
-def fetch_commits(release_id: int, user_id: int, refs, prev_release_id=None, **kwargs):
+def fetch_commits(
+    release_id: int,
+    user_id: int,
+    refs: Sequence[Mapping[str, str]],
+    prev_release_id: int | None = None,
+    **kwargs: Any,
+) -> None:
     # TODO(dcramer): this function could use some cleanup/refactoring as it's a bit unwieldy
-    commit_list = []
+    commit_list: list[dict[str, Any]] = []
 
     release = Release.objects.get(id=release_id)
     set_tag("organization.slug", release.organization.slug)
@@ -166,41 +215,12 @@ def fetch_commits(release_id: int, user_id: int, refs, prev_release_id=None, **k
             pass
 
     organization = release.organization
-    github_compare_commits_cache_enabled = features.has(
-        GITHUB_FETCH_COMMITS_COMPARE_CACHE_FEATURE, organization, actor=user
-    )
 
     for ref in refs:
-        repo = (
-            Repository.objects.filter(
-                organization_id=release.organization_id,
-                name=ref["repository"],
-                status=ObjectStatus.ACTIVE,
-            )
-            .order_by("-pk")
-            .first()
-        )
-        if not repo:
-            logger.info(
-                "repository.missing",
-                extra={
-                    "organization_id": release.organization_id,
-                    "user_id": user_id,
-                    "repository": ref["repository"],
-                },
-            )
+        resolved = get_repo_and_provider_for_ref(release=release, ref=ref, user_id=user_id)
+        if resolved is None:
             continue
-
-        is_integration_repo_provider = is_integration_provider(repo.provider)
-        binding_key = (
-            "integration-repository.provider"
-            if is_integration_repo_provider
-            else "repository.provider"
-        )
-        try:
-            provider_cls = bindings.get(binding_key).get(repo.provider)
-        except KeyError:
-            continue
+        repo, provider, is_integration_repo_provider, provider_key = resolved
 
         # if previous commit isn't provided, try to get from
         # previous release otherwise, try to get
@@ -219,13 +239,6 @@ def fetch_commits(release_id: int, user_id: int, refs, prev_release_id=None, **k
                 pass
 
         end_sha = ref["commit"]
-        provider = provider_cls(id=repo.provider)
-
-        provider_key = (
-            provider_cls.repo_provider
-            if is_integration_repo_provider
-            else provider_cls.auth_provider
-        )
 
         with SCMIntegrationInteractionEvent(
             SCMIntegrationInteractionType.COMPARE_COMMITS,
@@ -244,8 +257,17 @@ def fetch_commits(release_id: int, user_id: int, refs, prev_release_id=None, **k
                 }
             )
             try:
+                provider_name = repo.provider
+                compare_commits_cache_enabled = (
+                    features.has(
+                        GITHUB_FETCH_COMMITS_COMPARE_CACHE_FEATURE, organization, actor=user
+                    )
+                    and isinstance(provider_name, str)
+                    and provider_name in GITHUB_CACHEABLE_REPOSITORY_PROVIDERS
+                    and start_sha is not None
+                )
                 repo_commits = fetch_compare_commits(
-                    cache_enabled=github_compare_commits_cache_enabled,
+                    cache_enabled=compare_commits_cache_enabled,
                     repo=repo,
                     provider=provider,
                     is_integration_repo_provider=is_integration_repo_provider,
@@ -356,11 +378,11 @@ def fetch_commits(release_id: int, user_id: int, refs, prev_release_id=None, **k
         Deploy.notify_if_ready(deploy_id, fetch_complete=True)
 
 
-def is_integration_provider(provider):
-    return provider and provider.startswith("integrations:")
+def is_integration_provider(provider: str | None) -> bool:
+    return bool(provider and provider.startswith("integrations:"))
 
 
-def get_emails_for_user_or_org(user: RpcUser | None, orgId: int):
+def get_emails_for_user_or_org(user: RpcUser | None, orgId: int) -> list[str]:
     emails: list[str] = []
     if not user:
         return []
