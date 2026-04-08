@@ -1,6 +1,5 @@
 import {useEffect, useRef} from 'react';
 import {useTheme} from '@emotion/react';
-import sentryLogo from 'sentry-logos/logo-sentry.svg';
 
 import {AvatarButton} from '@sentry/scraps/avatarButton';
 import {useSizeContext} from '@sentry/scraps/sizeContext';
@@ -34,8 +33,7 @@ export function NoOrganizationDropdown() {
       trigger={triggerProps => (
         <AvatarButton
           avatar={{
-            type: 'upload',
-            uploadUrl: sentryLogo,
+            type: 'letter_avatar',
             identifier: 'sentry',
             name: 'Sentry',
           }}
