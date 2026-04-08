@@ -48,7 +48,7 @@ const MAX_ZOOM = 1.5;
 
 export function ReplayPlayerMeasurer({children, measure = 'both'}: Props) {
   const elementRef = useRef<HTMLDivElement>(null);
-  const measuredDimensions = useDimensions(elementRef);
+  const measuredDimensions = useDimensions({elementRef});
   const playerState = useReplayPlayerState();
   const [, setViewSize] = useReplayPlayerSize();
 

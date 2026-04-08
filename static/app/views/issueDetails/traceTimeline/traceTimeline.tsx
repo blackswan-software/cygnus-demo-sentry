@@ -17,7 +17,7 @@ interface TraceTimelineProps {
 
 export function TraceTimeline({event}: TraceTimelineProps) {
   const timelineRef = useRef<HTMLDivElement>(null);
-  const {width} = useDimensions(timelineRef);
+  const {width} = useDimensions({elementRef: timelineRef});
   const {isError, isLoading, traceEvents, oneOtherIssueEvent} = useTraceTimelineEvents({
     event,
   });

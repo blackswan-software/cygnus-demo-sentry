@@ -128,7 +128,7 @@ export function WidgetBuilderV2({
     };
   }, []);
 
-  const dimensions = useDimensions(navigationElementRef);
+  const dimensions = useDimensions({elementRef: navigationElementRef});
 
   const handleDragEnd = ({over}: any) => {
     setTranslate(snapPreviewToCorners(over));

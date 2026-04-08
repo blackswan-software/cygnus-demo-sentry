@@ -29,7 +29,9 @@ export function useMonitorsScheduleSamples({
   ...detectorFields
 }: UseMonitorsScheduleSamplesOptions) {
   const timeLineWidthTrackerRef = useRef<HTMLDivElement>(null);
-  const {width: timelineWidth} = useDimensions(timeLineWidthTrackerRef);
+  const {width: timelineWidth} = useDimensions({
+    elementRef: timeLineWidthTrackerRef,
+  });
 
   const {
     data: sampleWindowData,
