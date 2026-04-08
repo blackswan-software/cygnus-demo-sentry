@@ -287,6 +287,10 @@ describe('ExternalIssueForm', () => {
       // Should NOT have made an API request
       expect(submitRequest).not.toHaveBeenCalled();
       expect(closeModal).not.toHaveBeenCalled();
+
+      // Should show inline validation errors on the required fields
+      expect(screen.getByRole('textbox', {name: /title/i})).toBeInvalid();
+      expect(screen.getByRole('textbox', {name: /repo/i})).toBeInvalid();
     });
 
     it('should show an error toast when the submit request fails', async () => {
