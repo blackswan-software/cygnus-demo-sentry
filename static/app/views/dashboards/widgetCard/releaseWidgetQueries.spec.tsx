@@ -835,6 +835,118 @@ describe('Dashboards > ReleaseWidgetQueries', () => {
     expect(releasesMock).toHaveBeenCalledTimes(1);
   });
 
+  it('strips environment global filter from releases API query param', async () => {
+    const metricsMock = MockApiClient.addMockResponse({
+      url: '/organizations/org-slug/metrics/data/',
+      body: SessionsFieldFixture(`session.all`),
+    });
+
+    const releasesMock = MockApiClient.addMockResponse({
+      url: '/organizations/org-slug/releases/',
+      body: [{id: 1, version: '0.0.1'}],
+    });
+
+    render(
+      <ReleaseWidgetQueries
+        widget={{
+          title: 'Crash Rate',
+          interval: '5m',
+          displayType: DisplayType.TABLE,
+          queries: [
+            {
+              name: '',
+              conditions: '',
+              fields: [`count_unique(user)`],
+              aggregates: [`count_unique(user)`],
+              columns: ['release'],
+              orderby: '-release',
+            },
+          ],
+          widgetType: WidgetType.RELEASE,
+        }}
+        dashboardFilters={{
+          [DashboardFilterKeys.GLOBAL_FILTER]: [
+            {
+              dataset: WidgetType.RELEASE,
+              tag: {key: 'environment', name: 'Environment'},
+              value: 'environment:\uf00dContains\uf00dfoo',
+            },
+          ],
+        }}
+      >
+        {() => <div />}
+      </ReleaseWidgetQueries>
+    );
+
+    await waitFor(() => expect(releasesMock).toHaveBeenCalledTimes(1));
+    expect(releasesMock).toHaveBeenCalledWith(
+      '/organizations/org-slug/releases/',
+      expect.objectContaining({
+        data: expect.objectContaining({
+          query: expect.not.stringContaining('environment'),
+        }),
+      })
+    );
+    // Await the subsequent metrics request so it completes within this test's
+    // lifecycle and doesn't bleed into the next test with stale mocks.
+    await waitFor(() => expect(metricsMock).toHaveBeenCalledTimes(1));
+  });
+
+  it('preserves non-environment global filters in releases API query param', async () => {
+    const metricsMock = MockApiClient.addMockResponse({
+      url: '/organizations/org-slug/metrics/data/',
+      body: SessionsFieldFixture(`session.all`),
+    });
+
+    const releasesMock = MockApiClient.addMockResponse({
+      url: '/organizations/org-slug/releases/',
+      body: [{id: 1, version: '0.0.1'}],
+    });
+
+    render(
+      <ReleaseWidgetQueries
+        widget={{
+          title: 'Crash Rate',
+          interval: '5m',
+          displayType: DisplayType.TABLE,
+          queries: [
+            {
+              name: '',
+              conditions: '',
+              fields: [`count_unique(user)`],
+              aggregates: [`count_unique(user)`],
+              columns: ['release'],
+              orderby: '-release',
+            },
+          ],
+          widgetType: WidgetType.RELEASE,
+        }}
+        dashboardFilters={{
+          [DashboardFilterKeys.GLOBAL_FILTER]: [
+            {
+              dataset: WidgetType.RELEASE,
+              tag: {key: 'release', name: 'Release'},
+              value: 'release:1.0.0',
+            },
+          ],
+        }}
+      >
+        {() => <div />}
+      </ReleaseWidgetQueries>
+    );
+
+    await waitFor(() => expect(releasesMock).toHaveBeenCalledTimes(1));
+    expect(releasesMock).toHaveBeenCalledWith(
+      '/organizations/org-slug/releases/',
+      expect.objectContaining({
+        data: expect.objectContaining({
+          query: expect.stringContaining('release:1.0.0'),
+        }),
+      })
+    );
+    await waitFor(() => expect(metricsMock).toHaveBeenCalledTimes(1));
+  });
+
   it('escapes release versions with spaces and special characters', async () => {
     const mock = MockApiClient.addMockResponse({
       url: '/organizations/org-slug/metrics/data/',

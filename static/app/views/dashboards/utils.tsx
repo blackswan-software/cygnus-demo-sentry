@@ -579,7 +579,13 @@ export function dashboardFiltersToString(
   if (widgetType && globalFilters) {
     dashboardFilterConditions +=
       globalFilters
-        .filter(globalFilter => globalFilter.dataset === widgetType)
+        .filter(
+          globalFilter =>
+            globalFilter.dataset === widgetType &&
+            // environment is passed separately as a dedicated param for release widgets
+            // and is not supported in the query= string by the releases API
+            !(widgetType === WidgetType.RELEASE && globalFilter.tag.key === 'environment')
+        )
         .map(globalFilter => globalFilter.value)
         .join(' ') ?? '';
   }
