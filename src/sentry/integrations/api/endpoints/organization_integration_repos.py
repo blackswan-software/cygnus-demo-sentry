@@ -123,7 +123,7 @@ class OrganizationIntegrationReposEndpoint(CellOrganizationIntegrationBaseEndpoi
                 "searchable": install.repo_search,
             }
         )
-        cursor_result = CursorResult(
+        cursor_result: CursorResult = CursorResult(
             results=[],
             prev=Cursor(0, max(0, cursor.offset - per_page), True, cursor.offset > 0),
             next=Cursor(0, cursor.offset + per_page, False, has_next),
