@@ -124,6 +124,49 @@ class BitbucketIntegrationTest(APITestCase):
         assert len(responses.calls) == 1
 
     @responses.activate
+    def test_get_repositories_zero_page_limit_returns_first_page(self) -> None:
+        """A page_number_limit of 0 still returns the first page but fetches no further."""
+        base_url = "https://api.bitbucket.org/2.0/repositories/sentryuser"
+        responses.add(
+            responses.GET,
+            base_url,
+            json={
+                "values": [{"full_name": "sentryuser/repo-1", "uuid": "{r1}"}],
+                "next": f"{base_url}?pagelen=100&page=2",
+            },
+        )
+        responses.add(
+            responses.GET,
+            f"{base_url}?pagelen=100&page=2",
+            json={"values": [{"full_name": "sentryuser/repo-2", "uuid": "{r2}"}]},
+        )
+
+        installation = self.integration.get_installation(self.organization.id)
+        result = installation.get_repositories(page_number_limit=0)
+        assert result == [
+            {"identifier": "sentryuser/repo-1", "name": "sentryuser/repo-1", "external_id": "{r1}"},
+        ]
+        assert len(responses.calls) == 1
+
+    @responses.activate
+    def test_get_repositories_clamps_excessive_page_limit(self) -> None:
+        """A page_number_limit above the class max is clamped to the default."""
+        base_url = "https://api.bitbucket.org/2.0/repositories/sentryuser"
+        responses.add(
+            responses.GET,
+            base_url,
+            json={"values": [{"full_name": "sentryuser/repo-1", "uuid": "{r1}"}]},
+        )
+
+        installation = self.integration.get_installation(self.organization.id)
+        client = installation.get_client()
+        result = installation.get_repositories(page_number_limit=client.page_number_limit + 100)
+        assert result == [
+            {"identifier": "sentryuser/repo-1", "name": "sentryuser/repo-1", "external_id": "{r1}"},
+        ]
+        assert len(responses.calls) == 1
+
+    @responses.activate
     def test_get_repositories_exact_match(self) -> None:
         querystring = urlencode({"q": 'name="stuf"'})
         responses.add(
