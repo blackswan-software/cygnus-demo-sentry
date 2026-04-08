@@ -29,7 +29,7 @@ export function getSearchFiltersForLLM(
     }
     return filters.map(f => ({
       field: f.key.text,
-      op: `${f.negated ? 'NOT ' : ''}${OP_LABELS[f.operator as keyof typeof OP_LABELS] ?? f.operator}`,
+      op: `${f.negated ? 'NOT ' : ''}${OP_LABELS[f.operator] ?? f.operator}`,
       value: f.value.text,
     }));
   } catch {

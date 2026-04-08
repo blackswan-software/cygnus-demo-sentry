@@ -81,9 +81,15 @@ describe('getSearchFiltersForLLM', () => {
   });
 
   it('parses negation-in-value syntax (key:!value)', () => {
-    // browser.name:!Firefox uses NOT_EQUAL operator, not ! prefix negation
+    // browser.name:!Firefox — the ! is part of the value, not a negation operator
     expect(getSearchFiltersForLLM('browser.name:!Firefox')).toEqual([
       {field: 'browser.name', op: 'is', value: '!Firefox'},
+    ]);
+  });
+
+  it('parses != operator on numeric fields', () => {
+    expect(getSearchFiltersForLLM('count():!=100')).toEqual([
+      {field: 'count()', op: 'is not', value: '100'},
     ]);
   });
 
@@ -99,5 +105,26 @@ describe('getSearchFiltersForLLM', () => {
 
   it('falls back to raw string when only free text (no key:value filters)', () => {
     expect(getSearchFiltersForLLM('just some free text')).toBe('just some free text');
+  });
+
+  it('parses a real dashboard widget query with Contains IN list + single Contains + negated Contains', () => {
+    // Real query from a dashboard widget — \uf00d markers are invisible but present
+    const conditions =
+      'span.description:\uf00dContains\uf00d[sentry.tasks.autofix.generate_issue_summary_only,sentry.tasks.autofix.run_automation_only_task,sentry.tasks.autofix.generate_summary_and_run_automation] span.name:\uf00dContains\uf00dqueue.task.taskworker !trigger_path:\uf00dContains\uf00dold_seer_automation';
+    expect(getSearchFiltersForLLM(conditions)).toEqual([
+      {
+        field: 'span.description',
+        op: 'contains',
+        value:
+          '[sentry.tasks.autofix.generate_issue_summary_only,sentry.tasks.autofix.run_automation_only_task,sentry.tasks.autofix.generate_summary_and_run_automation]',
+      },
+      {field: 'span.name', op: 'contains', value: 'queue.task.taskworker'},
+      {field: 'trigger_path', op: 'NOT contains', value: 'old_seer_automation'},
+    ]);
+  });
+
+  it('handles empty conditions from a widget with no filters', () => {
+    // First query from the user's example — aggregates only, no conditions
+    expect(getSearchFiltersForLLM('')).toEqual([]);
   });
 });
