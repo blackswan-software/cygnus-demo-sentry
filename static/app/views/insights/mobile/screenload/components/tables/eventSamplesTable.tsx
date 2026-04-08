@@ -77,7 +77,7 @@ export function EventSamplesTable({
     }
 
     if (column.key === eventIdKey) {
-      if (row.timestamp && isPartialSpanOrTraceData(row.timestamp)) {
+      if (isPartialSpanOrTraceData(row.timestamp)) {
         return (
           <DisabledTraceLink type="trace">
             {row[eventIdKey].slice(0, 8)}

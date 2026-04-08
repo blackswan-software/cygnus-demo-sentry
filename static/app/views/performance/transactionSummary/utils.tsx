@@ -140,10 +140,7 @@ export function generateTraceLink(dateSelection: any, view?: DomainView) {
     location: Location
   ): LocationDescriptor => {
     const traceId = tableRow.trace ? `${tableRow.trace}` : '';
-    if (
-      !traceId ||
-      (tableRow.timestamp && isPartialSpanOrTraceData(tableRow.timestamp))
-    ) {
+    if (!traceId || isPartialSpanOrTraceData(tableRow.timestamp)) {
       return {};
     }
 
@@ -166,7 +163,7 @@ export function generateTransactionIdLink(view?: DomainView) {
     location: Location,
     spanId?: string
   ): LocationDescriptor => {
-    if (tableRow.timestamp && isPartialSpanOrTraceData(tableRow.timestamp)) {
+    if (isPartialSpanOrTraceData(tableRow.timestamp)) {
       return {};
     }
 

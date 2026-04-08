@@ -430,7 +430,7 @@ function renderEventInTraceView(
     return <Container>{getShortEventId(spanId)}</Container>;
   }
 
-  if (data.timestamp && isPartialSpanOrTraceData(data.timestamp)) {
+  if (isPartialSpanOrTraceData(data.timestamp)) {
     return (
       <Container>
         <DisabledTraceLink type="span">{getShortEventId(spanId)}</DisabledTraceLink>

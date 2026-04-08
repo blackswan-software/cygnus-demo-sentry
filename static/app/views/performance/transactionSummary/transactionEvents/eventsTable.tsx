@@ -233,7 +233,7 @@ export function EventsTable({
 
       if (field === 'id' || field === 'trace') {
         const isIssue = !!issueId;
-        const isOld = dataRow.timestamp && isPartialSpanOrTraceData(dataRow.timestamp);
+        const isOld = isPartialSpanOrTraceData(dataRow.timestamp);
         let target: LocationDescriptor | null = null;
         if (isIssue && !isRegressionIssue && field === 'id') {
           target = {

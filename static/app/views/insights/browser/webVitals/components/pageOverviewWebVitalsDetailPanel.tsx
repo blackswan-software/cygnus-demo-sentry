@@ -284,7 +284,7 @@ export function PageOverviewWebVitalsDetailPanel({
       return <NoOverflow>{NO_VALUE}</NoOverflow>;
     }
     if (key === 'id') {
-      const isOld = row.timestamp && isPartialSpanOrTraceData(row.timestamp);
+      const isOld = isPartialSpanOrTraceData(row.timestamp);
       const eventTarget =
         !isOld &&
         project?.slug &&

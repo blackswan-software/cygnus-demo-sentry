@@ -11,6 +11,7 @@ import type {Location, LocationDescriptor} from 'history';
 import memoize from 'lodash/memoize';
 
 import {Flex} from '@sentry/scraps/layout';
+import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {HeatMapChart} from 'sentry/components/charts/heatMapChart';
 import {HeaderTitleLegend} from 'sentry/components/charts/styles';
@@ -356,8 +357,7 @@ export function TagsHeatMap(
                   <div>
                     {transactionTableData?.data.length ? null : <Placeholder />}
                     {[...(transactionTableData?.data ?? [])].slice(0, 3).map(row => {
-                      const isOld =
-                        row.timestamp && isPartialSpanOrTraceData(row.timestamp);
+                      const isOld = isPartialSpanOrTraceData(row.timestamp);
                       const target = isOld
                         ? null
                         : generateLinkToEventInTraceView({
@@ -376,7 +376,7 @@ export function TagsHeatMap(
                             view,
                           });
 
-                      return (
+                      const dropdownItem = (
                         <DropdownItem
                           width="small"
                           key={row.id}
@@ -394,6 +394,19 @@ export function TagsHeatMap(
                           </Flex>
                         </DropdownItem>
                       );
+
+                      if (isOld) {
+                        return (
+                          <Tooltip
+                            key={row.id}
+                            title={t('Trace data is only available for the last 30 days')}
+                          >
+                            {dropdownItem}
+                          </Tooltip>
+                        );
+                      }
+
+                      return dropdownItem;
                     })}
                     {moreEventsTarget &&
                     transactionTableData &&

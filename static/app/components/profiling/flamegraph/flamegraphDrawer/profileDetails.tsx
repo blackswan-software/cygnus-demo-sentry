@@ -426,6 +426,14 @@ function ProfileEventDetails({
               </DetailsRow>
             );
           }
+          if (isPartialSpanOrTraceData(transaction?.endTimestamp)) {
+            return (
+              <DetailsRow key={key}>
+                <strong>{label}:</strong>
+                <DisabledTraceLink type="trace">{value}</DisabledTraceLink>
+              </DetailsRow>
+            );
+          }
         }
         if (key === 'projectID') {
           if (project && organization) {

@@ -202,7 +202,7 @@ export function TableView(props: TableViewProps) {
           );
         }
 
-        if (dataRow.timestamp && isPartialSpanOrTraceData(dataRow.timestamp)) {
+        if (isPartialSpanOrTraceData(dataRow.timestamp)) {
           return [
             <DisabledTraceLink key={`disabled-trace-${rowIndex}`} type="trace">
               {value}

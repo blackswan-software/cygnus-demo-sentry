@@ -481,7 +481,7 @@ export function PageSamplePerformanceTable({transaction, search, limit = 9}: Pro
 
     if (key === 'id' || key === SpanFields.SPAN_DESCRIPTION) {
       if (key === 'id' && 'id' in row) {
-        const isOld = row.timestamp && isPartialSpanOrTraceData(row.timestamp);
+        const isOld = isPartialSpanOrTraceData(row.timestamp);
         if (isOld) {
           return (
             <DisabledTraceLink type="trace">{getShortEventId(row.id)}</DisabledTraceLink>
