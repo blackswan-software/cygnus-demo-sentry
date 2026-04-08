@@ -7,7 +7,7 @@ from sentry.preprod.snapshots.models import PreprodSnapshotComparison, PreprodSn
 from sentry.preprod.url_utils import get_preprod_artifact_comparison_url, get_preprod_artifact_url
 
 _HEADER = "## Sentry Snapshot Testing"
-PROCESSING_STATUS = "\u23f3 Processing"
+PROCESSING_STATUS = "⏳ Processing"
 COMPARISON_TABLE_HEADER = (
     "| Name | Added | Removed | Modified | Renamed | Unchanged | Status |\n"
     "| :--- | :---: | :---: | :---: | :---: | :---: | :---: |\n"
@@ -42,7 +42,7 @@ def format_snapshot_pr_comment(
         if not comparison and not has_base:
             # No base to compare against — show snapshot count only
             table_rows.append(
-                f"| {name_cell} | - | - | - | - | - | \u2705 {metrics.image_count} uploaded |"
+                f"| {name_cell} | - | - | - | - | - | ✅ {metrics.image_count} uploaded |"
             )
             continue
 
@@ -56,7 +56,7 @@ def format_snapshot_pr_comment(
         ):
             table_rows.append(f"| {name_cell} | - | - | - | - | - | {PROCESSING_STATUS} |")
         elif comparison.state == PreprodSnapshotComparison.State.FAILED:
-            table_rows.append(f"| {name_cell} | - | - | - | - | - | \u274c Comparison failed |")
+            table_rows.append(f"| {name_cell} | - | - | - | - | - | ❌ Comparison failed |")
         else:
             base_artifact = base_artifact_map.get(artifact.id)
             artifact_url = (
@@ -70,11 +70,11 @@ def format_snapshot_pr_comment(
             has_changes = changes_map.get(artifact.id, False)
             is_approved = approvals_map is not None and artifact.id in approvals_map
             if has_changes and is_approved:
-                status = "\u2705 Approved"
+                status = "✅ Approved"
             elif has_changes:
-                status = "\u23f3 Needs approval"
+                status = "⏳ Needs approval"
             else:
-                status = "\u2705 Unchanged"
+                status = "✅ Unchanged"
 
             table_rows.append(
                 f"| {name_cell}"

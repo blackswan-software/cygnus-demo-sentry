@@ -209,7 +209,7 @@ def _format_solo_snapshot_summary(
             table_rows.append(f"| {name} | - | {PROCESSING_STATUS} |")
             continue
 
-        table_rows.append(f"| {name} | {metrics.image_count} | \u2705 Uploaded |")
+        table_rows.append(f"| {name} | {metrics.image_count} | ✅ Uploaded |")
 
     table_header = "| Name | Snapshots | Status |\n| :--- | :---: | :---: |\n"
 
@@ -257,11 +257,11 @@ def _format_snapshot_summary(
             has_changes = changes_map.get(artifact.id, False)
             is_approved = approvals_map is not None and artifact.id in approvals_map
             if has_changes and is_approved:
-                status = "\u2705 Approved"
+                status = "✅ Approved"
             elif has_changes:
-                status = "\u23f3 Needs approval"
+                status = "⏳ Needs approval"
             else:
-                status = "\u2705 Unchanged"
+                status = "✅ Unchanged"
 
             table_rows.append(
                 f"| {name}"
