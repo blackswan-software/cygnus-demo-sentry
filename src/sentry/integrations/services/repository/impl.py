@@ -132,11 +132,23 @@ class DatabaseBackedRepositoryService(RepositoryService):
         self, *, organization_id: int, integration_id: int, provider: str
     ) -> None:
         with transaction.atomic(router.db_for_write(Repository)):
-            Repository.objects.filter(
-                organization_id=organization_id,
-                integration_id=integration_id,
-                provider=provider,
-            ).update(status=ObjectStatus.DISABLED)
+            repo_ids = list(
+                Repository.objects.filter(
+                    organization_id=organization_id,
+                    integration_id=integration_id,
+                    provider=provider,
+                ).values_list("id", flat=True)
+            )
+
+            if repo_ids:
+                Repository.objects.filter(id__in=repo_ids).update(status=ObjectStatus.DISABLED)
+
+                try:
+                    organization = Organization.objects.get_from_cache(id=organization_id)
+                    if features.has("organizations:seer-project-settings-dual-write", organization):
+                        SeerProjectRepository.objects.filter(repository_id__in=repo_ids).delete()
+                except Organization.DoesNotExist:
+                    pass
 
     def disable_repositories_by_external_ids(
         self,
@@ -147,13 +159,25 @@ class DatabaseBackedRepositoryService(RepositoryService):
         external_ids: list[str],
     ) -> None:
         with transaction.atomic(router.db_for_write(Repository)):
-            Repository.objects.filter(
-                organization_id=organization_id,
-                integration_id=integration_id,
-                provider=provider,
-                external_id__in=external_ids,
-                status=ObjectStatus.ACTIVE,
-            ).update(status=ObjectStatus.DISABLED)
+            repo_ids = list(
+                Repository.objects.filter(
+                    organization_id=organization_id,
+                    integration_id=integration_id,
+                    provider=provider,
+                    external_id__in=external_ids,
+                    status=ObjectStatus.ACTIVE,
+                ).values_list("id", flat=True)
+            )
+
+            if repo_ids:
+                Repository.objects.filter(id__in=repo_ids).update(status=ObjectStatus.DISABLED)
+
+                try:
+                    organization = Organization.objects.get_from_cache(id=organization_id)
+                    if features.has("organizations:seer-project-settings-dual-write", organization):
+                        SeerProjectRepository.objects.filter(repository_id__in=repo_ids).delete()
+                except Organization.DoesNotExist:
+                    pass
 
     def disassociate_organization_integration(
         self,

@@ -1,7 +1,9 @@
 from sentry.constants import ObjectStatus
 from sentry.integrations.services.repository.service import repository_service
 from sentry.models.repository import Repository
+from sentry.seer.models.project_repository import SeerProjectRepository
 from sentry.testutils.cases import TestCase
+from sentry.testutils.helpers.features import with_feature
 from sentry.testutils.silo import cell_silo_test
 
 
@@ -160,3 +162,80 @@ class DisableRepositoriesByExternalIdsTest(TestCase):
 
         repo.refresh_from_db()
         assert repo.status == ObjectStatus.ACTIVE
+
+    @with_feature("organizations:seer-project-settings-dual-write")
+    def test_deletes_seer_project_repository_rows(self) -> None:
+        project = self.create_project(organization=self.organization)
+        repo = Repository.objects.create(
+            organization_id=self.organization.id,
+            name="getsentry/sentry",
+            external_id="100",
+            provider=self.provider,
+            integration_id=self.integration.id,
+            status=ObjectStatus.ACTIVE,
+        )
+        SeerProjectRepository.objects.create(project=project, repository_id=repo.id)
+
+        repository_service.disable_repositories_by_external_ids(
+            organization_id=self.organization.id,
+            integration_id=self.integration.id,
+            provider=self.provider,
+            external_ids=["100"],
+        )
+
+        repo.refresh_from_db()
+        assert repo.status == ObjectStatus.DISABLED
+        assert not SeerProjectRepository.objects.filter(repository_id=repo.id).exists()
+
+
+@cell_silo_test
+class DisableRepositoriesForIntegrationTest(TestCase):
+    def setUp(self) -> None:
+        self.integration = self.create_integration(
+            organization=self.organization,
+            external_id="1",
+            provider="github",
+        )
+        self.provider = "integrations:github"
+
+    def test_disables_all_repos_for_integration(self) -> None:
+        repo = Repository.objects.create(
+            organization_id=self.organization.id,
+            name="getsentry/sentry",
+            external_id="100",
+            provider=self.provider,
+            integration_id=self.integration.id,
+            status=ObjectStatus.ACTIVE,
+        )
+
+        repository_service.disable_repositories_for_integration(
+            organization_id=self.organization.id,
+            integration_id=self.integration.id,
+            provider=self.provider,
+        )
+
+        repo.refresh_from_db()
+        assert repo.status == ObjectStatus.DISABLED
+
+    @with_feature("organizations:seer-project-settings-dual-write")
+    def test_deletes_seer_project_repository_rows(self) -> None:
+        project = self.create_project(organization=self.organization)
+        repo = Repository.objects.create(
+            organization_id=self.organization.id,
+            name="getsentry/sentry",
+            external_id="100",
+            provider=self.provider,
+            integration_id=self.integration.id,
+            status=ObjectStatus.ACTIVE,
+        )
+        SeerProjectRepository.objects.create(project=project, repository_id=repo.id)
+
+        repository_service.disable_repositories_for_integration(
+            organization_id=self.organization.id,
+            integration_id=self.integration.id,
+            provider=self.provider,
+        )
+
+        repo.refresh_from_db()
+        assert repo.status == ObjectStatus.DISABLED
+        assert not SeerProjectRepository.objects.filter(repository_id=repo.id).exists()
