@@ -157,12 +157,10 @@ export default function UptimeAlertDetails() {
             <StatusToggleButton
               uptimeDetector={detector}
               onToggleStatus={data => toggleStatus(data)}
-              size="sm"
               disabled={!canEdit}
               {...(canEdit ? {} : {tooltipProps: {title: permissionTooltipText}})}
             />
             <LinkButton
-              size="sm"
               icon={<IconEdit />}
               disabled={!canEdit}
               tooltipProps={{title: canEdit ? undefined : permissionTooltipText}}

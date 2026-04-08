@@ -71,7 +71,6 @@ export function AlertHeader({activeTab}: Props) {
           <CreateAlertButton
             organization={organization}
             iconProps={{size: 'sm'}}
-            size="sm"
             priority="primary"
             referrer="alert_stream"
             projectSlug={
@@ -83,7 +82,6 @@ export function AlertHeader({activeTab}: Props) {
             {t('Create Alert')}
           </CreateAlertButton>
           <LinkButton
-            size="sm"
             onClick={handleNavigateToSettings}
             href="#"
             icon={<IconSettings size="sm" />}

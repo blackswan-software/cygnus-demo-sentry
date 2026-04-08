@@ -209,7 +209,6 @@ function DiscoverLanding() {
                 <LinkButton
                   data-test-id="build-new-query"
                   to={to}
-                  size="sm"
                   priority="primary"
                   onClick={() => {
                     trackAnalytics('discover_v2.build_new_query', {

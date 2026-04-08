@@ -94,7 +94,7 @@ function ProfileHeader({transaction, projectId, eventId}: ProfileHeaderProps) {
       {hasPageFrameFeature ? (
         <TopBar.Slot name="actions">
           {transactionTarget && (
-            <LinkButton size="sm" onClick={handleGoToTransaction} to={transactionTarget}>
+            <LinkButton onClick={handleGoToTransaction} to={transactionTarget}>
               {t('Go to Trace')}
             </LinkButton>
           )}

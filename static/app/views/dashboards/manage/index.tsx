@@ -683,7 +683,6 @@ function ManageDashboards() {
                                     <Button
                                       {...triggerProps}
                                       data-test-id="dashboard-create"
-                                      size="sm"
                                       priority="primary"
                                       icon={<IconAdd />}
                                     >
@@ -706,7 +705,6 @@ function ManageDashboards() {
                                     event.preventDefault();
                                     onCreate();
                                   }}
-                                  size="sm"
                                   priority="primary"
                                   icon={<IconAdd />}
                                   disabled={
@@ -733,7 +731,6 @@ function ManageDashboards() {
                               location,
                             });
                           }}
-                          size="sm"
                           priority="primary"
                           icon={<IconAdd />}
                         >

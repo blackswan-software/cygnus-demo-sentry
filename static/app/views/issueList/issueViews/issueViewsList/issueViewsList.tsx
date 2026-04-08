@@ -392,7 +392,6 @@ export default function IssueViewsList() {
                     <Button
                       priority="primary"
                       icon={<IconAdd />}
-                      size="sm"
                       disabled={!hasFeature || isCreatingView}
                       busy={isCreatingView}
                       onClick={() => {

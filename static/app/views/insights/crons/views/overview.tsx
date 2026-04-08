@@ -101,7 +101,6 @@ function CronsOverview() {
           <TopBar.Slot name="actions">
             <Button
               icon={<IconList />}
-              size="sm"
               onClick={() =>
                 openBulkEditMonitorsModal({
                   onClose: () => refetch(),
@@ -113,7 +112,7 @@ function CronsOverview() {
               {t('Manage Monitors')}
             </Button>
             {!guideVisible && (
-              <NewMonitorButton size="sm" icon={<IconAdd />}>
+              <NewMonitorButton icon={<IconAdd />}>
                 {t('Add Cron Monitor')}
               </NewMonitorButton>
             )}
