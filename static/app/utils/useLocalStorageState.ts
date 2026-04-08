@@ -9,8 +9,7 @@ const SUPPORTS_LOCAL_STORAGE = window && 'localStorage' in window;
 // Attempt to parse JSON. If it fails, swallow the error and return null.
 // As an improvement, we should maybe allow users to intercept here or possibly use
 // a different parsing function from JSON.parse
-// eslint-disable-next-line @typescript-eslint/no-restricted-types
-function tryParseStorage(jsonEncodedValue: string): object | null {
+function tryParseStorage(jsonEncodedValue: string): unknown {
   try {
     return JSON.parse(jsonEncodedValue);
   } catch (e) {
