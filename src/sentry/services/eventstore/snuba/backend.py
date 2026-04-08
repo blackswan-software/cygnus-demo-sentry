@@ -352,6 +352,58 @@ class SnubaEventStorage(EventStorage):
                     for event in events:
                         node_data = nodestore_dict[(event.event_id, event.project_id)]
                         event.data.bind_data(node_data)
+
+                    callsite = "eventstore.backend.get_events"
+                    if (
+                        eap_conditions is not None
+                        and tenant_ids
+                        and "organization_id" in tenant_ids
+                        and EAPOccurrencesComparator.should_check_experiment(callsite)
+                    ):
+                        occurrence_category = (
+                            OccurrenceCategory.ISSUE_PLATFORM
+                            if dataset == Dataset.IssuePlatform
+                            else OccurrenceCategory.ERROR
+                        )
+                        eap_results = self._get_events_eap(
+                            eap_conditions=eap_conditions,
+                            project_ids=filter.project_ids or [],
+                            organization_id=tenant_ids["organization_id"],
+                            occurrence_category=occurrence_category,
+                            orderby=orderby,
+                            limit=limit,
+                            offset=offset,
+                            referrer=referrer,
+                            start=filter.start,
+                            end=filter.end,
+                            group_ids=filter.group_ids,
+                        )
+                        control_data = {(e.event_id, e.group_id) for e in events}
+                        experimental_data = (
+                            {(row["id"], row["group_id"]) for row in eap_results}
+                            if eap_results is not None
+                            else set()
+                        )
+                        EAPOccurrencesComparator.check_and_choose(
+                            control_data=control_data,
+                            experimental_data=experimental_data,
+                            callsite=callsite,
+                            is_experimental_data_a_null_result=eap_results is None,
+                            reasonable_match_comparator=lambda ctl, exp: exp.issubset(ctl),
+                            debug_context={
+                                "project_ids": list(filter.project_ids)
+                                if filter.project_ids
+                                else [],
+                                "group_ids": list(filter.group_ids) if filter.group_ids else [],
+                                "dataset": dataset.value,
+                                "limit": limit,
+                                "offset": offset,
+                                "referrer": referrer,
+                                "control_count": len(events),
+                                "experimental_count": len(experimental_data),
+                            },
+                        )
+
                     return events
 
             return []
