@@ -101,15 +101,28 @@ describe('ExternalIssueForm', () => {
         body: formConfig,
       });
 
+      const submitRequest = MockApiClient.addMockResponse({
+        url: `/organizations/org-slug/issues/${group.id}/integrations/${integration.id}/`,
+        method: 'POST',
+        body: {id: '123', key: 'TEST-1'},
+      });
+
       await renderComponent();
 
       const labelsSelect = screen.getByRole('textbox', {name: 'Labels'});
       await selectEvent.select(labelsSelect, 'bug');
       await selectEvent.select(labelsSelect, 'feature');
 
-      // Both values should be visible as selected tags
-      expect(screen.getAllByText('bug').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('feature').length).toBeGreaterThanOrEqual(1);
+      await userEvent.click(screen.getByRole('button', {name: 'Create Issue'}));
+
+      await waitFor(() => {
+        expect(submitRequest).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            data: expect.objectContaining({labels: ['bug', 'feature']}),
+          })
+        );
+      });
     });
 
     it('should submit the form and close the modal on success', async () => {
