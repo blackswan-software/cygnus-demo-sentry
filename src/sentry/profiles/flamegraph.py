@@ -479,7 +479,7 @@ class FlamegraphExecutor:
                 thread_id=row["thread.id"],
                 start=row["precise.start_ts"],
                 end=row["precise.finish_ts"],
-                transaction_id=row["sentry.event_id"] or None,
+                transaction_id=row["transaction.event_id"] or None,
             )
             for row in results["data"]
             if row["profiler.id"] and row["thread.id"]
@@ -635,7 +635,7 @@ class FlamegraphExecutor:
                 "profiler.id",
                 "thread.id",
                 "timestamp",
-                "sentry.event_id",  # holds the transaction ID, if this span was originally a transaction
+                "transaction.event_id",  # holds the transaction ID, if this span was originally a transaction
             ],
             orderby=["-timestamp"],
             offset=0,
