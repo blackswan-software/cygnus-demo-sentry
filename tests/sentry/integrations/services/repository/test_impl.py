@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from sentry.constants import ObjectStatus
 from sentry.integrations.services.repository.service import repository_service
@@ -167,7 +167,7 @@ class DisableRepositoriesByExternalIdsTest(TestCase):
 
     @with_feature("organizations:seer-project-settings-dual-write")
     @patch("sentry.integrations.services.repository.impl.bulk_cleanup_seer_repository_preferences")
-    def test_cleans_up_seer_preferences(self, mock_cleanup) -> None:
+    def test_cleans_up_seer_preferences(self, mock_cleanup: MagicMock) -> None:
         project = self.create_project(organization=self.organization)
         repo = Repository.objects.create(
             organization_id=self.organization.id,
@@ -226,7 +226,7 @@ class DisableRepositoriesForIntegrationTest(TestCase):
 
     @with_feature("organizations:seer-project-settings-dual-write")
     @patch("sentry.integrations.services.repository.impl.bulk_cleanup_seer_repository_preferences")
-    def test_cleans_up_seer_preferences(self, mock_cleanup) -> None:
+    def test_cleans_up_seer_preferences(self, mock_cleanup: MagicMock) -> None:
         project = self.create_project(organization=self.organization)
         repo = Repository.objects.create(
             organization_id=self.organization.id,
