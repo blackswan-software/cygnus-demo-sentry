@@ -174,10 +174,60 @@ class BackfillSupergroupsLightweightForOrgTest(TestCase):
         "sentry.tasks.seer.backfill_supergroups_lightweight.make_lightweight_rca_cluster_request"
     )
     def test_resumes_from_cursor(self, mock_request):
+        mock_request.return_value = MagicMock(status=200)
+
+        event2 = self.store_event(
+            data={"message": "second error", "level": "error", "fingerprint": ["group2"]},
+            project_id=self.project.id,
+        )
+        assert event2.group is not None
+        event2.group.substatus = GroupSubStatus.NEW
+        event2.group.save(update_fields=["substatus"])
+
+        # Resume from cursor pointing at the first group — should only process the second
         backfill_supergroups_lightweight_for_org(
             self.organization.id,
             last_project_id=self.project.id,
             last_group_id=self.group.id,
         )
 
-        mock_request.assert_not_called()
+        mock_request.assert_called_once()
+        assert mock_request.call_args.args[0]["group_id"] == event2.group.id
+
+    @with_feature("organizations:supergroups-lightweight-rca-clustering-write")
+    @patch(
+        "sentry.tasks.seer.backfill_supergroups_lightweight.make_lightweight_rca_cluster_request"
+    )
+    def test_chains_then_completes_on_exact_batch_boundary(self, mock_request):
+        mock_request.return_value = MagicMock(status=200)
+
+        # Create exactly BATCH_SIZE groups total (setUp already created 1)
+        for i in range(BATCH_SIZE - 1):
+            evt = self.store_event(
+                data={
+                    "message": f"error {i}",
+                    "level": "error",
+                    "fingerprint": [f"boundary-{i}"],
+                },
+                project_id=self.project.id,
+            )
+            assert evt.group is not None
+            evt.group.substatus = GroupSubStatus.NEW
+            evt.group.save(update_fields=["substatus"])
+
+        # First call: full batch, should self-chain
+        with patch(
+            "sentry.tasks.seer.backfill_supergroups_lightweight.backfill_supergroups_lightweight_for_org.apply_async"
+        ) as mock_chain:
+            backfill_supergroups_lightweight_for_org(self.organization.id)
+            mock_chain.assert_called_once()
+            next_kwargs = mock_chain.call_args.kwargs["kwargs"]
+
+        # Second call with the cursor: no groups left, should not chain
+        mock_request.reset_mock()
+        with patch(
+            "sentry.tasks.seer.backfill_supergroups_lightweight.backfill_supergroups_lightweight_for_org.apply_async"
+        ) as mock_chain:
+            backfill_supergroups_lightweight_for_org(self.organization.id, **next_kwargs)
+            mock_request.assert_not_called()
+            mock_chain.assert_not_called()

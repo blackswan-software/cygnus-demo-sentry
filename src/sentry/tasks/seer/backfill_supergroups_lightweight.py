@@ -1,5 +1,8 @@
 import logging
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
+
+from snuba_sdk import Column, Condition, Direction, Entity, Limit, Op, OrderBy, Query, Request
 
 from sentry import features, options
 from sentry.api.serializers import EventSerializer, serialize
@@ -12,16 +15,18 @@ from sentry.seer.signed_seer_api import (
     SeerViewerContext,
     make_lightweight_rca_cluster_request,
 )
+from sentry.snuba.dataset import Dataset
 from sentry.tasks.base import instrumented_task
 from sentry.taskworker.namespaces import seer_tasks
 from sentry.types.group import GroupSubStatus
 from sentry.utils import metrics
+from sentry.utils.snuba import bulk_snuba_queries
 
 logger = logging.getLogger(__name__)
 
 BACKFILL_LAST_SEEN_DAYS = 90
 BATCH_SIZE = 50
-INTER_BATCH_DELAY_S = 5
+INTER_BATCH_DELAY_S = 1
 
 
 @instrumented_task(
@@ -102,20 +107,7 @@ def backfill_supergroups_lightweight_for_org(
         return
 
     # Phase 1: Batch fetch event data
-    group_event_pairs: list[tuple[Group, dict]] = []
-    for group in groups:
-        event = group.get_latest_event()
-        if not event:
-            continue
-
-        ready_event = eventstore.get_event_by_id(
-            group.project_id, event.event_id, group_id=group.id
-        )
-        if not ready_event:
-            continue
-
-        serialized_event = serialize(ready_event, None, EventSerializer())
-        group_event_pairs.append((group, serialized_event))
+    group_event_pairs = _batch_fetch_events(groups, organization_id)
 
     # Phase 2: Send to Seer (per-group for now, bulk-ready)
     failure_count = 0
@@ -184,3 +176,59 @@ def backfill_supergroups_lightweight_for_org(
             "supergroups_backfill_lightweight.org_completed",
             extra={"organization_id": organization_id},
         )
+
+
+def _batch_fetch_events(groups: Sequence[Group], organization_id: int) -> list[tuple[Group, dict]]:
+    """
+    Fetch the latest event for each group using batched Snuba queries,
+    then serialize each event for sending to Seer.
+    """
+    now = datetime.now(UTC)
+    timestamp_start = now - timedelta(days=BACKFILL_LAST_SEEN_DAYS)
+
+    # Build one Snuba request per group to find the latest event_id
+    snuba_requests = []
+    for group in groups:
+        # Use a tight window around the group's last_seen to minimize scan range,
+        # falling back to the full backfill window if last_seen is unavailable
+        group_start = group.last_seen - timedelta(hours=1) if group.last_seen else timestamp_start
+        snuba_requests.append(
+            Request(
+                dataset=Dataset.Events.value,
+                app_id="supergroups_backfill",
+                query=Query(
+                    match=Entity(Dataset.Events.value),
+                    select=[Column("event_id"), Column("group_id"), Column("project_id")],
+                    where=[
+                        Condition(Column("project_id"), Op.EQ, group.project_id),
+                        Condition(Column("group_id"), Op.EQ, group.id),
+                        Condition(Column("timestamp"), Op.GTE, group_start),
+                        Condition(Column("timestamp"), Op.LT, now + timedelta(minutes=5)),
+                    ],
+                    orderby=[OrderBy(Column("timestamp"), Direction.DESC)],
+                    limit=Limit(1),
+                ),
+                tenant_ids={"organization_id": organization_id},
+            )
+        )
+
+    results = bulk_snuba_queries(
+        snuba_requests, referrer="supergroups_backfill_lightweight.get_latest_events"
+    )
+
+    # Fetch full events from nodestore and serialize
+    group_event_pairs: list[tuple[Group, dict]] = []
+    for group, result in zip(groups, results):
+        rows = result.get("data", [])
+        if not rows:
+            continue
+
+        event_id = rows[0]["event_id"]
+        ready_event = eventstore.get_event_by_id(group.project_id, event_id, group_id=group.id)
+        if not ready_event:
+            continue
+
+        serialized_event = serialize(ready_event, None, EventSerializer())
+        group_event_pairs.append((group, serialized_event))
+
+    return group_event_pairs
