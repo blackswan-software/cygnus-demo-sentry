@@ -63,13 +63,13 @@ class JiraSentryInstalledWebhook(JiraWebhookBase):
                 )
             try:
                 decoded_claims = authenticate_asymmetric_jwt(token, key_id)
+                verify_claims(decoded_claims, request.path, request.GET, method="POST")
             except InvalidKeyError:
                 lifecycle.record_halt(halt_reason="JWT contained invalid key_id (kid)")
                 return self.respond(
                     {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
                 )
 
-            verify_claims(decoded_claims, request.path, request.GET, method="POST")
             data = JiraIntegrationProvider().build_integration(state)
             integration = ensure_integration(self.provider, data)
 

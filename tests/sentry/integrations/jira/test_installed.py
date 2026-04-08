@@ -144,7 +144,15 @@ class JiraInstalledTest(APITestCase):
         )
 
     @patch("sentry.integrations.utils.metrics.EventLifecycle.record_event")
+    @responses.activate
     def test_with_invalid_key_id(self, mock_record_event: MagicMock) -> None:
+        responses.add(
+            responses.GET,
+            "https://connect-install-keys.atlassian.com/fake-kid",
+            body=b"Not Found",
+            status=404,
+        )
+
         self.get_error_response(
             **self.body(),
             extra_headers=dict(
