@@ -92,6 +92,7 @@ export function ConnectedMonitorsList({
       limit: limit ?? undefined,
       cursor,
       query,
+      includeIssueStreamDetectors: true,
       projects: projectIds,
     }),
     select: selectJsonWithHeaders,
