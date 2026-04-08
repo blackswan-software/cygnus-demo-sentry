@@ -109,7 +109,7 @@ class JiraInstalledTest(APITestCase):
         self.get_error_response(
             **self.body(),
             extra_headers=dict(HTTP_AUTHORIZATION="JWT " + self.jwt_token_cdn()),
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
         )
 
     @patch(

@@ -82,11 +82,6 @@ class JiraSentryInstalledWebhook(JiraWebhookBase):
                 return self.respond(
                     {"detail": "Could not decode JWT token"}, status=status.HTTP_400_BAD_REQUEST
                 )
-            except Exception:
-                lifecycle.record_halt("JWT authentication failed")
-                return self.respond(
-                    {"detail": "JWT authentication failed"}, status=status.HTTP_400_BAD_REQUEST
-                )
 
             data = JiraIntegrationProvider().build_integration(state)
             integration = ensure_integration(self.provider, data)
