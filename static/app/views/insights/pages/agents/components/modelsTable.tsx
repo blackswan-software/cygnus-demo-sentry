@@ -100,7 +100,7 @@ export function ModelsTable() {
   const modelsRequest = useSpans(
     {
       fields: [
-        'gen_ai.request.model',
+        'gen_ai.response.model',
         'sum(gen_ai.usage.input_tokens)',
         'sum(gen_ai.usage.output_tokens)',
         'sum(gen_ai.usage.output_tokens.reasoning)',
@@ -126,7 +126,7 @@ export function ModelsTable() {
     }
 
     return modelsRequest.data.map(span => ({
-      model: span['gen_ai.request.model'],
+      model: span['gen_ai.response.model'],
       requests: span['count()'] ?? 0,
       avg: span['avg(span.duration)'] ?? 0,
       p95: span['p95(span.duration)'] ?? 0,
@@ -223,9 +223,9 @@ const BodyCell = memo(function BodyCell({
         yAxes: ['avg(span.duration)'],
       },
     ],
-    query: `gen_ai.request.model:${dataRow.model}`,
+    query: `gen_ai.response.model:${dataRow.model}`,
     field: [
-      'gen_ai.request.model',
+      'gen_ai.response.model',
       'gen_ai.operation.name',
       'gen_ai.usage.input_tokens',
       'gen_ai.usage.output_tokens',
@@ -268,7 +268,7 @@ const BodyCell = memo(function BodyCell({
         <ErrorCell
           value={dataRow.errors}
           target={getExploreUrl({
-            query: `${query} span.status:internal_error gen_ai.request.model:"${dataRow.model}"`,
+            query: `${query} span.status:internal_error gen_ai.response.model:"${dataRow.model}"`,
             organization,
             selection,
             referrer: Referrer.MODELS_TABLE,

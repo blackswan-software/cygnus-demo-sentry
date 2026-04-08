@@ -41,7 +41,7 @@ export function ModelCostWidget() {
 
   const tokensRequest = useSpans(
     {
-      fields: ['gen_ai.request.model', 'sum(gen_ai.cost.total_tokens)'],
+      fields: ['gen_ai.response.model', 'sum(gen_ai.cost.total_tokens)'],
       sorts: [{field: 'sum(gen_ai.cost.total_tokens)', kind: 'desc'}],
       search: fullQuery,
       limit: 3,
@@ -53,7 +53,7 @@ export function ModelCostWidget() {
     {
       ...pageFilterChartParams,
       query: fullQuery,
-      groupBy: [SpanFields.GEN_AI_REQUEST_MODEL],
+      groupBy: [SpanFields.GEN_AI_RESPONSE_MODEL],
       yAxis: ['sum(gen_ai.cost.total_tokens)'],
       sort: {field: 'sum(gen_ai.cost.total_tokens)', kind: 'desc'},
       topEvents: 3,
@@ -111,7 +111,7 @@ export function ModelCostWidget() {
   const footer = hasData && (
     <WidgetFooterTable>
       {tokens?.map((item, index) => {
-        const modelId = `${item['gen_ai.request.model']}`;
+        const modelId = `${item['gen_ai.response.model']}`;
         return (
           <Fragment key={modelId}>
             <div>
@@ -149,7 +149,7 @@ export function ModelCostWidget() {
                   yAxes: ['sum(gen_ai.cost.total_tokens)'],
                 },
               ],
-              groupBy: ['gen_ai.request.model'],
+              groupBy: ['gen_ai.response.model'],
               query: fullQuery,
               sort: `-sum(gen_ai.cost.total_tokens)`,
               interval: pageFilterChartParams.interval,
