@@ -51,20 +51,21 @@ class DropRedundantErrorDetectorWorkflowsTest(TestMigrations):
             detector=self.error_detector_p2, workflow=self.workflow_p2
         )
 
-    def test_deletes_error_workflow_with_matching_issue_stream(self) -> None:
+    def test_connections_are_correct_after_migration(self) -> None:
+        # test deletes error workflow with matching issue stream
         assert not DetectorWorkflow.objects.filter(id=self.dw_error_should_delete.id).exists()
 
-    def test_preserves_issue_stream_workflow_when_error_deleted(self) -> None:
+        # test preserves issue stream workflow when error deleted
         assert DetectorWorkflow.objects.filter(id=self.dw_issue_stream_keep.id).exists()
 
-    def test_preserves_error_workflow_without_matching_issue_stream(self) -> None:
+        # test preserves error workflow without matching issue stream
         assert DetectorWorkflow.objects.filter(id=self.dw_error_no_match.id).exists()
 
-    def test_preserves_issue_stream_only_workflow(self) -> None:
+        # test preserves issue stream only workflow
         assert DetectorWorkflow.objects.filter(id=self.dw_issue_stream_only.id).exists()
 
-    def test_preserves_cross_project_error_workflow_without_issue_stream(self) -> None:
+        # test preserves cross project error workflow without issue stream
         assert DetectorWorkflow.objects.filter(id=self.dw_error_project2.id).exists()
 
-    def test_total_count_after_migration(self) -> None:
+        # test total count after migration
         assert DetectorWorkflow.objects.count() == 4

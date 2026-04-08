@@ -8,7 +8,7 @@ from django.db.migrations.state import StateApps
 
 from sentry.new_migrations.migrations import CheckedMigration
 from sentry.utils.iterators import chunked
-from sentry.utils.query import RangeQuerySetWrapper, bulk_delete_objects
+from sentry.utils.query import bulk_delete_objects
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +30,9 @@ def delete_redundant_error_detector_workflows(
     Detector = apps.get_model("workflow_engine", "Detector")
     DetectorWorkflow = apps.get_model("workflow_engine", "DetectorWorkflow")
 
-    error_detectors = Detector.objects.filter(type="error").only("id")
+    error_detector_ids = Detector.objects.filter(type="error").values_list("id", flat=True)
 
-    for chunk in chunked(RangeQuerySetWrapper(error_detectors, step=CHUNK_SIZE), CHUNK_SIZE):
-        chunk_ids = [d.id for d in chunk]
-
+    for chunk in chunked(error_detector_ids, CHUNK_SIZE):
         issue_stream_exists = DetectorWorkflow.objects.filter(
             workflow_id=OuterRef("workflow_id"),
             detector__type="issue_stream",
@@ -42,7 +40,7 @@ def delete_redundant_error_detector_workflows(
 
         dws_to_delete = (
             DetectorWorkflow.objects.filter(
-                detector_id__in=chunk_ids,
+                detector_id__in=chunk,
             )
             .filter(Exists(issue_stream_exists))
             .values_list("id", flat=True)
