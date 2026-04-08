@@ -41,23 +41,14 @@ function useShowcaseContext(): ShowcaseContextValue {
   return ctx;
 }
 
-/**
- * Groups content for a single step. Renders as a Stack.
- */
 function Step({children}: {children: ReactNode}) {
   return <Stack gap="md">{children}</Stack>;
 }
 
-/**
- * Renders an image for a step.
- */
 function StepImage(props: ImageProps) {
   return <Image height="200px" objectFit="contain" {...props} />;
 }
 
-/**
- * Renders the step counter ("1 of 3") and heading.
- */
 function StepTitle({children}: {children: ReactNode}) {
   const {current, stepCount} = useShowcaseContext();
   return (
@@ -72,9 +63,6 @@ function StepTitle({children}: {children: ReactNode}) {
   );
 }
 
-/**
- * Renders step body content as a centered paragraph.
- */
 function StepContent({children}: {children: ReactNode}) {
   return <Text as="p">{children}</Text>;
 }
@@ -82,8 +70,8 @@ function StepContent({children}: {children: ReactNode}) {
 /**
  * Renders the navigation footer for a step.
  *
- * - No children: renders default Next/Done button.
- * - With children: rendered alongside the default nav button.
+ * - No children: renders default Back/Next/Done buttons.
+ * - With children: rendered alongside the default navigation buttons.
  */
 function StepActions({children}: {children?: ReactNode}) {
   const {advance, back, close, hasNext, hasPrevious} = useShowcaseContext();
