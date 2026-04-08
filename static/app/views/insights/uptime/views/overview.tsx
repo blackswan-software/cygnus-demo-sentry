@@ -48,7 +48,8 @@ export default function UptimeOverview() {
 
   const {data, isPending} = useQuery({
     ...detectorListApiOptions(organization, {
-      query: `type:uptime ${location.query.query ?? ''}`,
+      type: 'uptime',
+      query: decodeScalar(location.query.query),
       cursor: decodeScalar(location.query.cursor),
       projects: project.map(Number),
     }),

@@ -6,6 +6,7 @@ import type {Organization} from 'sentry/types/organization';
 import {
   type BaseDetectorUpdatePayload,
   type Detector,
+  type UptimeDetector,
 } from 'sentry/types/workflowEngine/detectors';
 import {apiOptions} from 'sentry/utils/api/apiOptions';
 import {getApiUrl} from 'sentry/utils/api/getApiUrl';
@@ -14,7 +15,16 @@ import {useApiQuery, useMutation, useQueryClient} from 'sentry/utils/queryClient
 import {useApi} from 'sentry/utils/useApi';
 import {useOrganization} from 'sentry/utils/useOrganization';
 
-interface UseDetectorsApiOptionsParams {
+interface DetectorTypeMap {
+  uptime: UptimeDetector;
+}
+
+type DetectorByType<T extends keyof DetectorTypeMap | undefined> =
+  T extends keyof DetectorTypeMap ? DetectorTypeMap[T] : Detector;
+
+interface UseDetectorsApiOptionsParams<
+  TType extends keyof DetectorTypeMap | undefined = undefined,
+> {
   cursor?: string;
   ids?: string[];
   /**
@@ -27,19 +37,33 @@ interface UseDetectorsApiOptionsParams {
   projects?: number[];
   query?: string;
   sortBy?: string;
+  /**
+   * When set, the query automatically includes `type:{value}` and
+   * the return type narrows to the matching detector subtype.
+   */
+  type?: TType;
 }
 
 const createDetectorQuery = (
   query: string | undefined,
-  options: {includeIssueStreamDetectors: boolean}
+  options: {includeIssueStreamDetectors: boolean; type?: string}
 ) => {
-  if (options.includeIssueStreamDetectors) {
-    return query;
+  const parts: string[] = [];
+  if (!options.includeIssueStreamDetectors) {
+    parts.push('!type:issue_stream');
   }
-  return `!type:issue_stream ${query ?? ''}`.trim();
+  if (options.type) {
+    parts.push(`type:${options.type}`);
+  }
+  if (query) {
+    parts.push(query);
+  }
+  return parts.join(' ') || undefined;
 };
 
-export function detectorListApiOptions(
+export function detectorListApiOptions<
+  TType extends keyof DetectorTypeMap | undefined = undefined,
+>(
   organization: Organization,
   {
     query,
@@ -48,22 +72,26 @@ export function detectorListApiOptions(
     limit,
     cursor,
     ids,
+    type,
     includeIssueStreamDetectors = false,
-  }: UseDetectorsApiOptionsParams = {}
+  }: UseDetectorsApiOptionsParams<TType> = {} as UseDetectorsApiOptionsParams<TType>
 ) {
   return queryOptions({
-    ...apiOptions.as<Detector[]>()('/organizations/$organizationIdOrSlug/detectors/', {
-      path: {organizationIdOrSlug: organization.slug},
-      query: {
-        query: createDetectorQuery(query, {includeIssueStreamDetectors}),
-        sortBy,
-        project: projects,
-        per_page: limit,
-        cursor,
-        id: ids,
-      },
-      staleTime: 0,
-    }),
+    ...apiOptions.as<Array<DetectorByType<TType>>>()(
+      '/organizations/$organizationIdOrSlug/detectors/',
+      {
+        path: {organizationIdOrSlug: organization.slug},
+        query: {
+          query: createDetectorQuery(query, {includeIssueStreamDetectors, type}),
+          sortBy,
+          project: projects,
+          per_page: limit,
+          cursor,
+          id: ids,
+        },
+        staleTime: 0,
+      }
+    ),
     retry: false,
   });
 }

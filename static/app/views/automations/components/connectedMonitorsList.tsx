@@ -86,12 +86,7 @@ export function ConnectedMonitorsList({
   const organization = useOrganization();
   const canEdit = Boolean(connectedDetectorIds && typeof toggleConnected === 'function');
 
-  const {
-    data: detectorsResponse,
-    isLoading,
-    isError,
-    isSuccess,
-  } = useQuery({
+  const {data, isLoading, isError, isSuccess} = useQuery({
     ...detectorListApiOptions(organization, {
       ids: detectorIds ?? undefined,
       limit: limit ?? undefined,
@@ -103,9 +98,9 @@ export function ConnectedMonitorsList({
     enabled: detectorIds === null || detectorIds.length > 0,
   });
 
-  const detectors = detectorsResponse?.json;
-  const pageLinks = detectorsResponse?.headers.Link;
-  const totalCountInt = detectorsResponse?.headers['X-Hits'] ?? 0;
+  const detectors = data?.json;
+  const pageLinks = data?.headers.Link;
+  const totalCountInt = data?.headers['X-Hits'] ?? 0;
 
   const paginationCaption = useMemo(() => {
     if (isLoading || !detectors || detectors?.length === 0 || limit === null) {
