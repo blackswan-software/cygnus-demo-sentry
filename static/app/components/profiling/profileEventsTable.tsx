@@ -210,7 +210,7 @@ function ProfileEventsCell<F extends FieldType>(props: ProfileEventsCellProps<F>
 
     const txTimestamp = getTimeStampFromTableDateField(props.dataRow.timestamp);
     if (isPartialSpanOrTraceData(txTimestamp)) {
-      return <Container>{transactionId}</Container>;
+      return <DisabledTraceLink type="trace">{transactionId}</DisabledTraceLink>;
     }
 
     return (
