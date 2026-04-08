@@ -980,6 +980,29 @@ class OrganizationTraceItemAttributesEndpointSpansTest(
         keys = {item["key"] for item in response.data}
         assert len(keys) == 0
 
+    def test_aliased_attribute_project(self) -> None:
+        span1 = self.create_span(
+            {"sentry_tags": {"op": "foo"}}, start_ts=before_now(days=0, minutes=10)
+        )
+        span2 = self.create_span(
+            {"sentry_tags": {"op": "bar"}}, start_ts=before_now(days=0, minutes=10)
+        )
+        self.store_spans([span1, span2])
+
+        response = self.do_request(query={"attributeType": "string"})
+        assert response.status_code == 200, response.content
+
+        keys = {item["key"] for item in response.data}
+        assert len(keys) > 1
+        assert "project" in keys
+
+        response = self.do_request(query={"attributeType": "string", "substringMatch": "pro"})
+        assert response.status_code == 200, response.content
+
+        keys = {item["key"] for item in response.data}
+        assert len(keys) == 5
+        assert "project" in keys
+
     def test_aliased_attribute_with_paging(self) -> None:
         span1 = self.create_span(
             {"tags": {"tag.op": "foo"}}, start_ts=before_now(days=0, minutes=10)

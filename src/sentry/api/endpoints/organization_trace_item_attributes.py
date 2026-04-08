@@ -20,7 +20,11 @@ from sentry_protos.snuba.v1.request_common_pb2 import (
     TraceItemType as ProtoTraceItemType,
 )
 from sentry_protos.snuba.v1.trace_item_attribute_pb2 import AttributeKey
-from sentry_protos.snuba.v1.trace_item_filter_pb2 import ExistsFilter, OrFilter, TraceItemFilter
+from sentry_protos.snuba.v1.trace_item_filter_pb2 import (
+    ExistsFilter,
+    OrFilter,
+    TraceItemFilter,
+)
 
 from sentry import features, options
 from sentry.api.api_owners import ApiOwner
@@ -54,7 +58,11 @@ from sentry.search.eap.processing_errors.definitions import PROCESSING_ERROR_DEF
 from sentry.search.eap.resolver import SearchResolver
 from sentry.search.eap.spans.definitions import SPAN_DEFINITIONS
 from sentry.search.eap.trace_metrics.definitions import TRACE_METRICS_DEFINITIONS
-from sentry.search.eap.types import SearchResolverConfig, SupportedTraceItemType
+from sentry.search.eap.types import (
+    AttributeSourceType,
+    SearchResolverConfig,
+    SupportedTraceItemType,
+)
 from sentry.search.eap.utils import (
     can_expose_attribute,
     get_secondary_aliases,
@@ -77,6 +85,10 @@ from sentry.utils.concurrent import ContextPropagatingThreadPoolExecutor
 from sentry.utils.cursors import Cursor, CursorResult
 
 POSSIBLE_ATTRIBUTE_TYPES = ["string", "number", "boolean"]
+
+
+class ProxyResolvedAttribute(ResolvedAttribute):
+    pass
 
 
 class TraceItemAttributeKey(TypedDict):
@@ -218,6 +230,7 @@ def as_attribute_key(
     name: str,
     attr_type: Literal["string", "number", "boolean"],
     item_type: SupportedTraceItemType,
+    is_proxy: bool = False,
 ) -> TraceItemAttributeKey:
     public_key, public_name, attribute_source = translate_internal_to_public_alias(
         name, attr_type, item_type
@@ -237,7 +250,11 @@ def as_attribute_key(
         public_name = name
 
     serialized_source: dict[str, str | bool] = {
-        "source_type": attribute_source["source_type"].value
+        "source_type": (
+            attribute_source["source_type"].value
+            if not is_proxy
+            else AttributeSourceType.SENTRY.value
+        )
     }
     if attribute_source.get("is_transformed_alias"):
         serialized_source["is_transformed_alias"] = True
@@ -378,8 +395,10 @@ class OrganizationTraceItemAttributesEndpoint(OrganizationTraceItemAttributesEnd
             all_aliased_attributes = []
             # our aliases don't exist in the db, so filter over our aliases
             # virtually page through defined aliases before we hit the db
-            if substring_match and offset <= len(column_definitions.columns):
-                for index, column in enumerate(column_definitions.columns.values()):
+            if substring_match and offset <= len(column_definitions.columns) + len(
+                column_definitions.contexts
+            ):
+                for column in column_definitions.columns.values():
                     if (
                         column.proto_type == attr_type
                         and substring_match in column.public_alias
@@ -387,6 +406,22 @@ class OrganizationTraceItemAttributesEndpoint(OrganizationTraceItemAttributesEnd
                         and not column.private
                     ):
                         all_aliased_attributes.append(column)
+                for (
+                    public_label,
+                    virtual_context,
+                ) in column_definitions.contexts.items():
+                    if (
+                        substring_match in public_label
+                        and virtual_context.search_type is not None
+                        and constants.TYPE_MAP[virtual_context.search_type] == attr_type
+                    ):
+                        all_aliased_attributes.append(
+                            ProxyResolvedAttribute(
+                                public_alias=public_label,
+                                internal_name=public_label,
+                                search_type=virtual_context.search_type,
+                            )
+                        )
             aliased_attributes = all_aliased_attributes[offset : offset + limit]
         with sentry_sdk.start_span(op="query", name="attribute_names") as span:
             if len(aliased_attributes) < limit - 1:
@@ -433,7 +468,7 @@ class OrganizationTraceItemAttributesEndpoint(OrganizationTraceItemAttributesEnd
         trace_item_type: SupportedTraceItemType,
         include_internal: bool,
         substring_match: str,
-        aliased_attributes: list[ResolvedAttribute],
+        aliased_attributes: list[ResolvedAttribute | ProxyResolvedAttribute],
     ) -> list[TraceItemAttributeKey]:
         attribute_keys = {}
         for attribute in rpc_response.attributes:
@@ -462,6 +497,7 @@ class OrganizationTraceItemAttributesEndpoint(OrganizationTraceItemAttributesEnd
                 aliased_attr.internal_name,
                 attribute_type,
                 trace_item_type,
+                is_proxy=isinstance(aliased_attr, ProxyResolvedAttribute),
             )
             attribute_keys[attr_key["name"]] = attr_key
 
@@ -476,7 +512,7 @@ class OrganizationTraceItemAttributesEndpoint(OrganizationTraceItemAttributesEnd
         trace_item_type: SupportedTraceItemType,
         include_internal: bool,
         substring_match: str,
-        aliased_attributes: list[ResolvedAttribute],
+        aliased_attributes: list[ResolvedAttribute | ProxyResolvedAttribute],
     ) -> list[TraceItemAttributeKey]:
         attributes = list(
             filter(
@@ -513,6 +549,7 @@ class OrganizationTraceItemAttributesEndpoint(OrganizationTraceItemAttributesEnd
                     aliased_attr.internal_name,
                     attribute_type,
                     trace_item_type,
+                    is_proxy=isinstance(aliased_attr, ProxyResolvedAttribute),
                 )
                 attributes.append(attr_key)
         return attributes
