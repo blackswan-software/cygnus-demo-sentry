@@ -276,7 +276,7 @@ export function getVisualizeLabel(index: number) {
   return String.fromCharCode('A'.charCodeAt(0) + index);
 }
 
-function VisualizeLabel({index, onClick, visualize}: VisualizeLabelProps) {
+export function VisualizeLabel({index, onClick, visualize}: VisualizeLabelProps) {
   const label = visualize.visible ? getVisualizeLabel(index) : <IconHide />;
 
   return <Label onClick={onClick}>{label}</Label>;

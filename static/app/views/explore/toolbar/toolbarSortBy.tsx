@@ -148,7 +148,7 @@ const FullWidthTooltip = styled(Tooltip)`
   width: 100%;
 `;
 
-const ColumnCompactSelect = styled(CompactSelect)`
+export const ColumnCompactSelect = styled(CompactSelect)`
   flex: 1 1;
   min-width: 0;
 
@@ -157,7 +157,7 @@ const ColumnCompactSelect = styled(CompactSelect)`
   }
 `;
 
-const DirectionCompactSelect = styled(CompactSelect)`
+export const DirectionCompactSelect = styled(CompactSelect)`
   width: 90px;
 
   > button {
