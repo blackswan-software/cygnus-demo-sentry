@@ -36,7 +36,6 @@ const createDetectorQuery = (
   if (options.includeIssueStreamDetectors) {
     return query;
   }
-  console.log(`!type:issue_stream ${query ?? ''}`.trim());
   return `!type:issue_stream ${query ?? ''}`.trim();
 };
 
