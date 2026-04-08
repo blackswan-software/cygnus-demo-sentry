@@ -55,7 +55,10 @@ export function PendingChanges({organization, subscription}: Props) {
     return pendingChange !== null && pendingChange !== currentValue;
   };
 
-  const getNestedValue = (object: Record<string, any>, keys: string) => {
+  const getNestedValue = (
+    object: Record<string, any>,
+    keys: string
+  ): Record<string, any> | null => {
     return keys.split('.').reduce((acc, key) => acc?.[key] ?? null, object);
   };
 
