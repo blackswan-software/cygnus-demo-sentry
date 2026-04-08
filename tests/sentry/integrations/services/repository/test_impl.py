@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from sentry.constants import ObjectStatus
 from sentry.integrations.services.repository.service import repository_service
 from sentry.models.repository import Repository
@@ -164,7 +166,8 @@ class DisableRepositoriesByExternalIdsTest(TestCase):
         assert repo.status == ObjectStatus.ACTIVE
 
     @with_feature("organizations:seer-project-settings-dual-write")
-    def test_deletes_seer_project_repository_rows(self) -> None:
+    @patch("sentry.integrations.services.repository.impl.bulk_cleanup_seer_repository_preferences")
+    def test_cleans_up_seer_preferences(self, mock_cleanup) -> None:
         project = self.create_project(organization=self.organization)
         repo = Repository.objects.create(
             organization_id=self.organization.id,
@@ -183,9 +186,13 @@ class DisableRepositoriesByExternalIdsTest(TestCase):
             external_ids=["100"],
         )
 
-        repo.refresh_from_db()
-        assert repo.status == ObjectStatus.DISABLED
         assert not SeerProjectRepository.objects.filter(repository_id=repo.id).exists()
+        mock_cleanup.apply_async.assert_called_once_with(
+            kwargs={
+                "organization_id": self.organization.id,
+                "repos": [{"repo_external_id": "100", "repo_provider": self.provider}],
+            }
+        )
 
 
 @cell_silo_test
@@ -198,7 +205,7 @@ class DisableRepositoriesForIntegrationTest(TestCase):
         )
         self.provider = "integrations:github"
 
-    def test_disables_all_repos_for_integration(self) -> None:
+    def test_disables_matching_active_repos(self) -> None:
         repo = Repository.objects.create(
             organization_id=self.organization.id,
             name="getsentry/sentry",
@@ -218,7 +225,8 @@ class DisableRepositoriesForIntegrationTest(TestCase):
         assert repo.status == ObjectStatus.DISABLED
 
     @with_feature("organizations:seer-project-settings-dual-write")
-    def test_deletes_seer_project_repository_rows(self) -> None:
+    @patch("sentry.integrations.services.repository.impl.bulk_cleanup_seer_repository_preferences")
+    def test_cleans_up_seer_preferences(self, mock_cleanup) -> None:
         project = self.create_project(organization=self.organization)
         repo = Repository.objects.create(
             organization_id=self.organization.id,
@@ -236,6 +244,10 @@ class DisableRepositoriesForIntegrationTest(TestCase):
             provider=self.provider,
         )
 
-        repo.refresh_from_db()
-        assert repo.status == ObjectStatus.DISABLED
         assert not SeerProjectRepository.objects.filter(repository_id=repo.id).exists()
+        mock_cleanup.apply_async.assert_called_once_with(
+            kwargs={
+                "organization_id": self.organization.id,
+                "repos": [{"repo_external_id": "100", "repo_provider": self.provider}],
+            }
+        )

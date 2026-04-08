@@ -132,13 +132,14 @@ class DatabaseBackedRepositoryService(RepositoryService):
         self, *, organization_id: int, integration_id: int, provider: str
     ) -> None:
         with transaction.atomic(router.db_for_write(Repository)):
-            repo_ids = list(
+            repos = list(
                 Repository.objects.filter(
                     organization_id=organization_id,
                     integration_id=integration_id,
                     provider=provider,
-                ).values_list("id", flat=True)
+                ).values_list("id", "external_id", "provider")
             )
+            repo_ids = [repo_id for repo_id, _, _ in repos]
 
             if repo_ids:
                 Repository.objects.filter(id__in=repo_ids).update(status=ObjectStatus.DISABLED)
@@ -149,6 +150,19 @@ class DatabaseBackedRepositoryService(RepositoryService):
                         SeerProjectRepository.objects.filter(repository_id__in=repo_ids).delete()
                 except Organization.DoesNotExist:
                     pass
+
+        repos_to_clean = [
+            {"repo_external_id": external_id, "repo_provider": repo_provider}
+            for _, external_id, repo_provider in repos
+            if external_id and repo_provider
+        ]
+        if repos_to_clean:
+            bulk_cleanup_seer_repository_preferences.apply_async(
+                kwargs={
+                    "organization_id": organization_id,
+                    "repos": repos_to_clean,
+                }
+            )
 
     def disable_repositories_by_external_ids(
         self,
@@ -159,15 +173,16 @@ class DatabaseBackedRepositoryService(RepositoryService):
         external_ids: list[str],
     ) -> None:
         with transaction.atomic(router.db_for_write(Repository)):
-            repo_ids = list(
+            repos = list(
                 Repository.objects.filter(
                     organization_id=organization_id,
                     integration_id=integration_id,
                     provider=provider,
                     external_id__in=external_ids,
                     status=ObjectStatus.ACTIVE,
-                ).values_list("id", flat=True)
+                ).values_list("id", "external_id", "provider")
             )
+            repo_ids = [repo_id for repo_id, _, _ in repos]
 
             if repo_ids:
                 Repository.objects.filter(id__in=repo_ids).update(status=ObjectStatus.DISABLED)
@@ -178,6 +193,19 @@ class DatabaseBackedRepositoryService(RepositoryService):
                         SeerProjectRepository.objects.filter(repository_id__in=repo_ids).delete()
                 except Organization.DoesNotExist:
                     pass
+
+        repos_to_clean = [
+            {"repo_external_id": external_id, "repo_provider": repo_provider}
+            for _, external_id, repo_provider in repos
+            if external_id and repo_provider
+        ]
+        if repos_to_clean:
+            bulk_cleanup_seer_repository_preferences.apply_async(
+                kwargs={
+                    "organization_id": organization_id,
+                    "repos": repos_to_clean,
+                }
+            )
 
     def disassociate_organization_integration(
         self,
