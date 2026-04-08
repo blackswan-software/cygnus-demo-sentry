@@ -239,6 +239,9 @@ def as_attribute_key(
 
     if public_key is not None and public_name is not None:
         pass
+    elif is_proxy:
+        public_key = name
+        public_name = name
     elif attr_type == "number":
         public_key = f"tags[{name},number]"
         public_name = name

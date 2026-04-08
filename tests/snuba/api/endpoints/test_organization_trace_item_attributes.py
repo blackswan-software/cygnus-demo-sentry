@@ -950,6 +950,16 @@ class OrganizationTraceItemAttributesEndpointSpansTest(
         assert "tags[is_debug,boolean]" in keys
         assert "tags[is_production,boolean]" in keys
 
+    def test_boolean_virtual_context_key_format(self) -> None:
+        response = self.do_request(
+            query={"attributeType": "boolean", "substringMatch": "is_starred_transaction"}
+        )
+        assert response.status_code == 200, response.content
+
+        keys = {item["key"] for item in response.data}
+        assert "is_starred_transaction" in keys
+        assert "tags[is_starred_transaction,boolean]" not in keys
+
     def test_aliased_attribute(self) -> None:
         span1 = self.create_span(
             {"sentry_tags": {"op": "foo"}}, start_ts=before_now(days=0, minutes=10)
