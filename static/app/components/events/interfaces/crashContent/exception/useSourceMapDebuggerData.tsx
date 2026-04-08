@@ -55,9 +55,8 @@ export function useSourceMapDebugQuery(
   sdkName: string | null = null
 ) {
   const organization = useOrganization({allowNull: true});
-  const isSdkThatShouldShowSourceMapsDebugger = sdkName
-    ? sdkName.startsWith('sentry.javascript.')
-    : true;
+  const isSdkThatShouldShowSourceMapsDebugger =
+    sdkName?.startsWith('sentry.javascript.') ?? false;
   return useApiQuery<SourceMapDebugBlueThunderResponse>(
     [
       getApiUrl(
@@ -72,7 +71,11 @@ export function useSourceMapDebugQuery(
       ),
     ],
     {
-      enabled: isSdkThatShouldShowSourceMapsDebugger && organization !== null,
+      enabled:
+        isSdkThatShouldShowSourceMapsDebugger &&
+        !!organization &&
+        !!projectSlug &&
+        !!eventId,
       staleTime: Infinity,
       retry: false,
       refetchOnWindowFocus: false,

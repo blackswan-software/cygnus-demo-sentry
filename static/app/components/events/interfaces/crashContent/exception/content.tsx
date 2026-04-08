@@ -165,7 +165,7 @@ function InnerContent({
   hasChainedExceptions: boolean;
   hiddenExceptions: ExceptionRenderStateMap;
   isSampleError: boolean;
-  sourceMapDebuggerData: SourceMapDebugBlueThunderResponse;
+  sourceMapDebuggerData: SourceMapDebugBlueThunderResponse | undefined;
   toggleRelatedExceptions: (exceptionId: number) => void;
   values: ExceptionValue[];
   project?: Project;

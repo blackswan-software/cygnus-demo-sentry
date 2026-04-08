@@ -1,5 +1,3 @@
-import styled from '@emotion/styled';
-
 import {LinkButton} from '@sentry/scraps/button';
 import {InlineCode} from '@sentry/scraps/code';
 import {Disclosure} from '@sentry/scraps/disclosure';
@@ -121,7 +119,7 @@ export function TroubleshootingSection({project}: TroubleshootingSectionProps) {
             </Text>
           </Disclosure.Content>
         </Disclosure>
-        <FooterRow>
+        <Flex paddingTop="sm" align="center" gap="sm">
           <Text variant="muted">{t('Not what you\u2019re looking for?')}</Text>
           <ExternalLink href="https://docs.sentry.io/platforms/javascript/sourcemaps/troubleshooting_js/">
             <Flex align="center" gap="xs">
@@ -129,14 +127,8 @@ export function TroubleshootingSection({project}: TroubleshootingSectionProps) {
               {t('Read all documentation')}
             </Flex>
           </ExternalLink>
-        </FooterRow>
+        </Flex>
       </Stack>
     </Stack>
   );
 }
-
-const FooterRow = styled(Flex)`
-  padding-top: ${p => p.theme.space.sm};
-  align-items: center;
-  gap: ${p => p.theme.space.sm};
-`;
