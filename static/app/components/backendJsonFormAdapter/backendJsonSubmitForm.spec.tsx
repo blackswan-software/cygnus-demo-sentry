@@ -226,6 +226,7 @@ describe('BackendJsonSubmitForm', () => {
       await userEvent.click(screen.getByRole('button', {name: 'Create'}));
 
       expect(onSubmit).not.toHaveBeenCalled();
+      expect(screen.getByText('This field is required')).toBeInTheDocument();
     });
 
     it('shows error toast on submit failure', async () => {
