@@ -73,10 +73,8 @@ class ProjectEventsEndpoint(ProjectEndpoint):
 
         query = request.GET.get("query")
         conditions = []
-        eap_conditions: TraceItemFilter | None = TraceItemFilter()
         if query:
             conditions.append([["positionCaseInsensitive", ["message", f"'{query}'"]], "!=", 0])
-            eap_conditions = None  # Function condition not representable in EAP
 
         try:
             start, end = get_date_range_from_params(
@@ -98,7 +96,7 @@ class ProjectEventsEndpoint(ProjectEndpoint):
         data_fn = partial(
             eventstore.backend.get_events,
             filter=event_filter,
-            eap_conditions=eap_conditions,
+            eap_conditions=TraceItemFilter(),  # TODO: not currently taking the query into account
             referrer="api.project-events",
             tenant_ids={"organization_id": project.organization_id},
         )

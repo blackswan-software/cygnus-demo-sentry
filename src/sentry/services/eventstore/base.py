@@ -14,6 +14,7 @@ from sentry import nodestore
 from sentry.services.eventstore.models import Event, GroupEvent
 from sentry.snuba.dataset import Dataset
 from sentry.snuba.events import Columns
+from sentry.snuba.referrer import Referrer
 from sentry.utils.services import Service
 
 
@@ -171,7 +172,7 @@ class EventStorage(Service):
         orderby: Sequence[str] | None = None,
         limit: int = 100,
         offset: int = 0,
-        referrer: str = "eventstore.get_events",
+        referrer: str = Referrer.EVENTSTORE_GET_EVENTS.value,
         dataset: Dataset = Dataset.Events,
         tenant_ids: Mapping[str, Any] | None = None,
     ) -> list[Event]:
@@ -187,7 +188,7 @@ class EventStorage(Service):
         orderby (Sequence[str]): List of fields to order by - default ['-time', '-event_id']
         limit (int): Query limit - default 100
         offset (int): Query offset - default 0
-        referrer (string): Referrer - default "eventstore.get_events"
+        referrer (string): Referrer
         """
         raise NotImplementedError
 
@@ -215,7 +216,7 @@ class EventStorage(Service):
         orderby: Sequence[str] | None = None,
         limit: int = 100,
         offset: int = 0,
-        referrer: str = "eventstore.get_unfetched_events",
+        referrer: str = Referrer.EVENTSTORE_GET_UNFETCHED_EVENTS.value,
         dataset: Dataset = Dataset.Events,
         tenant_ids: Mapping[str, Any] | None = None,
     ) -> list[Event]:
@@ -234,7 +235,7 @@ class EventStorage(Service):
         orderby (Sequence[str]): List of fields to order by - default ['-time', '-event_id']
         limit (int): Query limit - default 100
         offset (int): Query offset - default 0
-        referrer (string): Referrer - default "eventstore.get_unfetched_events"
+        referrer (string): Referrer
         """
         raise NotImplementedError
 
