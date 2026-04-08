@@ -11,23 +11,19 @@ import tourMetrics from 'sentry-images/spot/performance-tour-metrics.svg';
 import tourTrace from 'sentry-images/spot/performance-tour-trace.svg';
 
 import {Button, LinkButton} from '@sentry/scraps/button';
-import {Grid, type GridProps} from '@sentry/scraps/layout';
+import {Flex, Grid, type GridProps} from '@sentry/scraps/layout';
 
 import {
   addErrorMessage,
   addLoadingMessage,
   clearIndicators,
 } from 'sentry/actionCreators/indicator';
+import {openModal} from 'sentry/actionCreators/modal';
 import type {Client} from 'sentry/api';
 import {UnsupportedAlert} from 'sentry/components/alerts/unsupportedAlert';
+import {FeatureShowcase, useShowcaseContext} from 'sentry/components/featureShowcase';
 import {GuidedSteps} from 'sentry/components/guidedSteps/guidedSteps';
 import {LoadingIndicator} from 'sentry/components/loadingIndicator';
-import type {TourStep} from 'sentry/components/modals/featureTourModal';
-import {
-  FeatureTourModal,
-  TourImage,
-  TourText,
-} from 'sentry/components/modals/featureTourModal';
 import {AuthTokenGeneratorProvider} from 'sentry/components/onboarding/gettingStartedDoc/authTokenGenerator';
 import {ContentBlocksRenderer} from 'sentry/components/onboarding/gettingStartedDoc/contentBlocks/renderer';
 import {
@@ -82,61 +78,28 @@ import {traceAnalytics} from './newTraceDetails/traceAnalytics';
 const performanceSetupUrl =
   'https://docs.sentry.io/performance-monitoring/getting-started/';
 
+function SetupFooter() {
+  const {close} = useShowcaseContext();
+  return (
+    <Flex justify="end">
+      <LinkButton
+        external
+        href={performanceSetupUrl}
+        onClick={close}
+        priority="primary"
+        aria-label={t('Complete tour')}
+      >
+        {t('Start Setup')}
+      </LinkButton>
+    </Flex>
+  );
+}
+
 const docsLink = (
   <LinkButton external href={performanceSetupUrl}>
     {t('Setup')}
   </LinkButton>
 );
-
-export const PERFORMANCE_TOUR_STEPS: TourStep[] = [
-  {
-    title: t('Track Application Metrics'),
-    image: <TourImage src={tourMetrics} />,
-    body: (
-      <TourText>
-        {t(
-          'Monitor your slowest pageloads and APIs to see which users are having the worst time.'
-        )}
-      </TourText>
-    ),
-    actions: docsLink,
-  },
-  {
-    title: t('Correlate Errors and Traces'),
-    image: <TourImage src={tourCorrelate} />,
-    body: (
-      <TourText>
-        {t(
-          'See what errors occurred within a transaction and the impact of those errors.'
-        )}
-      </TourText>
-    ),
-    actions: docsLink,
-  },
-  {
-    title: t('Watch and Alert'),
-    image: <TourImage src={tourAlert} />,
-    body: (
-      <TourText>
-        {t(
-          'Highlight mission-critical pages and APIs and set latency alerts to notify you before things go wrong.'
-        )}
-      </TourText>
-    ),
-    actions: docsLink,
-  },
-  {
-    title: t('Trace Across Systems'),
-    image: <TourImage src={tourTrace} />,
-    body: (
-      <TourText>
-        {t(
-          "Follow a trace from a user's session and drill down to identify any bottlenecks that occur."
-        )}
-      </TourText>
-    ),
-  },
-];
 
 type SampleButtonProps = {
   api: Client;
@@ -292,25 +255,79 @@ export function LegacyOnboarding({organization, project}: OnboardingProps) {
             api={api}
           />
         </ButtonList>
-        <FeatureTourModal
-          steps={PERFORMANCE_TOUR_STEPS}
-          onAdvance={handleAdvance}
-          onCloseModal={handleClose}
-          doneUrl={performanceSetupUrl}
-          doneText={t('Start Setup')}
+        <Button
+          priority="link"
+          onClick={() => {
+            trackAnalytics('performance_views.tour.start', {organization});
+            openModal(deps => (
+              <FeatureShowcase
+                {...deps}
+                onStepChange={handleAdvance}
+                onClose={handleClose}
+              >
+                <FeatureShowcase.Step>
+                  <FeatureShowcase.Image
+                    src={tourMetrics}
+                    alt={t('Track Application Metrics')}
+                  />
+                  <FeatureShowcase.StepTitle>
+                    {t('Track Application Metrics')}
+                  </FeatureShowcase.StepTitle>
+                  <FeatureShowcase.StepContent>
+                    {t(
+                      'Monitor your slowest pageloads and APIs to see which users are having the worst time.'
+                    )}
+                  </FeatureShowcase.StepContent>
+                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+                </FeatureShowcase.Step>
+                <FeatureShowcase.Step>
+                  <FeatureShowcase.Image
+                    src={tourCorrelate}
+                    alt={t('Correlate Errors and Traces')}
+                  />
+                  <FeatureShowcase.StepTitle>
+                    {t('Correlate Errors and Traces')}
+                  </FeatureShowcase.StepTitle>
+                  <FeatureShowcase.StepContent>
+                    {t(
+                      'See what errors occurred within a transaction and the impact of those errors.'
+                    )}
+                  </FeatureShowcase.StepContent>
+                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+                </FeatureShowcase.Step>
+                <FeatureShowcase.Step>
+                  <FeatureShowcase.Image src={tourAlert} alt={t('Watch and Alert')} />
+                  <FeatureShowcase.StepTitle>
+                    {t('Watch and Alert')}
+                  </FeatureShowcase.StepTitle>
+                  <FeatureShowcase.StepContent>
+                    {t(
+                      'Highlight mission-critical pages and APIs and set latency alerts to notify you before things go wrong.'
+                    )}
+                  </FeatureShowcase.StepContent>
+                  <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
+                </FeatureShowcase.Step>
+                <FeatureShowcase.Step>
+                  <FeatureShowcase.Image
+                    src={tourTrace}
+                    alt={t('Trace Across Systems')}
+                  />
+                  <FeatureShowcase.StepTitle>
+                    {t('Trace Across Systems')}
+                  </FeatureShowcase.StepTitle>
+                  <FeatureShowcase.StepContent>
+                    {t(
+                      "Follow a trace from a user's session and drill down to identify any bottlenecks that occur."
+                    )}
+                  </FeatureShowcase.StepContent>
+                  <SetupFooter />
+                </FeatureShowcase.Step>
+              </FeatureShowcase>
+            ));
+          }}
         >
-          {({showModal}) => (
-            <Button
-              priority="link"
-              onClick={() => {
-                trackAnalytics('performance_views.tour.start', {organization});
-                showModal();
-              }}
-            >
-              {t('Take a Tour')}
-            </Button>
-          )}
-        </FeatureTourModal>
+          {t('Take a Tour')}
+        </Button>
       </LegacyOnboardingPanel>
     </PerformanceOnboardingContainer>
   );
