@@ -260,4 +260,4 @@ function ResultsHeaderWrapper(props: ResultsHeaderWrapperProps) {
   return <ResultsHeaderWithApi {...props} hasPageFrameFeature={hasPageFrameFeature} />;
 }
 
-export default ResultsHeaderWrapper;
+export {ResultsHeaderWrapper};
