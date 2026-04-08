@@ -77,13 +77,11 @@ class UserServiceTest(TestCase):
         created = user_service.add_permission(user_id=self.user.id, permission="superuser.write")
         assert created is False
 
-    def test_serialize_many_does_not_use_extra_subqueries(self) -> None:
-        """serialize_many goes through the API serializer path which does its own
-        queries in get_attrs(). The correlated subqueries from base_query()
-        (permissions, roles, useremails, authenticators, useravatar) should not
-        be included since they are only needed for the get_many/serialize_rpc path."""
+    def test_serialize_many_avoids_correlated_subqueries(self) -> None:
+        """base_query() eagerly loads data via correlated subqueries for the
+        get_many/serialize_rpc path. serialize_many should not pay for these
+        since the API serializer re-fetches what it needs in get_attrs()."""
         with assume_test_silo_mode(SiloMode.CONTROL):
-            # Warm up any caches
             user_service.serialize_many(filter={"user_ids": [self.user.id]})
 
             with CaptureQueriesContext(connections["control"]) as ctx:
