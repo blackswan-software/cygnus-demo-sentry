@@ -99,7 +99,7 @@ export function ProjectLatestAlerts({
     isError: unresolvedAlertsIsError,
   } = useApiQuery<Incident[]>(
     [
-      getApiUrl(`/organizations/$organizationIdOrSlug/incidents/`, {
+      getApiUrl('/organizations/$organizationIdOrSlug/incidents/', {
         path: {organizationIdOrSlug: organization.slug},
       }),
       {query: {...query, status: 'open'}},
@@ -112,7 +112,7 @@ export function ProjectLatestAlerts({
     isError: resolvedAlertsIsError,
   } = useApiQuery<Incident[]>(
     [
-      getApiUrl(`/organizations/$organizationIdOrSlug/incidents/`, {
+      getApiUrl('/organizations/$organizationIdOrSlug/incidents/', {
         path: {organizationIdOrSlug: organization.slug},
       }),
       {query: {...query, status: 'closed'}},
@@ -177,7 +177,7 @@ export function ProjectLatestAlerts({
         <StyledIconLink
           to={{
             pathname: makeAlertsPathname({
-              path: `/`,
+              path: '/',
               organization,
             }),
             query: {
