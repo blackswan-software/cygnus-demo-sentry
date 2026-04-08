@@ -204,10 +204,11 @@ export function useAddMetricQuery({
       hasEquations && equationStart !== -1 && type === 'aggregate'
         ? equationStart
         : metricQueries.length;
-    const newQuery =
-      type === 'equation'
-        ? defaultMetricQuery({type})
-        : (metricQueries.at(insertAt - 1) ?? defaultMetricQuery({type}));
+    const lastAggregate = metricQueries.at(insertAt - 1) ?? defaultMetricQuery();
+    const canDuplicate =
+      type === 'aggregate' &&
+      lastAggregate?.queryParams.visualizes.some(isVisualizeFunction);
+    const newQuery = canDuplicate ? lastAggregate : defaultMetricQuery({type});
     const newMetricQueries = metricQueries.toSpliced(insertAt, 0, newQuery);
     target.query.metric = newMetricQueries
       .map((metricQuery: BaseMetricQuery) => encodeMetricQueryParams(metricQuery))
