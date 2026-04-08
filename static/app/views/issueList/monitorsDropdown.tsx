@@ -65,7 +65,7 @@ export function MonitorsDropdown() {
       items={[
         {
           key: 'crons',
-          label: t('View Cron Monitors (%s)', cronsData.counts.active),
+          label: t('View Active Cron Monitors (%s)', cronsData.counts.active),
           to: `/organizations/${organization.slug}/insights/crons/`,
           details:
             cronsData.counts.disabled > 0
@@ -78,7 +78,7 @@ export function MonitorsDropdown() {
         },
         {
           key: 'uptime',
-          label: t('View Uptime Monitors (%s)', uptimeData.counts.active),
+          label: t('View Active Uptime Monitors (%s)', uptimeData.counts.active),
           to: `/organizations/${organization.slug}/insights/uptime/`,
           details:
             uptimeData.counts.disabled > 0
