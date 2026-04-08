@@ -99,8 +99,8 @@ export function EventRegressionTable({
       ) : data.length === 0 ? (
         <SimpleTable.Empty>{t('No results found for your query')}</SimpleTable.Empty>
       ) : (
-        data.map(row => (
-          <SimpleTable.Row key={row.group}>
+        data.map((row, index) => (
+          <SimpleTable.Row key={`${row.group ?? index}-${row.operation}`}>
             {columns.map(column => (
               <SimpleTable.RowCell
                 key={column.key}
