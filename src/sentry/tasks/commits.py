@@ -95,15 +95,15 @@ def fetch_compare_commits(
     lifecycle,
 ):
     cache_key = None
-    provider = repo.provider
+    repo_provider_name = repo.provider
     if (
         cache_enabled
-        and isinstance(provider, str)
-        and provider in GITHUB_CACHEABLE_REPOSITORY_PROVIDERS
+        and isinstance(repo_provider_name, str)
+        and repo_provider_name in GITHUB_CACHEABLE_REPOSITORY_PROVIDERS
         and start_sha is not None
     ):
         cache_key = get_github_compare_commits_cache_key(
-            repo.organization_id, repo.id, provider, start_sha, end_sha
+            repo.organization_id, repo.id, repo_provider_name, start_sha, end_sha
         )
 
     if cache_key is not None:
