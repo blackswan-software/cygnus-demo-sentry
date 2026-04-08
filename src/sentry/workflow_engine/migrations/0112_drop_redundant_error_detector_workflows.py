@@ -30,7 +30,7 @@ def delete_redundant_error_detector_workflows(
     Detector = apps.get_model("workflow_engine", "Detector")
     DetectorWorkflow = apps.get_model("workflow_engine", "DetectorWorkflow")
 
-    error_detectors = Detector.objects.filter(type="error")
+    error_detectors = Detector.objects.filter(type="error").only("id")
 
     for chunk in chunked(RangeQuerySetWrapper(error_detectors, step=CHUNK_SIZE), CHUNK_SIZE):
         chunk_ids = [d.id for d in chunk]
@@ -40,14 +40,18 @@ def delete_redundant_error_detector_workflows(
             detector__type="issue_stream",
         )
 
-        to_delete = DetectorWorkflow.objects.filter(
-            detector_id__in=chunk_ids,
-        ).filter(Exists(issue_stream_exists))
+        dws_to_delete = (
+            DetectorWorkflow.objects.filter(
+                detector_id__in=chunk_ids,
+            )
+            .filter(Exists(issue_stream_exists))
+            .values_list("id", flat=True)
+        )
 
         while bulk_delete_objects(
             DetectorWorkflow,
             logger=logger,
-            id__in=to_delete.values_list("id", flat=True),
+            id__in=dws_to_delete,
         ):
             pass
 
