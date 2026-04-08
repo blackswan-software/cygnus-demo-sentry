@@ -1,7 +1,8 @@
 import {EventFixture} from 'sentry-fixture/event';
 import {GroupFixture} from 'sentry-fixture/group';
 
-import {render, screen} from 'sentry-test/reactTestingLibrary';
+import {render, screen, userEvent} from 'sentry-test/reactTestingLibrary';
+import {resetMockDate, setMockDate} from 'sentry-test/utils';
 
 import {ProfileEventEvidence} from 'sentry/components/events/profileEventEvidence';
 import {IssueType} from 'sentry/types/group';
@@ -33,6 +34,10 @@ describe('ProfileEventEvidence', () => {
     projectSlug: 'project-slug',
   };
 
+  afterEach(() => {
+    resetMockDate();
+  });
+
   it('displays profile ID and data in evidence display', () => {
     render(<ProfileEventEvidence {...defaultProps} />);
 
@@ -58,9 +63,44 @@ describe('ProfileEventEvidence', () => {
   it('correctly links to the transaction', () => {
     render(<ProfileEventEvidence {...defaultProps} />);
 
-    expect(screen.getByRole('button', {name: 'View Transaction'})).toHaveAttribute(
+    const button = screen.getByRole('button', {name: 'View Transaction'});
+    expect(button).toHaveAttribute(
       'href',
-      '/organizations/org-slug/explore/traces/trace/trace-id/?referrer=issue&statsPeriod=14d'
+      expect.stringContaining('/organizations/org-slug/explore/traces/trace/trace-id/?')
     );
+    expect(button).toHaveAttribute(
+      'href',
+      expect.stringContaining('eventId=transaction-id')
+    );
+    expect(button).toHaveAttribute('href', expect.stringContaining('timestamp='));
+  });
+
+  it('disables the transaction link when the event is older than 30 days', async () => {
+    setMockDate(new Date('2025-10-06T00:00:00').getTime());
+
+    render(
+      <ProfileEventEvidence
+        {...defaultProps}
+        event={EventFixture({
+          ...defaultProps.event,
+          dateCreated: '2025-08-01T00:00:00Z',
+          occurrence: {
+            ...defaultProps.event.occurrence,
+            evidenceData: {
+              ...defaultProps.event.occurrence?.evidenceData,
+              timestamp: undefined,
+            },
+          },
+        })}
+      />
+    );
+
+    const button = screen.getByRole('button', {name: 'View Transaction'});
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+
+    await userEvent.hover(button);
+    expect(
+      await screen.findByText('Trace data is only available for the last 30 days')
+    ).toBeInTheDocument();
   });
 });

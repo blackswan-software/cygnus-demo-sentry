@@ -10,6 +10,7 @@ import {
   waitFor,
   within,
 } from 'sentry-test/reactTestingLibrary';
+import {resetMockDate, setMockDate} from 'sentry-test/utils';
 
 import {ProjectsStore} from 'sentry/stores/projectsStore';
 import {TagStore} from 'sentry/stores/tagStore';
@@ -134,6 +135,7 @@ describe('TableView > CellActions', () => {
 
   afterEach(() => {
     ProjectsStore.reset();
+    resetMockDate();
   });
 
   it('updates sort order on equation fields', () => {
@@ -414,6 +416,8 @@ describe('TableView > CellActions', () => {
   });
 
   it('renders trace view link', () => {
+    setMockDate(new Date('2019-05-24T00:00:00Z').getTime());
+
     const traceRows: TableData = {
       meta: {
         trace: 'string',
@@ -488,6 +492,78 @@ describe('TableView > CellActions', () => {
         )
       )
     );
+  });
+
+  it('renders a disabled trace link for old transaction ids', () => {
+    setMockDate(new Date('2019-07-01T00:00:00Z').getTime());
+
+    const traceRows: TableData = {
+      meta: {
+        trace: 'string',
+        id: 'string',
+        transaction: 'string',
+        timestamp: 'date',
+        project: 'string',
+      },
+      data: [
+        {
+          trace: '7fdf8efed85a4f9092507063ced1995b',
+          id: '509663014077465b8981b65225bdec0f',
+          transaction: '/organizations/',
+          timestamp: '2019-05-23T22:12:48+00:00',
+          project: 'project-slug',
+        },
+      ],
+    };
+
+    const traceQuery = {
+      id: '42',
+      name: 'best query',
+      field: ['id', 'transaction', 'timestamp'],
+      queryDataset: 'transaction-like',
+      sort: ['transaction'],
+      query: '',
+      project: ['123'],
+      statsPeriod: '14d',
+      environment: ['staging'],
+      yAxis: 'p95',
+    };
+
+    const traceLocation = LocationFixture({
+      pathname: '/organizations/org-slug/explore/discover/results/',
+      query: traceQuery,
+    });
+
+    render(
+      <TableView
+        organization={organization}
+        location={traceLocation}
+        eventView={EventView.fromLocation(traceLocation)}
+        isLoading={false}
+        tableData={traceRows}
+        onChangeShowTags={onChangeShowTags}
+        error={null}
+        isFirstPage
+        measurementKeys={null}
+        showTags={false}
+        title=""
+        queryDataset={SavedQueryDatasets.TRANSACTIONS}
+      />,
+      {
+        organization,
+        initialRouterConfig: {
+          location: {
+            pathname: traceLocation.pathname,
+            query: traceQuery,
+          },
+        },
+      }
+    );
+
+    const firstRow = screen.getAllByRole('row')[1]!;
+    const idCell = within(firstRow).getAllByRole('cell')[0]!;
+    expect(within(idCell).queryByTestId('view-event')).not.toBeInTheDocument();
+    expect(within(idCell).getByRole('link')).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('handles go to release', async () => {

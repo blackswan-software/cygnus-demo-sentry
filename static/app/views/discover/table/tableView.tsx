@@ -346,34 +346,41 @@ export function TableView(props: TableViewProps) {
           );
         }
 
-        target = generateLinkToEventInTraceView({
-          traceSlug: dataRow.trace?.toString(),
-          eventId: dataRow.id,
-          timestamp: dataRow.timestamp!,
-          organization,
-          location,
-          eventView,
-          source: TraceViewSources.DISCOVER,
-        });
+        const traceTimestamp = getTimeStampFromTableDateField(dataRow.timestamp);
+        if (traceTimestamp && isPartialSpanOrTraceData(traceTimestamp)) {
+          cell = <DisabledTraceLink type="trace">{cell}</DisabledTraceLink>;
+        } else {
+          target = generateLinkToEventInTraceView({
+            traceSlug: dataRow.trace?.toString(),
+            eventId: dataRow.id,
+            timestamp: dataRow.timestamp!,
+            organization,
+            location,
+            eventView,
+            source: TraceViewSources.DISCOVER,
+          });
+        }
       }
 
-      const idLink = (
-        <StyledLink data-test-id="view-event" to={target}>
-          {cell}
-        </StyledLink>
-      );
+      if (target) {
+        const idLink = (
+          <StyledLink data-test-id="view-event" to={target}>
+            {cell}
+          </StyledLink>
+        );
 
-      cell = (
-        <QuickContextHoverWrapper
-          organization={organization}
-          dataRow={dataRow}
-          contextType={ContextType.EVENT}
-          projects={projects}
-          eventView={eventView}
-        >
-          {idLink}
-        </QuickContextHoverWrapper>
-      );
+        cell = (
+          <QuickContextHoverWrapper
+            organization={organization}
+            dataRow={dataRow}
+            contextType={ContextType.EVENT}
+            projects={projects}
+            eventView={eventView}
+          >
+            {idLink}
+          </QuickContextHoverWrapper>
+        );
+      }
     } else if (columnKey === 'transaction' && dataRow.transaction) {
       cell = (
         <TransactionLink

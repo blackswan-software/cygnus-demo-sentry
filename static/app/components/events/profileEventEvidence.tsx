@@ -2,6 +2,7 @@ import {LinkButton} from '@sentry/scraps/button';
 import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {KeyValueList} from 'sentry/components/events/interfaces/keyValueList';
+import {getEventTimestampInSeconds} from 'sentry/components/events/interfaces/utils';
 import {IconProfiling} from 'sentry/icons';
 import {t} from 'sentry/locale';
 import type {Event} from 'sentry/types/event';
@@ -21,7 +22,8 @@ export function ProfileEventEvidence({event, projectSlug}: ProfileEvidenceProps)
   const evidenceData = event.occurrence?.evidenceData ?? {};
   const evidenceDisplay = event.occurrence?.evidenceDisplay ?? [];
   const traceSlug = event.contexts?.trace?.trace_id ?? '';
-  const isOld = isPartialSpanOrTraceData(evidenceData.timestamp);
+  const traceTimestamp = evidenceData.timestamp ?? getEventTimestampInSeconds(event);
+  const isOld = isPartialSpanOrTraceData(traceTimestamp);
 
   const keyValueListData = [
     ...(evidenceData.transactionId && evidenceData.transactionName
@@ -40,7 +42,7 @@ export function ProfileEventEvidence({event, projectSlug}: ProfileEvidenceProps)
                   disabled={isOld}
                   to={generateLinkToEventInTraceView({
                     traceSlug,
-                    timestamp: evidenceData.timestamp,
+                    timestamp: traceTimestamp,
                     eventId: evidenceData.transactionId,
                     location: {
                       ...location,
