@@ -4,7 +4,10 @@ import {OrganizationFixture} from 'sentry-fixture/organization';
 import type {Detector, UptimeDetector} from 'sentry/types/workflowEngine/detectors';
 import type {ApiResponse} from 'sentry/utils/api/apiFetch';
 import {parseQueryKey} from 'sentry/utils/api/apiQueryKey';
-import {detectorListApiOptions} from 'sentry/views/detectors/hooks';
+import {
+  detectorListApiOptions,
+  allDetectorListsQueryKey,
+} from 'sentry/views/detectors/hooks';
 
 const organization = OrganizationFixture();
 
@@ -100,6 +103,31 @@ describe('detectorListApiOptions', () => {
       expectTypeOf(options.select)
         .parameter(0)
         .toEqualTypeOf<ApiResponse<UptimeDetector[]>>();
+    });
+  });
+
+  describe('allDetectorListsQueryKey', () => {
+    it('produces a prefix key that matches all detector list queries', () => {
+      const prefixKey = allDetectorListsQueryKey(organization);
+
+      // Should be a 2-element key (no options) so it prefix-matches everything
+      expect(prefixKey).toHaveLength(2);
+      expect(prefixKey).toEqual([
+        {infinite: false, version: 'v2'},
+        `/organizations/${organization.slug}/detectors/`,
+      ]);
+    });
+
+    it('prefix-matches queries with different filters', () => {
+      const prefixKey = allDetectorListsQueryKey(organization);
+      const uptimeKey = detectorListApiOptions(organization, {
+        type: 'uptime',
+      }).queryKey;
+      const defaultKey = detectorListApiOptions(organization).queryKey;
+
+      // The prefix (first 2 elements) should match both
+      expect(uptimeKey.slice(0, 2)).toEqual(prefixKey);
+      expect(defaultKey.slice(0, 2)).toEqual(prefixKey);
     });
   });
 });

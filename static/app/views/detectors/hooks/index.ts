@@ -96,6 +96,16 @@ export function detectorListApiOptions<
   });
 }
 
+/**
+ * Returns a query key prefix that matches all detector list queries
+ * regardless of filters. Use with `invalidateQueries` after mutations.
+ */
+export function allDetectorListsQueryKey(organization: Organization) {
+  return detectorListApiOptions(organization, {
+    includeIssueStreamDetectors: true,
+  }).queryKey;
+}
+
 export function useCreateDetector<T extends Detector = Detector>() {
   const org = useOrganization();
   const api = useApi({persistInFlight: true});
@@ -117,7 +127,7 @@ export function useCreateDetector<T extends Detector = Detector>() {
       ),
     onSuccess: _ => {
       queryClient.invalidateQueries({
-        queryKey: detectorListApiOptions(org).queryKey,
+        queryKey: allDetectorListsQueryKey(org),
       });
     },
     onError: _ => {
@@ -144,7 +154,7 @@ export function useUpdateDetector<T extends Detector = Detector>() {
       ),
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({
-        queryKey: detectorListApiOptions(org).queryKey,
+        queryKey: allDetectorListsQueryKey(org),
       });
       queryClient.invalidateQueries({
         queryKey: [
