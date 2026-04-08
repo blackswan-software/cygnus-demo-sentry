@@ -185,7 +185,6 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
           {hasPageFrameFeature ? (
             <TopBar.Slot name="feedback">
               <FeedbackButton
-                size="xs"
                 feedbackOptions={{
                   messagePlaceholder: t(
                     'How can we make the trace summary better for you?'
@@ -201,6 +200,7 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
             </TopBar.Slot>
           ) : (
             <FeedbackButton
+              size="xs"
               feedbackOptions={{
                 messagePlaceholder: t(
                   'How can we make the trace summary better for you?'
