@@ -209,6 +209,11 @@ export function getColumnOptions(
     fieldData.meta.parameters[0]
   ) {
     const parameter = fieldData.meta.parameters[0];
+    if (parameter?.kind === 'dropdown') {
+      // Parameters for dropdowns are already formatted in the correct manner
+      // for select fields
+      return parameter.options;
+    }
 
     if (parameter?.kind === 'column' && parameter.columnTypes) {
       // Release Health widgets are the only widgets that actually have different
