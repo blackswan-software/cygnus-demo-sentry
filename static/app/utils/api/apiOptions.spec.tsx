@@ -171,9 +171,9 @@ describe('apiOptions', () => {
     });
 
     expectTypeOf(result.current.data!.headers).toEqualTypeOf<{
-      Link: string | undefined;
-      'X-Hits': number | undefined;
-      'X-Max-Hits': number | undefined;
+      Link?: string;
+      'X-Hits'?: number;
+      'X-Max-Hits'?: number;
     }>();
   });
 
