@@ -18,7 +18,7 @@ from sentry.seer.signed_seer_api import (
 from sentry.snuba.dataset import Dataset
 from sentry.tasks.base import instrumented_task
 from sentry.taskworker.namespaces import seer_tasks
-from sentry.types.group import GroupSubStatus
+from sentry.types.group import UNRESOLVED_SUBSTATUS_CHOICES
 from sentry.utils import metrics
 from sentry.utils.snuba import bulk_snuba_queries
 
@@ -78,12 +78,7 @@ def backfill_supergroups_lightweight_for_org(
         project_id__in=project_ids,
         type=DEFAULT_TYPE_ID,
         last_seen__gte=cutoff,
-        substatus__in=[
-            GroupSubStatus.ONGOING,
-            GroupSubStatus.NEW,
-            GroupSubStatus.ESCALATING,
-            GroupSubStatus.REGRESSED,
-        ],
+        substatus__in=UNRESOLVED_SUBSTATUS_CHOICES,
     )
 
     if last_group_id > 0:
