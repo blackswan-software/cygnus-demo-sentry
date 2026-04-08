@@ -52,7 +52,7 @@ class FetchCommitsTest(TestCase):
                     release_id=release2.id,
                     user_id=user.id,
                     refs=refs,
-                    previous_release_id=release.id,
+                    prev_release_id=release.id,
                 )
 
         commit_list = list(
@@ -129,13 +129,13 @@ class FetchCommitsTest(TestCase):
                 release_id=first_release.id,
                 user_id=self.user.id,
                 refs=refs,
-                previous_release_id=previous_release.id,
+                prev_release_id=previous_release.id,
             )
             fetch_commits(
                 release_id=second_release.id,
                 user_id=self.user.id,
                 refs=refs,
-                previous_release_id=previous_release.id,
+                prev_release_id=previous_release.id,
             )
 
         assert mock_compare_commits.call_count == 2
@@ -178,13 +178,13 @@ class FetchCommitsTest(TestCase):
                     release_id=first_release.id,
                     user_id=self.user.id,
                     refs=refs,
-                    previous_release_id=previous_release.id,
+                    prev_release_id=previous_release.id,
                 )
                 fetch_commits(
                     release_id=second_release.id,
                     user_id=self.user.id,
                     refs=refs,
-                    previous_release_id=previous_release.id,
+                    prev_release_id=previous_release.id,
                 )
 
         assert mock_compare_commits.call_count == 1
@@ -231,13 +231,13 @@ class FetchCommitsTest(TestCase):
                     release_id=first_release.id,
                     user_id=self.user.id,
                     refs=refs_first,
-                    previous_release_id=previous_release.id,
+                    prev_release_id=previous_release.id,
                 )
                 fetch_commits(
                     release_id=second_release.id,
                     user_id=self.user.id,
                     refs=refs_second,
-                    previous_release_id=previous_release.id,
+                    prev_release_id=previous_release.id,
                 )
 
         assert mock_compare_commits.call_count == 2
@@ -264,7 +264,7 @@ class FetchCommitsTest(TestCase):
                 release_id=new_release.id,
                 user_id=self.user.id,
                 refs=refs,
-                previous_release_id=old_release.id,
+                prev_release_id=old_release.id,
             )
         count_query = ReleaseHeadCommit.objects.filter(release=new_release)
         # No release commits should be made as the task should return early.
@@ -297,7 +297,7 @@ class FetchCommitsTest(TestCase):
         mock_compare_commits.side_effect = InvalidIdentity(identity=usa)
 
         fetch_commits(
-            release_id=release2.id, user_id=self.user.id, refs=refs, previous_release_id=release.id
+            release_id=release2.id, user_id=self.user.id, refs=refs, prev_release_id=release.id
         )
 
         mock_handle_invalid_identity.assert_called_once_with(identity=usa, commit_failure=True)
@@ -334,7 +334,7 @@ class FetchCommitsTest(TestCase):
                 release_id=release2.id,
                 user_id=self.user.id,
                 refs=refs,
-                previous_release_id=release.id,
+                prev_release_id=release.id,
             )
 
         msg = mail.outbox[-1]
@@ -375,7 +375,7 @@ class FetchCommitsTest(TestCase):
                 release_id=release2.id,
                 user_id=sentry_app.proxy_user_id,
                 refs=refs,
-                previous_release_id=release.id,
+                prev_release_id=release.id,
             )
 
         msg = mail.outbox[-1]
@@ -415,7 +415,7 @@ class FetchCommitsTest(TestCase):
                 release_id=release2.id,
                 user_id=self.user.id,
                 refs=refs,
-                previous_release_id=release.id,
+                prev_release_id=release.id,
             )
 
         msg = mail.outbox[-1]
@@ -456,7 +456,7 @@ class FetchCommitsTest(TestCase):
                 release_id=release2.id,
                 user_id=self.user.id,
                 refs=refs,
-                previous_release_id=release.id,
+                prev_release_id=release.id,
             )
 
         msg = mail.outbox[-1]

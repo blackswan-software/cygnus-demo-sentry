@@ -78,6 +78,15 @@ def generate_fetch_commits_error_email(
 # we're future proofing this function a bit so it could be used with other code
 
 
+def handle_invalid_identity(identity: Any, commit_failure: bool = False) -> None:
+    # email the user
+    msg = generate_invalid_identity_email(identity, commit_failure)
+    msg.send_async(to=[identity.user.email])
+
+    # now remove the identity, as its invalid
+    identity.delete()
+
+
 def get_github_compare_commits_cache_key(
     organization_id: int,
     repository_id: int,
@@ -129,15 +138,6 @@ def fetch_compare_commits(
             GITHUB_FETCH_COMMITS_COMPARE_CACHE_TTL_SECONDS,
         )
     return repo_commits
-
-
-def handle_invalid_identity(identity: Any, commit_failure: bool = False) -> None:
-    # email the user
-    msg = generate_invalid_identity_email(identity, commit_failure)
-    msg.send_async(to=[identity.user.email])
-
-    # now remove the identity, as its invalid
-    identity.delete()
 
 
 def get_repo_and_provider_for_ref(
@@ -198,7 +198,6 @@ def fetch_commits(
     prev_release_id: int | None = None,
     **kwargs: Any,
 ) -> None:
-    # TODO(dcramer): this function could use some cleanup/refactoring as it's a bit unwieldy
     commit_list: list[dict[str, Any]] = []
 
     release = Release.objects.get(id=release_id)
