@@ -147,7 +147,7 @@ export const useSeerExplorer = () => {
   const [interruptRequested, setInterruptRequested] = useState<boolean>(false);
   const [wasJustInterrupted, setWasJustInterrupted] = useState<boolean>(false);
 
-  // Helpers for managing waiting, timeout, and interrupt state.
+  // Helpers for managing waiting and interrupt state.
   const _onNewRequest = useCallback(() => {
     setWaitingForResponse(true);
     setInterruptRequested(false);
