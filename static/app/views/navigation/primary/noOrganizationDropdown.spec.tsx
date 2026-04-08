@@ -51,6 +51,8 @@ describe('NoOrganizationDropdown', () => {
       ConfigFixture({
         features: new Set(['organizations:create', 'system:multi-region']),
         links: {
+          organizationUrl: undefined,
+          regionUrl: undefined,
           sentryUrl: 'https://sentry.io',
         },
       })
