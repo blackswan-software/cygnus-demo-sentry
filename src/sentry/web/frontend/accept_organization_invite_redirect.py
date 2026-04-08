@@ -4,6 +4,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 
 from sentry.api.endpoints.accept_organization_invite import get_invite_state
+from sentry.api.invite_helper import ApiInviteHelper
 from sentry.demo_mode.utils import is_demo_user
 from sentry.utils.http import query_string
 from sentry.web.frontend.react_page import GenericReactPageView
@@ -26,6 +27,10 @@ class AcceptOrganizationInviteRedirectView(GenericReactPageView):
             request=request,
         )
         if invite_context is None:
+            return self.handle_react(request, **kwargs)
+
+        helper = ApiInviteHelper(request=request, token=token, invite_context=invite_context)
+        if not helper.valid_token:
             return self.handle_react(request, **kwargs)
 
         redirect_url = reverse(

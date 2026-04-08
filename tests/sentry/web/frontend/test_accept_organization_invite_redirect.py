@@ -27,6 +27,17 @@ class AcceptOrganizationInviteRedirectViewTest(TestCase):
             + "?referrer=email"
         )
 
+    def test_invalid_token_does_not_leak_org_slug(self) -> None:
+        organization = self.create_organization()
+        member = self.create_member(organization=organization, email="newuser@example.com")
+
+        response = self.client.get(
+            reverse("sentry-accept-invite", args=[member.id, "invalidtoken"])
+        )
+
+        assert response.status_code == 200
+        self.assertTemplateUsed(response, "sentry/base-react.html")
+
     def test_unresolved_legacy_invite_falls_back_to_react_page(self) -> None:
         response = self.client.get(reverse("sentry-accept-invite", args=[123456, "invalidtoken"]))
 
