@@ -5,23 +5,18 @@ import * as Sentry from '@sentry/react';
 
 import emptyStateImg from 'sentry-images/spot/performance-empty-state.svg';
 import emptyTraceImg from 'sentry-images/spot/performance-empty-trace.svg';
-import tourAlert from 'sentry-images/spot/performance-tour-alert.svg';
-import tourCorrelate from 'sentry-images/spot/performance-tour-correlate.svg';
-import tourMetrics from 'sentry-images/spot/performance-tour-metrics.svg';
-import tourTrace from 'sentry-images/spot/performance-tour-trace.svg';
 
 import {Button, LinkButton} from '@sentry/scraps/button';
-import {Flex, Grid, type GridProps} from '@sentry/scraps/layout';
+import {Grid, type GridProps} from '@sentry/scraps/layout';
 
 import {
   addErrorMessage,
   addLoadingMessage,
   clearIndicators,
 } from 'sentry/actionCreators/indicator';
-import {openModal, type ModalRenderProps} from 'sentry/actionCreators/modal';
+import {openModal} from 'sentry/actionCreators/modal';
 import type {Client} from 'sentry/api';
 import {UnsupportedAlert} from 'sentry/components/alerts/unsupportedAlert';
-import {FeatureShowcase, useShowcaseContext} from 'sentry/components/featureShowcase';
 import {GuidedSteps} from 'sentry/components/guidedSteps/guidedSteps';
 import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {AuthTokenGeneratorProvider} from 'sentry/components/onboarding/gettingStartedDoc/authTokenGenerator';
@@ -74,32 +69,10 @@ import {Tab} from 'sentry/views/explore/hooks/useTab';
 import {useTraces} from 'sentry/views/explore/hooks/useTraces';
 
 import {traceAnalytics} from './newTraceDetails/traceAnalytics';
-
-const performanceSetupUrl =
-  'https://docs.sentry.io/performance-monitoring/getting-started/';
-
-function SetupFooter() {
-  const {close} = useShowcaseContext();
-  return (
-    <Flex justify="end">
-      <LinkButton
-        external
-        href={performanceSetupUrl}
-        onClick={close}
-        priority="primary"
-        aria-label={t('Complete tour')}
-      >
-        {t('Start Setup')}
-      </LinkButton>
-    </Flex>
-  );
-}
-
-const docsLink = (
-  <LinkButton external href={performanceSetupUrl}>
-    {t('Setup')}
-  </LinkButton>
-);
+import {
+  PERFORMANCE_SETUP_DOCS_URL,
+  PerformanceFeatureShowcase,
+} from './performanceFeatureShowcase';
 
 type SampleButtonProps = {
   api: Client;
@@ -168,80 +141,6 @@ type OnboardingProps = {
   project: Project;
 };
 
-interface PerformanceTourShowcaseProps extends ModalRenderProps {
-  organization: Organization;
-}
-
-function PerformanceTourShowcase(props: PerformanceTourShowcaseProps) {
-  const {organization, ...deps} = props;
-
-  function handleAdvance(step: number) {
-    trackAnalytics('performance_views.tour.advance', {
-      step,
-      organization,
-    });
-  }
-
-  function handleClose(step: number) {
-    trackAnalytics('performance_views.tour.close', {
-      step,
-      organization,
-    });
-  }
-
-  return (
-    <FeatureShowcase {...deps} onStepChange={handleAdvance} onClose={handleClose}>
-      <FeatureShowcase.Step>
-        <FeatureShowcase.Image src={tourMetrics} alt={t('Track Application Metrics')} />
-        <FeatureShowcase.StepTitle>
-          {t('Track Application Metrics')}
-        </FeatureShowcase.StepTitle>
-        <FeatureShowcase.StepContent>
-          {t(
-            'Monitor your slowest pageloads and APIs to see which users are having the worst time.'
-          )}
-        </FeatureShowcase.StepContent>
-        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-      </FeatureShowcase.Step>
-      <FeatureShowcase.Step>
-        <FeatureShowcase.Image
-          src={tourCorrelate}
-          alt={t('Correlate Errors and Traces')}
-        />
-        <FeatureShowcase.StepTitle>
-          {t('Correlate Errors and Traces')}
-        </FeatureShowcase.StepTitle>
-        <FeatureShowcase.StepContent>
-          {t(
-            'See what errors occurred within a transaction and the impact of those errors.'
-          )}
-        </FeatureShowcase.StepContent>
-        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-      </FeatureShowcase.Step>
-      <FeatureShowcase.Step>
-        <FeatureShowcase.Image src={tourAlert} alt={t('Watch and Alert')} />
-        <FeatureShowcase.StepTitle>{t('Watch and Alert')}</FeatureShowcase.StepTitle>
-        <FeatureShowcase.StepContent>
-          {t(
-            'Highlight mission-critical pages and APIs and set latency alerts to notify you before things go wrong.'
-          )}
-        </FeatureShowcase.StepContent>
-        <FeatureShowcase.StepActions>{docsLink}</FeatureShowcase.StepActions>
-      </FeatureShowcase.Step>
-      <FeatureShowcase.Step>
-        <FeatureShowcase.Image src={tourTrace} alt={t('Trace Across Systems')} />
-        <FeatureShowcase.StepTitle>{t('Trace Across Systems')}</FeatureShowcase.StepTitle>
-        <FeatureShowcase.StepContent>
-          {t(
-            "Follow a trace from a user's session and drill down to identify any bottlenecks that occur."
-          )}
-        </FeatureShowcase.StepContent>
-        <SetupFooter />
-      </FeatureShowcase.Step>
-    </FeatureShowcase>
-  );
-}
-
 export function LegacyOnboarding({organization, project}: OnboardingProps) {
   const api = useApi();
   const {projects} = useProjects();
@@ -266,11 +165,7 @@ export function LegacyOnboarding({organization, project}: OnboardingProps) {
     currentPlatform && withoutPerformanceSupport.has(currentPlatform);
 
   let setupButton = (
-    <LinkButton
-      priority="primary"
-      href="https://docs.sentry.io/performance-monitoring/getting-started/"
-      external
-    >
+    <LinkButton priority="primary" href={PERFORMANCE_SETUP_DOCS_URL} external>
       {t('Start Setup')}
     </LinkButton>
   );
@@ -318,7 +213,21 @@ export function LegacyOnboarding({organization, project}: OnboardingProps) {
           onClick={() => {
             trackAnalytics('performance_views.tour.start', {organization});
             openModal(deps => (
-              <PerformanceTourShowcase {...deps} organization={organization} />
+              <PerformanceFeatureShowcase
+                {...deps}
+                onStepChange={step => {
+                  trackAnalytics('performance_views.tour.advance', {
+                    step,
+                    organization,
+                  });
+                }}
+                onClose={step => {
+                  trackAnalytics('performance_views.tour.close', {
+                    step,
+                    organization,
+                  });
+                }}
+              />
             ));
           }}
         >
