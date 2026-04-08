@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import * as Sentry from '@sentry/react';
 
 import {ExternalLink} from '@sentry/scraps/link';
+import {Heading} from '@sentry/scraps/text';
 
 import {addSuccessMessage} from 'sentry/actionCreators/indicator';
 import type {ModalRenderProps} from 'sentry/actionCreators/modal';
@@ -434,7 +435,7 @@ export function TicketRuleModal({
   return (
     <Fragment>
       <Header closeButton>
-        <h4>{title}</h4>
+        <Heading as="h4">{title}</Heading>
       </Header>
       <Body>
         <BodyText>
