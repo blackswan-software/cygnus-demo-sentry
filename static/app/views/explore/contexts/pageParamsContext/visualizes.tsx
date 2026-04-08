@@ -123,6 +123,18 @@ export function updateVisualizeAggregate({
     oldAggregate === AggregationKey.COUNT_UNIQUE ||
     NO_ARGUMENT_SPAN_AGGREGATES.includes(oldAggregate as AggregationKey)
   ) {
+    // Check if the default field is valid for the new function's column restrictions
+    const param = newFieldDefinition?.parameters?.[0];
+    if (param?.kind === 'column' && typeof param.columnTypes === 'function') {
+      const isValid = param.columnTypes({
+        key: DEFAULT_VISUALIZATION_FIELD,
+        valueType: FieldValueType.NUMBER,
+      });
+      if (!isValid) {
+        const params = newFieldDefinition.parameters.map(p => p.defaultValue || '');
+        return `${newAggregate}(${params.join(',')})`;
+      }
+    }
     return `${newAggregate}(${DEFAULT_VISUALIZATION_FIELD})`;
   }
 
