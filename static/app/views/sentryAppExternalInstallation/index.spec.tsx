@@ -366,7 +366,9 @@ describe('SentryAppExternalInstallation', () => {
       MockApiClient.addMockResponse({
         url: `/sentry-apps/${sentryApp.slug}/`,
         statusCode: 403,
-        body: {detail: 'User must be in the app owner\'s organization for unpublished apps'},
+        body: {
+          detail: "User must be in the app owner's organization for unpublished apps",
+        },
       });
 
       render(<SentryAppExternalInstallation />, {

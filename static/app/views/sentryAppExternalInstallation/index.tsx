@@ -203,21 +203,15 @@ function SentryAppExternalInstallationContent() {
   }
 
   if (sentryAppError) {
-    return (
-      <LoadingError message={t('There was an error loading this integration.')} />
-    );
+    return <LoadingError message={t('There was an error loading this integration.')} />;
   }
 
   if (orgsError) {
-    return (
-      <LoadingError message={t('There was an error loading your organizations.')} />
-    );
+    return <LoadingError message={t('There was an error loading your organizations.')} />;
   }
 
   if (!sentryApp) {
-    return (
-      <LoadingError message={t('This integration could not be found.')} />
-    );
+    return <LoadingError message={t('This integration could not be found.')} />;
   }
 
   return (
