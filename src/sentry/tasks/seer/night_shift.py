@@ -206,9 +206,9 @@ def _fixability_score_strategy(
     """
     all_candidates: list[_ScoredCandidate] = []
 
-    for project in projects:
+    for project_id_batch in chunked(projects, 100):
         groups = Group.objects.filter(
-            project_id=project.id,
+            project_id__in=[p.id for p in project_id_batch],
             status=GroupStatus.UNRESOLVED,
             seer_autofix_last_triggered__isnull=True,
             seer_explorer_autofix_last_triggered__isnull=True,
@@ -221,7 +221,7 @@ def _fixability_score_strategy(
             all_candidates.append(
                 _ScoredCandidate(
                     group_id=group.id,
-                    project_id=project.id,
+                    project_id=group.project_id,
                     fixability=group.seer_fixability_score or 0.0,
                     times_seen=group.times_seen,
                     severity=(group.priority or 0) / 75.0,
