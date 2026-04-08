@@ -159,7 +159,6 @@ export default function FeedbackListPage() {
                 {hasPageFrameFeature ? (
                   <TopBar.Slot name="feedback">
                     <FeedbackButton
-                      size="sm"
                       feedbackOptions={{
                         messagePlaceholder: t(
                           'How can we improve the User Feedback experience?'

@@ -154,7 +154,6 @@ export function StreamlinedGroupHeader({event, group, project}: GroupHeaderProps
                 <TopBar.Slot name="feedback">
                   <FeedbackButton
                     aria-label={t('Give feedback on the issue Sentry detected')}
-                    size="xs"
                     feedbackOptions={{
                       messagePlaceholder: t(
                         'Please provide feedback on the issue Sentry detected.'

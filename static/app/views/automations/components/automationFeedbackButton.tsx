@@ -10,7 +10,6 @@ export function AutomationFeedbackButton() {
     return (
       <TopBar.Slot name="feedback">
         <FeedbackButton
-          size="sm"
           feedbackOptions={{
             messagePlaceholder: t('How can we improve the alerts experience?'),
             tags: {

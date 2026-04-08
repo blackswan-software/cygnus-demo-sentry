@@ -95,7 +95,6 @@ export function TraceMetaDataHeader(props: TraceMetadataHeaderProps) {
             {hasPageFrameFeature ? (
               <TopBar.Slot name="feedback">
                 <FeedbackButton
-                  size="xs"
                   feedbackOptions={{
                     messagePlaceholder: t(
                       'How can we make the trace view better for you?'

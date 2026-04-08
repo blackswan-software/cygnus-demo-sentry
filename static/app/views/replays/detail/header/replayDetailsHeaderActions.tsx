@@ -28,7 +28,7 @@ export function ReplayDetailsHeaderActions({readerResult}: Props) {
         <ButtonActionsWrapper>
           {hasPageFrameFeature ? (
             <TopBar.Slot name="feedback">
-              <FeedbackButton size="xs">{null}</FeedbackButton>
+              <FeedbackButton>{null}</FeedbackButton>
             </TopBar.Slot>
           ) : (
             <FeedbackButton size="xs" />
@@ -46,7 +46,7 @@ export function ReplayDetailsHeaderActions({readerResult}: Props) {
         <ButtonActionsWrapper>
           {hasPageFrameFeature ? (
             <TopBar.Slot name="feedback">
-              <FeedbackButton size="xs">{null}</FeedbackButton>
+              <FeedbackButton>{null}</FeedbackButton>
             </TopBar.Slot>
           ) : (
             <FeedbackButton size="xs" />

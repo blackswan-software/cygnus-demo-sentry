@@ -371,7 +371,6 @@ export default function IssueViewsList() {
               {hasPageFrameFeature ? (
                 <TopBar.Slot name="feedback">
                   <FeedbackButton
-                    size="sm"
                     feedbackOptions={{
                       formTitle: t('Give Feedback'),
                       messagePlaceholder: t('How can we make issue views better for you?'),

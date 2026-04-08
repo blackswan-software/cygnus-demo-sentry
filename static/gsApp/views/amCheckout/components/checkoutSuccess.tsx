@@ -623,7 +623,6 @@ export function CheckoutSuccess({
                       ['feedback.owner']: 'billing',
                     },
                   }}
-                  size="md"
                 >{null}</FeedbackButton>
               </TopBar.Slot>
             ) : (

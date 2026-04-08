@@ -10,7 +10,6 @@ export function MonitorFeedbackButton() {
     return (
       <TopBar.Slot name="feedback">
         <FeedbackButton
-          size="sm"
           feedbackOptions={{
             messagePlaceholder: t('How can we improve the monitor experience?'),
             tags: {

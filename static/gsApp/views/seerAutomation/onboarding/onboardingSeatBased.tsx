@@ -87,7 +87,6 @@ export function SeerOnboardingSeatBased() {
           hasPageFrameFeature ? (
             <TopBar.Slot name="feedback">
               <FeedbackButton
-                size="md"
                 feedbackOptions={{
                   messagePlaceholder: t('How can we make Seer better for you?'),
                   tags: {
