@@ -105,6 +105,13 @@ class TestGetEligibleProjects(TestCase):
 
 @django_db_all
 class TestRunNightShiftForOrg(TestCase):
+    def _make_eligible(self, project):
+        project.update_option(
+            "sentry:autofix_automation_tuning", AutofixAutomationTuningSettings.MEDIUM
+        )
+        repo = self.create_repo(project=project, provider="github")
+        SeerProjectRepository.objects.create(project=project, repository=repo)
+
     def test_nonexistent_org(self) -> None:
         with patch("sentry.tasks.seer.night_shift.logger") as mock_logger:
             run_night_shift_for_org(999999999)
@@ -112,11 +119,9 @@ class TestRunNightShiftForOrg(TestCase):
 
     def test_no_eligible_projects(self) -> None:
         org = self.create_organization()
+        self.create_project(organization=org)
 
-        with (
-            patch("sentry.tasks.seer.night_shift._get_eligible_projects", return_value=[]),
-            patch("sentry.tasks.seer.night_shift.logger") as mock_logger,
-        ):
+        with patch("sentry.tasks.seer.night_shift.logger") as mock_logger:
             run_night_shift_for_org(org.id)
             mock_logger.info.assert_called_once()
             assert mock_logger.info.call_args.args[0] == "night_shift.no_eligible_projects"
@@ -124,11 +129,8 @@ class TestRunNightShiftForOrg(TestCase):
     def test_selects_candidates_by_fixability(self) -> None:
         org = self.create_organization()
         project = self.create_project(organization=org)
-        project.update_option(
-            "sentry:autofix_automation_tuning", AutofixAutomationTuningSettings.MEDIUM
-        )
+        self._make_eligible(project)
 
-        # Create issues with different fixability scores
         high_fix = self.create_group(
             project=project,
             status=GroupStatus.UNRESOLVED,
@@ -142,25 +144,19 @@ class TestRunNightShiftForOrg(TestCase):
             times_seen=100,
         )
 
-        with (
-            patch(
-                "sentry.tasks.seer.night_shift._get_eligible_projects",
-                return_value=[project],
-            ),
-            patch("sentry.tasks.seer.night_shift.logger") as mock_logger,
-        ):
+        with patch("sentry.tasks.seer.night_shift.logger") as mock_logger:
             run_night_shift_for_org(org.id)
 
             call_extra = mock_logger.info.call_args.kwargs["extra"]
             assert call_extra["num_candidates"] == 2
             candidates = call_extra["candidates"]
-            # Higher fixability should rank first
             assert candidates[0]["group_id"] == high_fix.id
             assert candidates[1]["group_id"] == low_fix.id
 
     def test_skips_already_triggered_issues(self) -> None:
         org = self.create_organization()
         project = self.create_project(organization=org)
+        self._make_eligible(project)
 
         self.create_group(
             project=project,
@@ -174,13 +170,7 @@ class TestRunNightShiftForOrg(TestCase):
             seer_fixability_score=0.5,
         )
 
-        with (
-            patch(
-                "sentry.tasks.seer.night_shift._get_eligible_projects",
-                return_value=[project],
-            ),
-            patch("sentry.tasks.seer.night_shift.logger") as mock_logger,
-        ):
+        with patch("sentry.tasks.seer.night_shift.logger") as mock_logger:
             run_night_shift_for_org(org.id)
 
             call_extra = mock_logger.info.call_args.kwargs["extra"]
@@ -191,6 +181,8 @@ class TestRunNightShiftForOrg(TestCase):
         org = self.create_organization()
         project_a = self.create_project(organization=org)
         project_b = self.create_project(organization=org)
+        self._make_eligible(project_a)
+        self._make_eligible(project_b)
 
         low_group = self.create_group(
             project=project_a,
@@ -203,13 +195,7 @@ class TestRunNightShiftForOrg(TestCase):
             seer_fixability_score=0.95,
         )
 
-        with (
-            patch(
-                "sentry.tasks.seer.night_shift._get_eligible_projects",
-                return_value=[project_a, project_b],
-            ),
-            patch("sentry.tasks.seer.night_shift.logger") as mock_logger,
-        ):
+        with patch("sentry.tasks.seer.night_shift.logger") as mock_logger:
             run_night_shift_for_org(org.id)
 
             candidates = mock_logger.info.call_args.kwargs["extra"]["candidates"]
