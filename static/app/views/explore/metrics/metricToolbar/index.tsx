@@ -103,7 +103,11 @@ export function MetricToolbar({traceMetric, queryIndex, references}: MetricToolb
       width="100%"
       align="center"
       gap="md"
-      columns={`34px 2fr 3fr 6fr ${canRemoveMetric ? '40px' : '0'}`}
+      columns={
+        isVisualizeFunction(visualize)
+          ? `34px 2fr 3fr 6fr ${canRemoveMetric ? '40px' : '0'}`
+          : `34px 1fr ${canRemoveMetric ? '40px' : '0'}`
+      }
       data-test-id="metric-toolbar"
     >
       <VisualizeLabel
