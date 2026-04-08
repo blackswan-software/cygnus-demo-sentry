@@ -125,7 +125,11 @@ class BitbucketApiClient(ApiClient, RepositoryClient):
         Bitbucket uses a ``next`` URL in the response body (not headers)
         to link to the next page.
         """
-        if page_number_limit is None or page_number_limit > self.page_number_limit:
+        if (
+            page_number_limit is None
+            or page_number_limit < 1
+            or page_number_limit > self.page_number_limit
+        ):
             page_number_limit = self.page_number_limit
 
         if params is None:
