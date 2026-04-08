@@ -31,7 +31,7 @@ export function useScmRepoSearch(integrationId: string, selectedRepo?: Repositor
     queryKey: [
       {infinite: true, version: 'v1' as const},
       reposUrl,
-      {method: 'GET', query: {accessibleOnly: true, paginate: true}},
+      {method: 'GET', query: {accessibleOnly: true, paginate: true, per_page: 50}},
     ],
     staleTime: 20_000,
   });
