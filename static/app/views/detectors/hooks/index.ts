@@ -1,16 +1,20 @@
+import {queryOptions} from '@tanstack/react-query';
+
 import {t} from 'sentry/locale';
 import {AlertStore} from 'sentry/stores/alertStore';
+import type {Organization} from 'sentry/types/organization';
 import {
   type BaseDetectorUpdatePayload,
   type Detector,
 } from 'sentry/types/workflowEngine/detectors';
+import {apiOptions} from 'sentry/utils/api/apiOptions';
 import {getApiUrl} from 'sentry/utils/api/getApiUrl';
 import type {ApiQueryKey, UseApiQueryOptions} from 'sentry/utils/queryClient';
 import {useApiQuery, useMutation, useQueryClient} from 'sentry/utils/queryClient';
 import {useApi} from 'sentry/utils/useApi';
 import {useOrganization} from 'sentry/utils/useOrganization';
 
-interface UseDetectorsQueryKeyOptions {
+interface UseDetectorsApiOptionsParams {
   cursor?: string;
   ids?: string[];
   /**
@@ -32,75 +36,37 @@ const createDetectorQuery = (
   if (options.includeIssueStreamDetectors) {
     return query;
   }
-
+  console.log(`!type:issue_stream ${query ?? ''}`.trim());
   return `!type:issue_stream ${query ?? ''}`.trim();
 };
 
-export const makeDetectorListQueryKey = ({
-  orgSlug,
-  query,
-  sortBy,
-  projects,
-  limit,
-  cursor,
-  ids,
-  includeIssueStreamDetectors = false,
-}: {
-  orgSlug: string;
-  cursor?: string;
-  ids?: string[];
-  includeIssueStreamDetectors?: boolean;
-  limit?: number;
-  projects?: number[];
-  query?: string;
-  sortBy?: string;
-}): ApiQueryKey => [
-  getApiUrl('/organizations/$organizationIdOrSlug/detectors/', {
-    path: {organizationIdOrSlug: orgSlug},
-  }),
+export function detectorListApiOptions(
+  organization: Organization,
   {
-    query: {
-      query: createDetectorQuery(query, {includeIssueStreamDetectors}),
-      sortBy,
-      project: projects,
-      per_page: limit,
-      cursor,
-      id: ids,
-    },
-  },
-];
-
-export function useDetectorsQuery<T extends Detector = Detector>(
-  {
-    ids,
     query,
     sortBy,
     projects,
     limit,
     cursor,
-    includeIssueStreamDetectors,
-  }: UseDetectorsQueryKeyOptions = {},
-  queryOptions: Partial<UseApiQueryOptions<T[]>> = {}
+    ids,
+    includeIssueStreamDetectors = false,
+  }: UseDetectorsApiOptionsParams = {}
 ) {
-  const org = useOrganization();
-
-  return useApiQuery<T[]>(
-    makeDetectorListQueryKey({
-      orgSlug: org.slug,
-      query,
-      sortBy,
-      projects,
-      limit,
-      cursor,
-      ids,
-      includeIssueStreamDetectors,
-    }),
-    {
+  return queryOptions({
+    ...apiOptions.as<Detector[]>()('/organizations/$organizationIdOrSlug/detectors/', {
+      path: {organizationIdOrSlug: organization.slug},
+      query: {
+        query: createDetectorQuery(query, {includeIssueStreamDetectors}),
+        sortBy,
+        project: projects,
+        per_page: limit,
+        cursor,
+        id: ids,
+      },
       staleTime: 0,
-      retry: false,
-      ...queryOptions,
-    }
-  );
+    }),
+    retry: false,
+  });
 }
 
 export function useCreateDetector<T extends Detector = Detector>() {
@@ -124,11 +90,7 @@ export function useCreateDetector<T extends Detector = Detector>() {
       ),
     onSuccess: _ => {
       queryClient.invalidateQueries({
-        queryKey: [
-          getApiUrl('/organizations/$organizationIdOrSlug/detectors/', {
-            path: {organizationIdOrSlug: org.slug},
-          }),
-        ],
+        queryKey: detectorListApiOptions(org).queryKey,
       });
     },
     onError: _ => {
@@ -155,11 +117,7 @@ export function useUpdateDetector<T extends Detector = Detector>() {
       ),
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({
-        queryKey: [
-          getApiUrl('/organizations/$organizationIdOrSlug/detectors/', {
-            path: {organizationIdOrSlug: org.slug},
-          }),
-        ],
+        queryKey: detectorListApiOptions(org).queryKey,
       });
       queryClient.invalidateQueries({
         queryKey: [
@@ -189,13 +147,13 @@ export const makeDetectorDetailsQueryKey = ({
 
 export function useDetectorQuery<T extends Detector = Detector>(
   detectorId: string,
-  queryOptions: Partial<UseApiQueryOptions<T>> = {}
+  options: Partial<UseApiQueryOptions<T>> = {}
 ) {
   const org = useOrganization();
 
   return useApiQuery<T>(makeDetectorDetailsQueryKey({orgSlug: org.slug, detectorId}), {
     staleTime: 0,
     retry: false,
-    ...queryOptions,
+    ...options,
   });
 }

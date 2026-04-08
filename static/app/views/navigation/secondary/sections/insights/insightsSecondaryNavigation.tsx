@@ -109,7 +109,7 @@ export function InsightsSecondaryNavigation() {
               <SecondaryNavigation.Link
                 to={
                   shouldRedirectToMonitors
-                    ? `${makeMonitorBasePathname(organization.slug)}crons/?insightsRedirect=true`
+                    ? `${makeMonitorBasePathname(organization.slug)}crons/`
                     : `${baseUrl}/crons/`
                 }
                 analyticsItemName="insights_crons"
@@ -122,7 +122,7 @@ export function InsightsSecondaryNavigation() {
                 <SecondaryNavigation.Link
                   to={
                     shouldRedirectToMonitors
-                      ? `${makeMonitorBasePathname(organization.slug)}uptime/?insightsRedirect=true`
+                      ? `${makeMonitorBasePathname(organization.slug)}uptime/`
                       : `${baseUrl}/uptime/`
                   }
                   analyticsItemName="insights_uptime"

@@ -19,13 +19,13 @@ import {IconAdd, IconEdit} from 'sentry/icons';
 import {t} from 'sentry/locale';
 import type {Automation} from 'sentry/types/workflowEngine/automations';
 import type {Detector} from 'sentry/types/workflowEngine/detectors';
-import {getApiQueryData, setApiQueryData, useQueryClient} from 'sentry/utils/queryClient';
+import {useQueryClient} from 'sentry/utils/queryClient';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {useProjects} from 'sentry/utils/useProjects';
 import {ConnectedMonitorsList} from 'sentry/views/automations/components/connectedMonitorsList';
 import {useConnectedDetectors} from 'sentry/views/automations/hooks/useConnectedDetectors';
 import {DetectorSearch} from 'sentry/views/detectors/components/detectorSearch';
-import {makeDetectorListQueryKey} from 'sentry/views/detectors/hooks';
+import {detectorListApiOptions} from 'sentry/views/detectors/hooks';
 import {makeMonitorCreatePathname} from 'sentry/views/detectors/pathnames';
 
 const PROJECT_GROUPS = [
@@ -135,15 +135,11 @@ function ConnectMonitorsDrawer({
   const [localDetectorIds, setLocalDetectorIds] = useState(initialIds);
 
   const toggleConnected = ({detector}: {detector: Detector}) => {
-    const oldDetectorsData =
-      getApiQueryData<Detector[]>(
-        queryClient,
-        makeDetectorListQueryKey({
-          orgSlug: organization.slug,
-          ids: localDetectorIds,
-          includeIssueStreamDetectors: true,
-        })
-      ) ?? [];
+    const queryKey = detectorListApiOptions(organization, {
+      ids: localDetectorIds,
+      includeIssueStreamDetectors: true,
+    }).queryKey;
+    const oldDetectorsData = queryClient.getQueryData(queryKey)?.json ?? [];
 
     const newDetectors = (
       oldDetectorsData.some(d => d.id === detector.id)
@@ -153,15 +149,7 @@ function ConnectMonitorsDrawer({
     const newDetectorIds = newDetectors.map(d => d.id);
 
     // Update the query cache to prevent the list from being fetched anew
-    setApiQueryData<Detector[]>(
-      queryClient,
-      makeDetectorListQueryKey({
-        orgSlug: organization.slug,
-        ids: newDetectorIds,
-        includeIssueStreamDetectors: true,
-      }),
-      newDetectors
-    );
+    queryClient.setQueryData(queryKey, old => (old ? {...old, json: newDetectors} : old));
 
     setLocalDetectorIds(newDetectorIds);
     setDetectorIds(newDetectorIds);
