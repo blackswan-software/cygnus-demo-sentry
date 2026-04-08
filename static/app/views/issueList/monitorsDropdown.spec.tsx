@@ -27,10 +27,10 @@ describe('MonitorsDropdown', () => {
     await userEvent.click(dropdown);
 
     expect(
-      await screen.findByRole('menuitemradio', {name: /2 Active Cron Monitors/})
+      await screen.findByRole('menuitemradio', {name: /View Cron Monitors/})
     ).toHaveAttribute('href', '/organizations/org-slug/insights/crons/');
     expect(
-      await screen.findByRole('menuitemradio', {name: /1 Active Uptime Monitor/})
+      await screen.findByRole('menuitemradio', {name: /View Uptime Monitors/})
     ).toHaveAttribute('href', '/organizations/org-slug/insights/uptime/');
   });
 });
