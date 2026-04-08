@@ -19,7 +19,8 @@ class DisableRepositoriesByExternalIdsTest(TestCase):
         )
         self.provider = "integrations:github"
 
-    def test_disables_matching_active_repos(self) -> None:
+    @patch("sentry.integrations.services.repository.impl.bulk_cleanup_seer_repository_preferences")
+    def test_disables_matching_active_repos(self, mock_seer_cleanup: MagicMock) -> None:
         repo1 = Repository.objects.create(
             organization_id=self.organization.id,
             name="getsentry/sentry",
@@ -115,7 +116,8 @@ class DisableRepositoriesByExternalIdsTest(TestCase):
         repo.refresh_from_db()
         assert repo.status == ObjectStatus.ACTIVE
 
-    def test_only_disables_specified_external_ids(self) -> None:
+    @patch("sentry.integrations.services.repository.impl.bulk_cleanup_seer_repository_preferences")
+    def test_only_disables_specified_external_ids(self, mock_seer_cleanup: MagicMock) -> None:
         repo_to_disable = Repository.objects.create(
             organization_id=self.organization.id,
             name="getsentry/sentry",
@@ -205,7 +207,8 @@ class DisableRepositoriesForIntegrationTest(TestCase):
         )
         self.provider = "integrations:github"
 
-    def test_disables_matching_active_repos(self) -> None:
+    @patch("sentry.integrations.services.repository.impl.bulk_cleanup_seer_repository_preferences")
+    def test_disables_matching_active_repos(self, mock_seer_cleanup: MagicMock) -> None:
         repo = Repository.objects.create(
             organization_id=self.organization.id,
             name="getsentry/sentry",
