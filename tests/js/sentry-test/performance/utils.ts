@@ -51,6 +51,7 @@ export class TransactionEventBuilder {
       type: EventOrGroupType.TRANSACTION,
       startTimestamp: 0,
       endTimestamp: transactionSettings?.duration ?? 0,
+      dateCreated: new Date().toISOString(),
       contexts: {
         trace: {
           trace_id: this.TRACE_ID,
