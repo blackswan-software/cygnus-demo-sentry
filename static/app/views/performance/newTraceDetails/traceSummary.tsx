@@ -169,17 +169,9 @@ export function TraceSummarySection({traceSlug}: {traceSlug: string}) {
         <SectionContent text="" />
       )}
 
-      {feedback && (
+      {feedback && !hasPageFrameFeature && (
         <Flex justify="end" marginTop="xl">
-          {hasPageFrameFeature ? (
-            <TopBar.Slot name="feedback">
-              <FeedbackButton feedbackOptions={traceSummaryFeedbackOptions}>
-                {null}
-              </FeedbackButton>
-            </TopBar.Slot>
-          ) : (
-            <FeedbackButton feedbackOptions={traceSummaryFeedbackOptions} />
-          )}
+          <FeedbackButton feedbackOptions={traceSummaryFeedbackOptions} />
         </Flex>
       )}
     </SummaryContainer>
