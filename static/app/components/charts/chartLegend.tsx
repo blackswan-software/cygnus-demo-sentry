@@ -72,7 +72,7 @@ export function ChartLegend({items, selected, onSelectionChange}: ChartLegendPro
 
   // ResizeObserver (via useDimensions) updates wrapperWidth on resize,
   // which triggers the useLayoutEffect below to recompute overflow.
-  const {width: wrapperWidth} = useDimensions({elementRef: wrapperRef});
+  const {width: wrapperWidth} = useDimensions(wrapperRef);
   const [firstOverflowIndex, setFirstOverflowIndex] = useState<number | null>(null);
 
   useLayoutEffect(() => {

@@ -45,7 +45,7 @@ export function SideBySideOrientation({
   const organization = useOrganization();
   const hasMetricsUIRefresh = canUseMetricsUIRefresh(organization);
   const measureRef = useRef<HTMLDivElement>(null);
-  const {width} = useDimensions({elementRef: measureRef});
+  const {width} = useDimensions(measureRef);
 
   const hasSize = width > 0;
   // Default split is 65% of the available width but not less than MIN_LEFT_WIDTH

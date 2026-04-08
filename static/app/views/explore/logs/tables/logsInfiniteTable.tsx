@@ -221,7 +221,7 @@ export function LogsInfiniteTable({
 
   const tableRef = useRef<HTMLTableElement>(null);
   const tableBodyRef = useRef<HTMLTableSectionElement>(null);
-  const {width: tableWidth} = useDimensions({elementRef: tableRef});
+  const {width: tableWidth} = useDimensions(tableRef);
   const [expandedLogRows, setExpandedLogRows] = useState<Set<string>>(
     new Set(embeddedOptions?.openWithExpandedIds ?? [])
   );

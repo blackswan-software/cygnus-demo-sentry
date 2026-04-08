@@ -241,7 +241,7 @@ export function SearchQueryBuilderProvider({
     searchSource,
     onSearch,
   });
-  const {width: searchBarWidth} = useDimensions({elementRef: wrapperRef});
+  const {width: searchBarWidth} = useDimensions(wrapperRef);
   const size =
     searchBarWidth && searchBarWidth < 600 ? ('small' as const) : ('normal' as const);
 

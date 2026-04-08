@@ -35,7 +35,7 @@ function dimensionsToSize({width}: Dimensions) {
 
 export function FeedbackItemHeader({eventData, feedbackItem, onBackToList}: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const dimensions = useDimensions({elementRef: wrapperRef});
+  const dimensions = useDimensions(wrapperRef);
 
   return (
     <VerticalSpacing ref={wrapperRef}>

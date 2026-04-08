@@ -280,7 +280,7 @@ function SearchQueryBuilderUI({
     dispatch({type: 'UPDATE_QUERY', query: initialQuery});
   }, [dispatch, initialQuery]);
 
-  const {width: actionBarWidth} = useDimensions({elementRef: actionBarRef});
+  const {width: actionBarWidth} = useDimensions(actionBarRef);
 
   return (
     <Wrapper

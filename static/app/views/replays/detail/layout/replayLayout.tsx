@@ -48,7 +48,7 @@ export function ReplayLayout({
   });
 
   const measureRef = useRef<HTMLDivElement>(null);
-  const {width, height} = useDimensions({elementRef: measureRef});
+  const {width, height} = useDimensions(measureRef);
 
   const video = (
     <VideoSection ref={fullscreenRef}>

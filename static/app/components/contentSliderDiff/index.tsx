@@ -31,7 +31,7 @@ interface Props {
  */
 function Body({onDragHandleMouseDown, after, before, minHeight = '0px'}: Props) {
   const positionedRef = useRef<HTMLDivElement>(null);
-  const viewDimensions = useDimensions({elementRef: positionedRef});
+  const viewDimensions = useDimensions(positionedRef);
 
   return (
     <OverflowVisibleContainer>

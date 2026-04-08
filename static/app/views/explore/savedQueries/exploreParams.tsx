@@ -31,7 +31,7 @@ export function ExploreParams({
   const yAxes = visualizes.flatMap(visualize => visualize.yAxes);
   const containerRef = useRef<HTMLSpanElement>(null);
 
-  const {width} = useDimensions({elementRef: containerRef});
+  const {width} = useDimensions(containerRef);
   const [childWidths, setChildWidths] = useState<number[]>([]);
   const [containerWidth, setContainerWidth] = useState<number>(0);
 

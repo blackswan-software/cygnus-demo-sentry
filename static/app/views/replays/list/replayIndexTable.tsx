@@ -57,7 +57,7 @@ export function ReplayIndexTable({
   } = usePageFilters();
 
   const tableRef = useRef<HTMLDivElement>(null);
-  const tableDimensions = useDimensions({elementRef: tableRef});
+  const tableDimensions = useDimensions(tableRef);
 
   const rageClicksSdkVersion = useProjectSdkNeedsUpdate({
     minVersion: MIN_DEAD_RAGE_CLICK_SDK.minVersion,
