@@ -1,6 +1,6 @@
 import sentry_sdk
 from django.db import router, transaction
-from jwt import InvalidKeyError
+from jwt import DecodeError, ExpiredSignatureError, InvalidKeyError, InvalidSignatureError
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -67,10 +67,15 @@ class JiraSentryInstalledWebhook(JiraWebhookBase):
                 return self.respond(
                     {"detail": "Invalid key id"}, status=status.HTTP_400_BAD_REQUEST
                 )
-            except Exception:
-                lifecycle.record_halt(halt_reason="JWT authentication failed")
+            except (InvalidSignatureError, ExpiredSignatureError):
+                lifecycle.record_halt(halt_reason="JWT contained invalid or expired signature")
                 return self.respond(
-                    {"detail": "JWT authentication failed"}, status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "Invalid or expired signature"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            except DecodeError:
+                lifecycle.record_halt(halt_reason="Could not decode JWT token")
+                return self.respond(
+                    {"detail": "Could not decode JWT token"}, status=status.HTTP_400_BAD_REQUEST
                 )
 
             data = JiraIntegrationProvider().build_integration(state)
