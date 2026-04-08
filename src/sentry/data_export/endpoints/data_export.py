@@ -86,6 +86,7 @@ class DataExportQuerySerializer(serializers.Serializer[dict[str, Any]]):
             query_type == ExportQueryType.EXPLORE_STR
             and query_info.get("dataset") == "logs"
             and export_format == OutputMode.JSONL.value
+            and len(base_fields) == 0
         )
 
         if len(base_fields) > MAX_FIELDS:
@@ -211,7 +212,9 @@ class DataExportQuerySerializer(serializers.Serializer[dict[str, Any]]):
             query_info = self._validate_dataset(query_type, query_info)
             explore_output_mode = OutputMode.from_value(export_format)
             is_full_jsonl_logs_export = (
-                query_info.get("dataset") == "logs" and export_format == OutputMode.JSONL.value
+                query_info.get("dataset") == "logs"
+                and export_format == OutputMode.JSONL.value
+                and len(query_info.get("field", [])) == 0
             )
             if not is_full_jsonl_logs_export:
                 try:
