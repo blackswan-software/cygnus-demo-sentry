@@ -10,6 +10,7 @@ import {
   DEFAULT_YAXIS_BY_TYPE,
   OPTIONS_BY_TYPE,
 } from 'sentry/views/explore/metrics/constants';
+import {useHasMetricEquations} from 'sentry/views/explore/metrics/hooks/useHasMetricEquations';
 import {
   decodeMetricsQueryParams,
   defaultMetricQuery,
@@ -21,7 +22,10 @@ import {
 import {updateVisualizeYAxis} from 'sentry/views/explore/metrics/utils';
 import {isGroupBy} from 'sentry/views/explore/queryParams/groupBy';
 import type {ReadableQueryParams} from 'sentry/views/explore/queryParams/readableQueryParams';
-import {isVisualizeFunction} from 'sentry/views/explore/queryParams/visualize';
+import {
+  isVisualizeEquation,
+  isVisualizeFunction,
+} from 'sentry/views/explore/queryParams/visualize';
 
 interface MultiMetricsQueryParamsContextValue {
   metricQueries: MetricQuery[];
@@ -186,18 +190,34 @@ export function useAddMetricQuery() {
   const location = useLocation();
   const navigate = useNavigate();
   const {metricQueries} = useMultiMetricsQueryParamsContext();
+  const hasEquations = useHasMetricEquations();
 
   return function () {
     const target = {...location, query: {...location.query}};
+    const equationStart = metricQueries.findIndex(metricQuery =>
+      isVisualizeEquation(metricQuery.queryParams.visualizes[0]!)
+    );
 
-    const newMetricQueries = [
-      ...metricQueries,
-      metricQueries[metricQueries.length - 1] ?? defaultMetricQuery(),
-    ]
+    let newMetricQueries: BaseMetricQuery[] = [];
+    if (hasEquations && equationStart !== -1) {
+      // new metric queries need to be added before the first equation to
+      // maintain the order of references
+      newMetricQueries = [
+        ...metricQueries.slice(0, equationStart),
+        defaultMetricQuery(),
+        ...metricQueries.slice(equationStart),
+      ];
+    } else {
+      newMetricQueries = [
+        ...metricQueries,
+        metricQueries[metricQueries.length - 1] ?? defaultMetricQuery(),
+      ];
+    }
+
+    target.query.metric = newMetricQueries
       .map((metricQuery: BaseMetricQuery) => encodeMetricQueryParams(metricQuery))
       .filter(defined)
       .filter(Boolean);
-    target.query.metric = newMetricQueries;
 
     navigate(target);
   };
