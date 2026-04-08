@@ -1,4 +1,41 @@
+import {OP_LABELS} from 'sentry/components/searchQueryBuilder/tokens/filter/utils';
+import {
+  parseSearch,
+  Token,
+  type TokenResult,
+} from 'sentry/components/searchSyntax/parser';
 import {DisplayType} from 'sentry/views/dashboards/types';
+
+/**
+ * Wraps parseSearch to return LLM-friendly structured filters with readable
+ * operators and negation. Falls back to the raw string if parsing fails.
+ */
+export function getSearchFiltersForLLM(
+  query: string
+): Array<{field: string; op: string; value: string}> | string {
+  if (!query.trim()) {
+    return [];
+  }
+  try {
+    const tokens = parseSearch(query);
+    if (!tokens) {
+      return query;
+    }
+    const filters = tokens.filter(
+      (t): t is TokenResult<Token.FILTER> => t.type === Token.FILTER
+    );
+    if (filters.length === 0) {
+      return query;
+    }
+    return filters.map(f => ({
+      field: f.key.text,
+      op: `${f.negated ? 'NOT ' : ''}${OP_LABELS[f.operator as keyof typeof OP_LABELS] ?? f.operator}`,
+      value: f.value.text,
+    }));
+  } catch {
+    return query;
+  }
+}
 
 /**
  * Returns a hint for the Seer Explorer agent describing how to re-query this
