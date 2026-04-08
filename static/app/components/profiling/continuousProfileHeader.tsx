@@ -2,8 +2,8 @@ import {useCallback, useMemo} from 'react';
 import styled from '@emotion/styled';
 
 import {LinkButton} from '@sentry/scraps/button';
-import {Tooltip} from '@sentry/scraps/tooltip';
 
+import {DisabledTraceLinkTooltip} from 'sentry/components/explore/disabledTraceLink';
 import {FeedbackButton} from 'sentry/components/feedbackButton/feedbackButton';
 import * as Layout from 'sentry/components/layouts/thirds';
 import type {ProfilingBreadcrumbsProps} from 'sentry/components/profiling/profilingBreadcrumbs';
@@ -57,10 +57,7 @@ export function ContinuousProfileHeader({transaction}: ContinuousProfileHeader) 
       <StyledHeaderActions>
         <FeedbackButton />
         {transactionTarget && (
-          <Tooltip
-            title={t('Trace data is only available for the last 30 days')}
-            disabled={!isOld}
-          >
+          <DisabledTraceLinkTooltip disabled={!isOld} type="trace">
             <LinkButton
               size="sm"
               onClick={handleGoToTransaction}
@@ -69,7 +66,7 @@ export function ContinuousProfileHeader({transaction}: ContinuousProfileHeader) 
             >
               {t('Go to Trace')}
             </LinkButton>
-          </Tooltip>
+          </DisabledTraceLinkTooltip>
         )}
       </StyledHeaderActions>
     </SmallerLayoutHeader>

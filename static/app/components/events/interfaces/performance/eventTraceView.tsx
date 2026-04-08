@@ -3,13 +3,13 @@ import styled from '@emotion/styled';
 
 import {LinkButton} from '@sentry/scraps/button';
 import {Grid} from '@sentry/scraps/layout';
-import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {
   isWebVitalsEvent,
   TRACE_WATERFALL_PREFERENCES_KEY,
 } from 'sentry/components/events/interfaces/performance/utils';
 import {getEventTimestampInSeconds} from 'sentry/components/events/interfaces/utils';
+import {DisabledTraceLinkTooltip} from 'sentry/components/explore/disabledTraceLink';
 import {generateTraceTarget} from 'sentry/components/quickTrace/utils';
 import {t} from 'sentry/locale';
 import {type Event} from 'sentry/types/event';
@@ -185,10 +185,7 @@ export function EventTraceView({group, event, organization}: EventTraceViewProps
       title={t('Trace Preview')}
       actions={
         <Grid flow="column" align="center" gap="md">
-          <Tooltip
-            title={t('Trace data is only available for the last 30 days')}
-            disabled={!isOld}
-          >
+          <DisabledTraceLinkTooltip disabled={!isOld} type="trace">
             <LinkButton
               size="xs"
               to={getTraceLinkForIssue(traceTarget)}
@@ -198,7 +195,7 @@ export function EventTraceView({group, event, organization}: EventTraceViewProps
             >
               {t('View Full Trace')}
             </LinkButton>
-          </Tooltip>
+          </DisabledTraceLinkTooltip>
         </Grid>
       }
     >

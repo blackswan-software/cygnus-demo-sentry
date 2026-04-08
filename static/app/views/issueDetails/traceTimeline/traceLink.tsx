@@ -2,10 +2,10 @@ import styled from '@emotion/styled';
 
 import {Link} from '@sentry/scraps/link';
 import {Text} from '@sentry/scraps/text';
-import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {useAnalyticsArea} from 'sentry/components/analyticsArea';
 import {getEventTimestampInSeconds} from 'sentry/components/events/interfaces/utils';
+import {DisabledTraceLinkTooltip} from 'sentry/components/explore/disabledTraceLink';
 import {QuestionTooltip} from 'sentry/components/questionTooltip';
 import {generateTraceTarget} from 'sentry/components/quickTrace/utils';
 import {IconChevron} from 'sentry/icons';
@@ -59,12 +59,12 @@ export function TraceLink({event}: TraceLinkProps) {
 
   if (isPartialSpanOrTraceData(getEventTimestampInSeconds(event))) {
     return (
-      <Tooltip showUnderline title={t('Trace is older than 30 days')} position="bottom">
+      <DisabledTraceLinkTooltip showUnderline type="trace" position="bottom">
         <NoTraceAvailable>
           <Text variant="muted">{t('View Full Trace')}</Text>
           <IconChevron direction="right" size="xs" />
         </NoTraceAvailable>
-      </Tooltip>
+      </DisabledTraceLinkTooltip>
     );
   }
 

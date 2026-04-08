@@ -26,6 +26,7 @@ import {
 } from 'sentry/components/events/interfaces/spans/utils';
 import {getEventTimestampInSeconds} from 'sentry/components/events/interfaces/utils';
 import {AnnotatedText} from 'sentry/components/events/meta/annotatedText';
+import {DisabledTraceLinkTooltip} from 'sentry/components/explore/disabledTraceLink';
 import {t} from 'sentry/locale';
 import type {Entry, EntryRequest, Event, EventTransaction} from 'sentry/types/event';
 import {EntryType} from 'sentry/types/event';
@@ -378,14 +379,11 @@ function AIDetectedSpanEvidence({
 
   const isOld = isPartialSpanOrTraceData(getEventTimestampInSeconds(event));
   const actionButton = projectSlug ? (
-    <Tooltip
-      title={t('Trace data is only available for the last 30 days')}
-      disabled={!isOld}
-    >
+    <DisabledTraceLinkTooltip disabled={!isOld} type="trace">
       <LinkButton size="xs" to={eventDetailsLocation} disabled={isOld}>
         {t('View Full Trace')}
       </LinkButton>
-    </Tooltip>
+    </DisabledTraceLinkTooltip>
   ) : undefined;
 
   const transactionRow = makeRow(
@@ -626,14 +624,11 @@ const makeTransactionNameRow = (
 
   const isOld = isPartialSpanOrTraceData(getEventTimestampInSeconds(event));
   const actionButton = projectSlug ? (
-    <Tooltip
-      title={t('Trace data is only available for the last 30 days')}
-      disabled={!isOld}
-    >
+    <DisabledTraceLinkTooltip disabled={!isOld} type="trace">
       <LinkButton size="xs" to={eventDetailsLocation} disabled={isOld}>
         {t('View Full Trace')}
       </LinkButton>
-    </Tooltip>
+    </DisabledTraceLinkTooltip>
   ) : undefined;
 
   return makeRow(

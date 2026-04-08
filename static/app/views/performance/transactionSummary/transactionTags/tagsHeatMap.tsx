@@ -11,12 +11,12 @@ import type {Location, LocationDescriptor} from 'history';
 import memoize from 'lodash/memoize';
 
 import {Flex} from '@sentry/scraps/layout';
-import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {HeatMapChart} from 'sentry/components/charts/heatMapChart';
 import {HeaderTitleLegend} from 'sentry/components/charts/styles';
 import {TransitionChart} from 'sentry/components/charts/transitionChart';
 import {TransparentLoadingMask} from 'sentry/components/charts/transparentLoadingMask';
+import {DisabledTraceLinkTooltip} from 'sentry/components/explore/disabledTraceLink';
 import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {MenuItem} from 'sentry/components/menuItem';
 import {Overlay, PositionWrapper} from 'sentry/components/overlay';
@@ -397,12 +397,9 @@ export function TagsHeatMap(
 
                       if (isOld) {
                         return (
-                          <Tooltip
-                            key={row.id}
-                            title={t('Trace data is only available for the last 30 days')}
-                          >
+                          <DisabledTraceLinkTooltip key={row.id} type="trace">
                             {dropdownItem}
-                          </Tooltip>
+                          </DisabledTraceLinkTooltip>
                         );
                       }
 

@@ -1,8 +1,8 @@
 import {LinkButton} from '@sentry/scraps/button';
-import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {KeyValueList} from 'sentry/components/events/interfaces/keyValueList';
 import {getEventTimestampInSeconds} from 'sentry/components/events/interfaces/utils';
+import {DisabledTraceLinkTooltip} from 'sentry/components/explore/disabledTraceLink';
 import {IconProfiling} from 'sentry/icons';
 import {t} from 'sentry/locale';
 import type {Event} from 'sentry/types/event';
@@ -33,10 +33,7 @@ export function ProfileEventEvidence({event, projectSlug}: ProfileEvidenceProps)
             key: 'Transaction Name',
             value: evidenceData.transactionName,
             actionButton: traceSlug ? (
-              <Tooltip
-                title={t('Trace data is only available for the last 30 days')}
-                disabled={!isOld}
-              >
+              <DisabledTraceLinkTooltip disabled={!isOld} type="trace">
                 <LinkButton
                   size="xs"
                   disabled={isOld}
@@ -53,7 +50,7 @@ export function ProfileEventEvidence({event, projectSlug}: ProfileEvidenceProps)
                 >
                   {t('View Transaction')}
                 </LinkButton>
-              </Tooltip>
+              </DisabledTraceLinkTooltip>
             ) : null,
           },
         ]
