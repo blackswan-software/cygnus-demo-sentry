@@ -7,7 +7,11 @@ from sentry.preprod.snapshots.models import PreprodSnapshotComparison, PreprodSn
 from sentry.preprod.url_utils import get_preprod_artifact_comparison_url, get_preprod_artifact_url
 
 _HEADER = "## Sentry Snapshot Testing"
-_PROCESSING_STATUS = "\u23f3 Processing"
+PROCESSING_STATUS = "\u23f3 Processing"
+COMPARISON_TABLE_HEADER = (
+    "| Name | Added | Removed | Modified | Renamed | Unchanged | Status |\n"
+    "| :--- | :---: | :---: | :---: | :---: | :---: | :---: |\n"
+)
 
 
 def format_snapshot_pr_comment(
@@ -29,7 +33,7 @@ def format_snapshot_pr_comment(
         metrics = snapshot_metrics_map.get(artifact.id)
 
         if not metrics:
-            table_rows.append(f"| {name_cell} | - | - | - | - | - | {_PROCESSING_STATUS} |")
+            table_rows.append(f"| {name_cell} | - | - | - | - | - | {PROCESSING_STATUS} |")
             continue
 
         comparison = comparisons_map.get(metrics.id)
@@ -43,14 +47,14 @@ def format_snapshot_pr_comment(
             continue
 
         if not comparison:
-            table_rows.append(f"| {name_cell} | - | - | - | - | - | {_PROCESSING_STATUS} |")
+            table_rows.append(f"| {name_cell} | - | - | - | - | - | {PROCESSING_STATUS} |")
             continue
 
         if comparison.state in (
             PreprodSnapshotComparison.State.PENDING,
             PreprodSnapshotComparison.State.PROCESSING,
         ):
-            table_rows.append(f"| {name_cell} | - | - | - | - | - | {_PROCESSING_STATUS} |")
+            table_rows.append(f"| {name_cell} | - | - | - | - | - | {PROCESSING_STATUS} |")
         elif comparison.state == PreprodSnapshotComparison.State.FAILED:
             table_rows.append(f"| {name_cell} | - | - | - | - | - | \u274c Comparison failed |")
         else:
@@ -82,12 +86,7 @@ def format_snapshot_pr_comment(
                 f" | {status} |"
             )
 
-    table_header = (
-        "| Name | Added | Removed | Modified | Renamed | Unchanged | Status |\n"
-        "| :--- | :---: | :---: | :---: | :---: | :---: | :---: |\n"
-    )
-
-    return f"{_HEADER}\n\n{table_header}" + "\n".join(table_rows)
+    return f"{_HEADER}\n\n{COMPARISON_TABLE_HEADER}" + "\n".join(table_rows)
 
 
 def _name_cell(
