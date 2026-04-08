@@ -108,7 +108,13 @@ class ProduceProcessingErrorsToEAPTest(TestCase):
         )
         errors = [{"type": "js_no_source", "symbolicator_type": "missing_sourcemap"}]
 
-        produce_processing_errors_to_eap(self.project, event_data, errors, group_id=12345)
+        produce_processing_errors_to_eap(
+            self.project,
+            event_data,
+            errors,
+            group_id=12345,
+            title="ReferenceError: undefined variable",
+        )
 
         payload = mock_producer.produce.call_args[0][1]
         trace_item = codec.decode(payload.value)
@@ -119,7 +125,7 @@ class ProduceProcessingErrorsToEAPTest(TestCase):
         assert trace_item.attributes["sdk_name"].string_value == "sentry.javascript.browser"
         assert trace_item.attributes["sdk_version"].string_value == "7.0.0"
         assert trace_item.attributes["title"].string_value == "ReferenceError: undefined variable"
-        assert trace_item.attributes["group_id"].string_value == "12345"
+        assert trace_item.attributes["group_id"].int_value == 12345
 
     @patch("sentry.processing_errors.eap.producer._eap_producer")
     @patch("sentry.processing_errors.eap.producer.get_topic_definition")
