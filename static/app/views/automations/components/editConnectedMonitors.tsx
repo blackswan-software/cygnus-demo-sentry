@@ -135,11 +135,13 @@ function ConnectMonitorsDrawer({
   const [localDetectorIds, setLocalDetectorIds] = useState(initialIds);
 
   const toggleConnected = ({detector}: {detector: Detector}) => {
-    const queryKey = detectorListApiOptions(organization, {
-      ids: localDetectorIds,
-      includeIssueStreamDetectors: true,
-    }).queryKey;
-    const oldDetectorsData = queryClient.getQueryData(queryKey)?.json ?? [];
+    const oldDetectorsData =
+      queryClient.getQueryData(
+        detectorListApiOptions(organization, {
+          ids: localDetectorIds,
+          includeIssueStreamDetectors: true,
+        }).queryKey
+      )?.json ?? [];
 
     const newDetectors = (
       oldDetectorsData.some(d => d.id === detector.id)
@@ -149,7 +151,13 @@ function ConnectMonitorsDrawer({
     const newDetectorIds = newDetectors.map(d => d.id);
 
     // Update the query cache to prevent the list from being fetched anew
-    queryClient.setQueryData(queryKey, old => (old ? {...old, json: newDetectors} : old));
+    queryClient.setQueryData(
+      detectorListApiOptions(organization, {
+        ids: newDetectorIds,
+        includeIssueStreamDetectors: true,
+      }).queryKey,
+      old => (old ? {...old, json: newDetectors} : old)
+    );
 
     setLocalDetectorIds(newDetectorIds);
     setDetectorIds(newDetectorIds);
