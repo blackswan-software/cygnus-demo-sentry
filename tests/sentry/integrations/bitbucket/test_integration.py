@@ -70,7 +70,7 @@ class BitbucketIntegrationTest(APITestCase):
             responses.GET,
             base_url,
             json={
-                "values": [{"full_name": "sentryuser/repo-1"}],
+                "values": [{"full_name": "sentryuser/repo-1", "uuid": "{r1}"}],
                 "next": f"{base_url}?pagelen=100&page=2",
             },
         )
@@ -78,22 +78,22 @@ class BitbucketIntegrationTest(APITestCase):
             responses.GET,
             f"{base_url}?pagelen=100&page=2",
             json={
-                "values": [{"full_name": "sentryuser/repo-2"}],
+                "values": [{"full_name": "sentryuser/repo-2", "uuid": "{r2}"}],
                 "next": f"{base_url}?pagelen=100&page=3",
             },
         )
         responses.add(
             responses.GET,
             f"{base_url}?pagelen=100&page=3",
-            json={"values": [{"full_name": "sentryuser/repo-3"}]},
+            json={"values": [{"full_name": "sentryuser/repo-3", "uuid": "{r3}"}]},
         )
 
         installation = self.integration.get_installation(self.organization.id)
         result = installation.get_repositories()
         assert result == [
-            {"identifier": "sentryuser/repo-1", "name": "sentryuser/repo-1"},
-            {"identifier": "sentryuser/repo-2", "name": "sentryuser/repo-2"},
-            {"identifier": "sentryuser/repo-3", "name": "sentryuser/repo-3"},
+            {"identifier": "sentryuser/repo-1", "name": "sentryuser/repo-1", "external_id": "{r1}"},
+            {"identifier": "sentryuser/repo-2", "name": "sentryuser/repo-2", "external_id": "{r2}"},
+            {"identifier": "sentryuser/repo-3", "name": "sentryuser/repo-3", "external_id": "{r3}"},
         ]
 
     @responses.activate
@@ -105,7 +105,7 @@ class BitbucketIntegrationTest(APITestCase):
             responses.GET,
             base_url,
             json={
-                "values": [{"full_name": "sentryuser/repo-1"}],
+                "values": [{"full_name": "sentryuser/repo-1", "uuid": "{r1}"}],
                 "next": f"{base_url}?pagelen=100&page=2",
             },
         )
@@ -113,13 +113,13 @@ class BitbucketIntegrationTest(APITestCase):
         responses.add(
             responses.GET,
             f"{base_url}?pagelen=100&page=2",
-            json={"values": [{"full_name": "sentryuser/repo-2"}]},
+            json={"values": [{"full_name": "sentryuser/repo-2", "uuid": "{r2}"}]},
         )
 
         installation = self.integration.get_installation(self.organization.id)
         result = installation.get_repositories(page_number_limit=1)
         assert result == [
-            {"identifier": "sentryuser/repo-1", "name": "sentryuser/repo-1"},
+            {"identifier": "sentryuser/repo-1", "name": "sentryuser/repo-1", "external_id": "{r1}"},
         ]
         assert len(responses.calls) == 1
 
