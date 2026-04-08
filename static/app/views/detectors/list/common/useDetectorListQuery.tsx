@@ -2,6 +2,7 @@ import {useQuery} from '@tanstack/react-query';
 
 import {usePageFilters} from 'sentry/components/pageFilters/usePageFilters';
 import type {DetectorType} from 'sentry/types/workflowEngine/detectors';
+import {selectJsonWithHeaders} from 'sentry/utils/api/apiOptions';
 import {decodeScalar} from 'sentry/utils/queryString';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useOrganization} from 'sentry/utils/useOrganization';
@@ -41,6 +42,7 @@ export function useDetectorListQuery({
       projects: selection.projects,
       limit: DETECTOR_LIST_PAGE_LIMIT,
     }),
+    select: selectJsonWithHeaders,
     enabled: isReady,
   });
 }
