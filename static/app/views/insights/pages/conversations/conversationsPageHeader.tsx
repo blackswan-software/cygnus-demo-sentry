@@ -42,6 +42,7 @@ export function ConversationsPageHeader({
         </Fragment>
       }
       modules={[]}
+      selectedModule={undefined}
       additonalHeaderActions={headerActions}
       additionalBreadCrumbs={breadcrumbs}
       hideDefaultTabs={hideDefaultTabs}
