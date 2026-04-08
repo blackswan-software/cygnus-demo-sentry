@@ -12,6 +12,7 @@ import {t} from 'sentry/locale';
 import type {Event} from 'sentry/types/event';
 import {getApiUrl} from 'sentry/utils/api/getApiUrl';
 import {useApiQuery} from 'sentry/utils/queryClient';
+import {isPartialSpanOrTraceData} from 'sentry/utils/trace/isOlderThan30Days';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
@@ -58,6 +59,9 @@ export function ProjectEventRedirect() {
     {staleTime: 2 * 60 * 1000} // 2 minutes in milliseconds
   );
 
+  const traceTimestamp = event ? getEventTimestampInSeconds(event) : undefined;
+  const isOldTrace = traceTimestamp ? isPartialSpanOrTraceData(traceTimestamp) : false;
+
   useEffect(() => {
     if (!event) {
       return;
@@ -98,21 +102,28 @@ export function ProjectEventRedirect() {
 
     // For events without a group ID (e.g., transaction events), try to navigate to trace details
     const traceId = event.contexts?.trace?.trace_id;
-    if (traceId) {
-      const timestamp = getEventTimestampInSeconds(event);
+    if (traceId && !isOldTrace) {
       navigate(
         getTraceDetailsUrl({
           organization,
           traceSlug: traceId,
           dateSelection: datetimeSelection,
-          timestamp,
+          timestamp: traceTimestamp,
           eventId: event.eventID,
           location,
         }),
         {replace: true}
       );
     }
-  }, [event, organization, datetimeSelection, location, navigate]);
+  }, [
+    event,
+    organization,
+    datetimeSelection,
+    isOldTrace,
+    location,
+    navigate,
+    traceTimestamp,
+  ]);
 
   if (error) {
     const notFound = error.status === 404;
@@ -134,6 +145,12 @@ export function ProjectEventRedirect() {
         message={error.message || t('Could not load the requested event')}
         hideSupportLinks
       />
+    );
+  }
+
+  if (event && isOldTrace) {
+    return (
+      <LoadingError message={t('Trace data is only available for the last 30 days')} />
     );
   }
 

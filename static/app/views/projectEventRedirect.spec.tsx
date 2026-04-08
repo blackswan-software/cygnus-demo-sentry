@@ -2,6 +2,7 @@ import {EventFixture} from 'sentry-fixture/event';
 import {OrganizationFixture} from 'sentry-fixture/organization';
 
 import {render, screen, waitFor} from 'sentry-test/reactTestingLibrary';
+import {resetMockDate, setMockDate} from 'sentry-test/utils';
 
 import {IssueCategory} from 'sentry/types/group';
 import {ProjectEventRedirect} from 'sentry/views/projectEventRedirect';
@@ -11,6 +12,10 @@ describe('ProjectEventRedirect', () => {
 
   beforeEach(() => {
     MockApiClient.clearMockResponses();
+  });
+
+  afterEach(() => {
+    resetMockDate();
   });
 
   it('redirects to issue event page when event has groupID', async () => {
@@ -77,6 +82,43 @@ describe('ProjectEventRedirect', () => {
         })
       );
     });
+  });
+
+  it('shows a retention message instead of redirecting for old transaction events', async () => {
+    setMockDate(new Date('2025-10-06T00:00:00Z').getTime());
+
+    const event = EventFixture({
+      eventID: 'abc123',
+      groupID: undefined,
+      contexts: {
+        trace: {
+          trace_id: 'trace-123',
+        },
+      },
+      dateCreated: '2025-08-01T00:00:00.000Z',
+    });
+
+    MockApiClient.addMockResponse({
+      url: `/organizations/${organization.slug}/events/my-project:event-id/`,
+      body: event,
+    });
+
+    const {router} = render(<ProjectEventRedirect />, {
+      organization,
+      initialRouterConfig: {
+        location: {
+          pathname: `/organizations/${organization.slug}/projects/my-project/events/event-id/`,
+        },
+        route: '/organizations/:orgId/projects/:projectId/events/:eventId/',
+      },
+    });
+
+    expect(
+      await screen.findByText('Trace data is only available for the last 30 days')
+    ).toBeInTheDocument();
+    expect(router.location.pathname).toBe(
+      `/organizations/${organization.slug}/projects/my-project/events/event-id/`
+    );
   });
 
   it('shows NotFound for 404 errors', async () => {
