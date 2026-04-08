@@ -215,6 +215,9 @@ def fetch_commits(
             pass
 
     organization = release.organization
+    github_compare_commits_cache_feature_enabled = features.has(
+        GITHUB_FETCH_COMMITS_COMPARE_CACHE_FEATURE, organization, actor=user
+    )
 
     for ref in refs:
         resolved = get_repo_and_provider_for_ref(release=release, ref=ref, user_id=user_id)
@@ -259,9 +262,7 @@ def fetch_commits(
             try:
                 provider_name = repo.provider
                 compare_commits_cache_enabled = (
-                    features.has(
-                        GITHUB_FETCH_COMMITS_COMPARE_CACHE_FEATURE, organization, actor=user
-                    )
+                    github_compare_commits_cache_feature_enabled
                     and isinstance(provider_name, str)
                     and provider_name in GITHUB_CACHEABLE_REPOSITORY_PROVIDERS
                     and start_sha is not None
