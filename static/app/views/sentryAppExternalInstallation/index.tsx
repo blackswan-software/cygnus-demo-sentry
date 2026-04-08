@@ -68,6 +68,7 @@ function SentryAppExternalInstallationContent() {
     ],
     {
       staleTime: 0,
+      retry: false,
     }
   );
 
