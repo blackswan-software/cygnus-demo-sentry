@@ -1273,7 +1273,9 @@ class ExploreSavedQueriesTest(APITestCase):
                 },
             )
         assert response.status_code == 400, response.content
-        assert "Metric field is required for metrics dataset" in str(response.data)
+        assert "Metric field is required for non-equation queries on the metrics dataset" in str(
+            response.data
+        )
 
     def test_save_with_start_and_end_time(self) -> None:
         with self.feature(self.features):
