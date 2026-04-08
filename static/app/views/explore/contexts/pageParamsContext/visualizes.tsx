@@ -126,16 +126,20 @@ export function updateVisualizeAggregate({
     return `${newAggregate}(${DEFAULT_VISUALIZATION_FIELD})`;
   }
 
-  // Check if old arguments are valid for the new function's column restrictions
-  if (oldArguments?.length && newFieldDefinition?.parameters?.length) {
-    const param = newFieldDefinition.parameters[0];
+  // Check if old arguments are valid for score functions with restricted columns
+  if (
+    oldArguments?.length &&
+    (newAggregate === AggregationKey.PERFORMANCE_SCORE ||
+      newAggregate === AggregationKey.OPPORTUNITY_SCORE)
+  ) {
+    const param = newFieldDefinition?.parameters?.[0];
     if (param?.kind === 'column' && typeof param.columnTypes === 'function') {
       const isValid = param.columnTypes({
         key: oldArguments[0]!,
         valueType: FieldValueType.NUMBER,
       });
       if (!isValid) {
-        const params = newFieldDefinition.parameters.map(p => p.defaultValue || '');
+        const params = newFieldDefinition!.parameters!.map(p => p.defaultValue || '');
         return `${newAggregate}(${params.join(',')})`;
       }
     }
