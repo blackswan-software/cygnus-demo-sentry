@@ -17,6 +17,7 @@ from sentry.seer.autofix.utils import is_issue_category_eligible
 from sentry.seer.models.project_repository import SeerProjectRepository
 from sentry.tasks.base import instrumented_task
 from sentry.taskworker.namespaces import seer_tasks
+from sentry.types.group import PriorityLevel
 from sentry.utils.iterators import chunked
 from sentry.utils.query import RangeQuerySetWrapper
 
@@ -224,7 +225,7 @@ def _fixability_score_strategy(
                     project_id=group.project_id,
                     fixability=group.seer_fixability_score or 0.0,
                     times_seen=group.times_seen,
-                    severity=(group.priority or 0) / 75.0,
+                    severity=(group.priority or 0) / PriorityLevel.HIGH,
                 )
             )
 
