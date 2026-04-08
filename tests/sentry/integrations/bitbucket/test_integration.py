@@ -63,6 +63,67 @@ class BitbucketIntegrationTest(APITestCase):
         ]
 
     @responses.activate
+    def test_get_repositories_multiple_pages(self) -> None:
+        """get_repos aggregates all pages by following the 'next' URL."""
+        base_url = "https://api.bitbucket.org/2.0/repositories/sentryuser"
+        responses.add(
+            responses.GET,
+            base_url,
+            json={
+                "values": [{"full_name": "sentryuser/repo-1"}],
+                "next": f"{base_url}?pagelen=100&page=2",
+            },
+        )
+        responses.add(
+            responses.GET,
+            f"{base_url}?pagelen=100&page=2",
+            json={
+                "values": [{"full_name": "sentryuser/repo-2"}],
+                "next": f"{base_url}?pagelen=100&page=3",
+            },
+        )
+        responses.add(
+            responses.GET,
+            f"{base_url}?pagelen=100&page=3",
+            json={"values": [{"full_name": "sentryuser/repo-3"}]},
+        )
+
+        installation = self.integration.get_installation(self.organization.id)
+        result = installation.get_repositories()
+        assert result == [
+            {"identifier": "sentryuser/repo-1", "name": "sentryuser/repo-1"},
+            {"identifier": "sentryuser/repo-2", "name": "sentryuser/repo-2"},
+            {"identifier": "sentryuser/repo-3", "name": "sentryuser/repo-3"},
+        ]
+
+    @responses.activate
+    def test_get_repositories_respects_page_limit(self) -> None:
+        """Pagination stops at the page_number_limit."""
+        base_url = "https://api.bitbucket.org/2.0/repositories/sentryuser"
+        # Page 1 has a next link but we pass page_number_limit=1
+        responses.add(
+            responses.GET,
+            base_url,
+            json={
+                "values": [{"full_name": "sentryuser/repo-1"}],
+                "next": f"{base_url}?pagelen=100&page=2",
+            },
+        )
+        # Page 2 should not be fetched
+        responses.add(
+            responses.GET,
+            f"{base_url}?pagelen=100&page=2",
+            json={"values": [{"full_name": "sentryuser/repo-2"}]},
+        )
+
+        installation = self.integration.get_installation(self.organization.id)
+        result = installation.get_repositories(page_number_limit=1)
+        assert result == [
+            {"identifier": "sentryuser/repo-1", "name": "sentryuser/repo-1"},
+        ]
+        assert len(responses.calls) == 1
+
+    @responses.activate
     def test_get_repositories_exact_match(self) -> None:
         querystring = urlencode({"q": 'name="stuf"'})
         responses.add(

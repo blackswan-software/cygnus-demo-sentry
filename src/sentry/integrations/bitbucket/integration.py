@@ -140,7 +140,7 @@ class BitbucketIntegration(RepositoryIntegration[BitbucketApiClient], BitbucketI
     ) -> list[RepositoryInfo]:
         username = self.model.metadata.get("uuid", self.username)
         if not query:
-            repos = self.get_client().get_repos(username)
+            repos = self.get_client().get_repos(username, page_number_limit=page_number_limit)
             return [
                 {
                     "identifier": repo["full_name"],
