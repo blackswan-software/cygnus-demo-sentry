@@ -4,11 +4,11 @@
 
 Verify the supply chain of [Sentry](https://github.com/getsentry/sentry) — 40K+ GitHub stars, 30+ Python dependencies.
 
-## Clone and verify
+## Try it on Sentry
 
 ```bash
-git clone git@github.com:blackswan-software/cygnus-demo-sentry.git
-cd cygnus-demo-sentry
+git clone https://github.com/getsentry/sentry.git
+cd sentry
 curl -fsSL https://install.blackswan-software.ai | sh
 cygnus verify
 ```
@@ -82,4 +82,4 @@ fastapi==0.115.6    FULLY_VERIFIED    FV            signed    0 CVEs
 ## Links
 
 - [Cygnus](https://blackswan-software.ai) — The Certificate Authority for Software Libraries
-- [Sentry](https://github.com/getsentry/sentry) — Debugging platform
+- [Sentry](https://github.com/getsentry/sentry) — Fork it and try Cygnus
